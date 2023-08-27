@@ -36,6 +36,9 @@ indent_size = 4
 
 # .NET Coding Conventions
 
+# .NET source code analysis
+dotnet_code_quality.CA1826.exclude_ordefault_methods = true
+
 # Organize usings
 dotnet_sort_system_directives_first = true:warning
 
