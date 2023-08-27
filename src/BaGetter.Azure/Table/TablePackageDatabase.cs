@@ -196,7 +196,7 @@ namespace BaGetter.Azure
                 cancellationToken);
         }
 
-        private List<string> MinimalColumnSet => new List<string> { "PartitionKey" };
+        private static List<string> MinimalColumnSet => new List<string> { "PartitionKey" };
 
         private async Task<bool> TryUpdatePackageAsync(TableOperation operation, CancellationToken cancellationToken)
         {
