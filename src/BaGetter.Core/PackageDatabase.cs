@@ -132,7 +132,7 @@ namespace BaGetter.Core
             var package = await _context.Packages
                 .Where(p => p.Id == id)
                 .Where(p => p.NormalizedVersionString == version.ToNormalizedString())
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (package != null)
             {
