@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using BaGet.Web;
+using BaGetter.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace BaGetWebApplication
+namespace BaGetterWebApplication
 {
     public class Program
     {

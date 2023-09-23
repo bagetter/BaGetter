@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BaGet.Protocol.Models;
+using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 using Xunit;
 
-namespace BaGet.Protocol.Samples.Tests
+namespace BaGetter.Protocol.Samples.Tests
 {
     public class Sample02_Search
     {

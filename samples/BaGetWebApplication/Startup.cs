@@ -1,18 +1,18 @@
-using BaGet;
+using BaGetter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace BaGetWebApplication
+namespace BaGetterWebApplication
 {
     public class Startup
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddBaGetWebApplication(app =>
+            services.AddBaGetterWebApplication(app =>
             {
-                // Use SQLite as BaGet's database and store packages on the local file system.
+                // Use SQLite as BaGetter's database and store packages on the local file system.
                 app.AddSqliteDatabase();
                 app.AddFileStorage();
             });
@@ -30,8 +30,8 @@ namespace BaGetWebApplication
 
             app.UseEndpoints(endpoints =>
             {
-                // Add BaGet's endpoints.
-                var baget = new BaGetEndpointBuilder();
+                // Add BaGetter's endpoints.
+                var baget = new BaGetterEndpointBuilder();
 
                 baget.MapEndpoints(endpoints);
             });
