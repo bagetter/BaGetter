@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
 
     <PackageTags>NuGet;Google;Cloud</PackageTags>
     <Description>The libraries to host BaGetter on the Google Cloud Platform.</Description>

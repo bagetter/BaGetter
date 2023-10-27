@@ -2,7 +2,7 @@
   <PropertyGroup>
     <PackageTags>NuGet;Alibaba;Cloud</PackageTags>
     <Description>The libraries to host BaGetter on Alibaba Cloud (Aliyun).</Description>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
