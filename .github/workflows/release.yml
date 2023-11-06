@@ -26,7 +26,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.100-rc.2
+        dotnet-version: 8.0.100
     - name: Test
       run: dotnet test --verbosity normal
 
@@ -40,7 +40,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.100-rc.2
+        dotnet-version: 8.0.100
     - name: Publish
       run: dotnet publish src/BaGetter --configuration Release --output artifacts
     - name: Upload
@@ -59,7 +59,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.0.100-rc.2
+        dotnet-version: 8.0.100
     - name: Pack
       run: dotnet pack --configuration Release --output artifacts
     - name: Push
