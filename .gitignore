@@ -269,8 +269,8 @@ __pycache__/
 # tools/
 
 # Ignore database files
-**/baget.db
-**/baget.db-shm
-**/baget.db-wal
+**/bagetter.db
+**/bagetter.db-shm
+**/bagetter.db-wal
 
 .vscode/

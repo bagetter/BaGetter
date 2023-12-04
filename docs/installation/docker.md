@@ -1,6 +1,6 @@
 # Run BaGetter on Docker
 
-## Configure BaGet
+## Configure BaGetter
 
 Create a file named `bagetter.env` to store BaGetter's configurations:
 
@@ -10,9 +10,9 @@ Create a file named `bagetter.env` to store BaGetter's configurations:
 ApiKey=NUGET-SERVER-API-KEY
 
 Storage__Type=FileSystem
-Storage__Path=/var/baget/packages
+Storage__Path=/data
 Database__Type=Sqlite
-Database__ConnectionString=Data Source=/var/baget/baget.db
+Database__ConnectionString=Data Source=/data/db/bagetter.db
 Search__Type=Database
 ```
 
@@ -23,10 +23,10 @@ For a full list of configurations, please refer to [BaGetter's configuration](..
     variables. To learn how these configurations work, please refer to
     [ASP.NET Core's configuration documentation](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-2.1&tabs=basicconfiguration#configuration-by-environment).
 
-## Run BaGet
+## Run BaGetter
 
 1. Create a folder named `bagetter-data` in the same directory as the `bagetter.env` file. This will be used by BaGetter to persist its state.
-2. Pull BaGetter's latest [docker image](https://hub.docker.com/r/loicsharma/baget):
+2. Pull BaGetter's latest [docker image](hhttps://hub.docker.com/r/bagetter/bagetter):
 
 ```
 docker pull bagetter/bagetter
@@ -35,7 +35,7 @@ docker pull bagetter/bagetter
 You can now run BaGetter:
 
 ```
-docker run --rm --name nuget-server -p 5555:80 --env-file bagetter.env -v "$(pwd)/baget-data:/var/baget" loicsharma/baget:latest
+docker run --rm --name nuget-server -p 5000:8080 --env-file bagetter.env -v "$(pwd)/bagetter-data:/data" bagetter/bagetter:latest
 ```
 
 ## Publish packages
@@ -53,7 +53,7 @@ dotnet nuget push -s http://localhost:5555/v3/index.json -k NUGET-SERVER-API-KEY
 ```
 
 !!! warning
-    The default API Key to publish packages is `NUGET-SERVER-API-KEY`. You should change this to a secret value to secure your server. See [Configure BaGet](#configure-baget).
+    The default API Key to publish packages is `NUGET-SERVER-API-KEY`. You should change this to a secret value to secure your server. See [Configure BaGetter](#configure-bagetter).
 
 ## Browse packages
 

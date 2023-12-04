@@ -66,7 +66,7 @@ downloaded if you know the package's id and version. You can override this behav
 
 ## Enable package overwrites
 
-Normally, BaGetter will reject a package upload if the id and version are already taken. You can configure BaGet
+Normally, BaGetter will reject a package upload if the id and version are already taken. You can configure BaGetter
 to overwrite the already existing package by setting `AllowPackageOverwrites`:
 
 ```json
@@ -88,7 +88,7 @@ A private feed requires users to authenticate before accessing packages.
 
 ## Database configuration
 
-BaGet supports multiple database engines for storing package information:
+BaGetter supports multiple database engines for storing package information:
 
 
 - MySQL: `MySql`
@@ -118,7 +118,7 @@ The database settings are located under the `Database` key in the `appsettings.j
 
     "Database": {
         "Type": "Sqlite",
-        "ConnectionString": "Data Source=baget.db"
+        "ConnectionString": "Data Source=bagetter.db"
     },
 
     ...
