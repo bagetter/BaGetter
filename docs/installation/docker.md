@@ -43,13 +43,13 @@ docker run --rm --name nuget-server -p 5000:8080 --env-file bagetter.env -v "$(p
 Publish your first package with:
 
 ```
-dotnet nuget push -s http://localhost:5555/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
+dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
 ```
 
 Publish your first [symbol package](https://docs.microsoft.com/en-us/nuget/create-packages/symbol-packages-snupkg) with:
 
 ```
-dotnet nuget push -s http://localhost:5555/v3/index.json -k NUGET-SERVER-API-KEY symbol.package.1.0.0.snupkg
+dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY symbol.package.1.0.0.snupkg
 ```
 
 !!! warning
@@ -57,13 +57,13 @@ dotnet nuget push -s http://localhost:5555/v3/index.json -k NUGET-SERVER-API-KEY
 
 ## Browse packages
 
-You can browse packages by opening the URL [`http://localhost:5555/`](http://localhost:5555/) in your browser.
+You can browse packages by opening the URL [`http://localhost:5000/`](http://localhost:5000/) in your browser.
 
 ## Restore packages
 
 You can restore packages by using the following package source:
 
-`http://localhost:5555/v3/index.json`
+`http://localhost:5000/v3/index.json`
 
 Some helpful guides:
 
@@ -74,6 +74,6 @@ Some helpful guides:
 
 You can load symbols by using the following symbol location:
 
-`http://localhost:5555/api/download/symbols`
+`http://localhost:5000/api/download/symbols`
 
 For Visual Studio, please refer to the [Configure Debugging](https://docs.microsoft.com/en-us/visualstudio/debugger/specify-symbol-dot-pdb-and-source-files-in-the-visual-studio-debugger?view=vs-2017#configure-symbol-locations-and-loading-options) guide.
