@@ -62,7 +62,7 @@ namespace BaGetter.Tests
         private IServiceProvider BuildServiceProvider(Dictionary<string, string> configs = null)
         {
             var host = Program
-                .CreateHostBuilder(new string[0])
+                .CreateHostBuilder(Array.Empty<string>())
                 .ConfigureAppConfiguration((ctx, config) =>
                 {
                     config.AddInMemoryCollection(configs ?? new Dictionary<string, string>());
