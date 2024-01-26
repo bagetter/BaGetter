@@ -67,6 +67,9 @@ namespace BaGetter
                     {
                         config.SetBasePath(root);
                     }
+
+                    // Optionally load secrets from files in the conventional path
+                    config.AddKeyPerFile("/run/secrets", optional: true);
                 })
                 .ConfigureWebHostDefaults(web =>
                 {
