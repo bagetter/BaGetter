@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Newtonsoft.Json;
 
@@ -10,7 +11,7 @@ namespace BaGetter.Core
         public StringArrayToJsonConverter()
             : base(
                 v => JsonConvert.SerializeObject(v),
-                v => (!string.IsNullOrEmpty(v)) ? JsonConvert.DeserializeObject<string[]>(v) : new string[0])
+                v => (!string.IsNullOrEmpty(v)) ? JsonConvert.DeserializeObject<string[]>(v) : Array.Empty<string>())
         {
         }
     }
