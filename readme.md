@@ -28,7 +28,7 @@ For more information, please refer to the [documentation].
 ## 📦 Features
 
 * **Cross-platform**: runs on Windows, macOS, and Linux!
-* **Cloud native**: supports [Docker][Docker doc link], [Azure][Azure doc link], [AWS][AWS doc link], [Google Cloud][GCP doc link], [Alibaba Cloud][Aliyun doc link]
+* **Cloud native**: supports [Docker][Docker doc link], [AWS][AWS doc link], [Google Cloud][GCP doc link], [Alibaba Cloud][Aliyun doc link]
 * **Offline support**: [Mirror a NuGet server][Read through caching] to speed up builds and enable offline downloads
 
 ## 🤝 Contributing
@@ -62,7 +62,6 @@ If you have questions, feel free to open an [issue] or join our [Discord Server]
 
 [Documentation]: https://www.bagetter.com/
 [Read through caching]: https://www.bagetter.com/docs/configuration#enable-read-through-caching
-[Azure doc link]: https://www.bagetter.com/docs/Installation/azure
 [AWS doc link]: https://www.bagetter.com/docs/Installation/aws
 [GCP doc link]: https://www.bagetter.com/docs/Installation/gcp
 [Aliyun doc link]: https://www.bagetter.com/docs/Installation/aliyun
