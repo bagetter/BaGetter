@@ -42,7 +42,7 @@ namespace BaGetter.Aws
             {
                 using (var request = await _client.GetObjectAsync(_bucket, PrepareKey(path), cancellationToken))
                 {
-                    await request.ResponseStream.CopyToAsync(stream);
+                    await request.ResponseStream.CopyToAsync(stream, cancellationToken);
                 }
 
                 stream.Seek(0, SeekOrigin.Begin);

@@ -205,7 +205,7 @@ namespace BaGetter.Web
 
                 using (var reader = new StreamReader(readmeStream))
                 {
-                    readme = await reader.ReadToEndAsync();
+                    readme = await reader.ReadToEndAsync(cancellationToken);
                 }
             }
 
