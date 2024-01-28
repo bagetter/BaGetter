@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <!-- Can be removed once `Microsoft.EntityFrameworkCore.SqlServer` updates its own dependency >=5.1.3 -->
     <PackageReference Include="Microsoft.Data.SqlClient" />
   </ItemGroup>
 
