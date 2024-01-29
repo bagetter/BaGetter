@@ -7,7 +7,7 @@ namespace BaGetter.Web
     {
         public static IApplicationBuilder UseOperationCancelledMiddleware(this IApplicationBuilder app)
         {
-            if (app == null) throw new ArgumentNullException(nameof(app));
+            ArgumentNullException.ThrowIfNull(app);
 
             return app.UseMiddleware<OperationCancelledMiddleware>();
         }

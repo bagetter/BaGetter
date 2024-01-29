@@ -18,7 +18,7 @@ namespace BaGetter.Core
 
         public FileStorageService(IOptionsSnapshot<FileSystemStorageOptions> options)
         {
-            if (options == null) throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             // Resolve relative path components ('.'/'..') and ensure there is a trailing slash.
             _storePath = Path.GetFullPath(options.Value.Path);
@@ -51,7 +51,7 @@ namespace BaGetter.Core
             string contentType,
             CancellationToken cancellationToken = default)
         {
-            if (content == null) throw new ArgumentNullException(nameof(content));
+            ArgumentNullException.ThrowIfNull(content);
             if (string.IsNullOrEmpty(contentType)) throw new ArgumentException("Content type is required", nameof(contentType));
 
             cancellationToken.ThrowIfCancellationRequested();

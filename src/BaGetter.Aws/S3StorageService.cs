@@ -18,8 +18,7 @@ namespace BaGetter.Aws
 
         public S3StorageService(IOptionsSnapshot<S3StorageOptions> options, AmazonS3Client client)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             _bucket = options.Value.Bucket;
             _prefix = options.Value.Prefix;

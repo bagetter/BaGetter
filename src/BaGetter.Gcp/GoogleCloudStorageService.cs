@@ -18,8 +18,7 @@ namespace BaGetter.Gcp
 
         public GoogleCloudStorageService(IOptionsSnapshot<GoogleCloudStorageOptions> options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             _bucketName = options.Value.BucketName;
         }

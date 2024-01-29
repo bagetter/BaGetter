@@ -104,8 +104,7 @@ namespace BaGetter.Core
         /// </returns>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
-            if (validationContext == null)
-                throw new ArgumentNullException(nameof(validationContext));
+            ArgumentNullException.ThrowIfNull(validationContext);
 
             var otherProperty = validationContext.ObjectType.GetProperty(OtherProperty);
             if (otherProperty == null)

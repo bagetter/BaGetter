@@ -11,7 +11,7 @@ namespace BaGetter.Core
 
         public ApiKeyAuthenticationService(IOptionsSnapshot<BaGetterOptions> options)
         {
-            if (options == null) throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             _apiKey = string.IsNullOrEmpty(options.Value.ApiKey) ? null : options.Value.ApiKey;
         }
