@@ -92,7 +92,7 @@ namespace BaGetter.Core
                 },
             };
 
-        private static IReadOnlyList<DependencyGroupItem> ToDependencyGroups(Package package)
+        private static List<DependencyGroupItem> ToDependencyGroups(Package package)
         {
             return package.Dependencies
                 .GroupBy(d => d.TargetFramework)

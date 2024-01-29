@@ -110,7 +110,7 @@ namespace BaGetter.Web
             PackageDownloadUrl = _url.GetPackageDownloadUrl(Package.Id, packageVersion);
         }
 
-        private static IReadOnlyList<DependencyGroupModel> ToDependencyGroups(Package package)
+        private static List<DependencyGroupModel> ToDependencyGroups(Package package)
         {
             return package
                 .Dependencies
@@ -179,7 +179,7 @@ namespace BaGetter.Web
             return $"{frameworkName} {frameworkVersion}";
         }
 
-        private static IReadOnlyList<VersionModel> ToVersions(IReadOnlyList<Package> packages, NuGetVersion selectedVersion)
+        private static List<VersionModel> ToVersions(IReadOnlyList<Package> packages, NuGetVersion selectedVersion)
         {
             return packages
                 .Select(p => new VersionModel
