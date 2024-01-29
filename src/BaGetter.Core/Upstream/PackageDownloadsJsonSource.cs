@@ -56,9 +56,10 @@ namespace BaGetter.Core
                                 continue;
                             }
 
-                            if (!results.ContainsKey(id))
+                            if (!results.TryGetValue(id, out var value))
                             {
-                                results.Add(id, new Dictionary<string, long>());
+                                value = new Dictionary<string, long>();
+                                results.Add(id, value);
                             }
 
                             foreach (var token in record)
@@ -67,8 +68,7 @@ namespace BaGetter.Core
                                 {
                                     var version = string.Intern(NuGetVersion.Parse(token[0].ToString()).ToNormalizedString().ToLowerInvariant());
                                     var downloads = token[1].ToObject<int>();
-
-                                    results[id][version] = downloads;
+                                    value[version] = downloads;
                                 }
                             }
                         }

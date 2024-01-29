@@ -41,8 +41,8 @@ namespace BaGetter.Core
                     var packageId = package.Id.ToLowerInvariant();
                     var packageVersion = package.NormalizedVersionString.ToLowerInvariant();
 
-                    if (!packageDownloads.ContainsKey(packageId) ||
-                        !packageDownloads[packageId].ContainsKey(packageVersion))
+                    if (!packageDownloads.TryGetValue(packageId, out var value) ||
+                        !value.ContainsKey(packageVersion))
                     {
                         continue;
                     }
