@@ -154,7 +154,7 @@ namespace BaGetter.Core
 
             search = search.ToLowerInvariant();
 
-            return query.Where(p => p.Id.ToLower().Contains(search));
+            return query.Where(p => p.Id.Contains(search, StringComparison.CurrentCultureIgnoreCase));
         }
 
         private static IQueryable<Package> ApplySearchFilters(
