@@ -67,7 +67,7 @@ namespace BaGetter.Core
             // See: https://github.com/dotnet/symstore/blob/98717c63ec8342acf8a07aa5c909b88bd0c664cc/docs/specs/SSQP_Key_Conventions.md#portable-pdb-signature
             // Debuggers should always use the age "ffffffff", however Visual Studio 2019
             // users have reported other age values. We will ignore the age.
-            key = key.Substring(0, 32) + "ffffffff";
+            key = string.Concat(key.AsSpan(0, 32), "ffffffff");
 
             return Path.Combine(
                 SymbolsPathPrefix,
