@@ -36,7 +36,7 @@ jobs:
         with:
           deploy_key: ${{ secrets.DOCS_DEPLOY_KEY }}
           external_repository: 'bagetter/bagetter.github.io'
-          publish_dir: ./build
+          publish_dir: ./docs/build
           publish_branch: main
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
