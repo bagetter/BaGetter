@@ -10,18 +10,19 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 20
           cache: yarn
-
-      - name: Change to docs directory
-        run: cd docs
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -30,9 +31,13 @@ jobs:
         run: yarn build
 
       - name: Deploy to GitHub Pages
+        if: success()
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.DOCS_DEPLOY_KEY }}
           external_repository: 'bagetter/bagetter.github.io'
-          publish_dir: ./docs/build
+          publish_dir: ./build
           publish_branch: main
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: ${{ github.event.head_commit.message }}
