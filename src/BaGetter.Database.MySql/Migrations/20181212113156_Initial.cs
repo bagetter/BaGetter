@@ -6,6 +6,7 @@ namespace BaGetter.Database.MySql.Migrations
 {
     public partial class Initial : Migration
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "Generated and only runs once.")]
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             // Since Latin1 is no longer the default, we have to add it here in, so fresh migrations still run.

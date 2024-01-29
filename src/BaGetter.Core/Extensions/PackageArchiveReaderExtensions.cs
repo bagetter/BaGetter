@@ -109,18 +109,20 @@ namespace BaGetter.Core
             return new Uri(uriString);
         }
 
+        private static readonly char[] Separator = { ',', ';', '\t', '\n', '\r' };
+
         private static string[] ParseAuthors(string authors)
         {
             if (string.IsNullOrEmpty(authors)) return Array.Empty<string>();
 
-            return authors.Split(new[] { ',', ';', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            return authors.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private static string[] ParseTags(string tags)
         {
             if (string.IsNullOrEmpty(tags)) return Array.Empty<string>();
 
-            return tags.Split(new[] { ',', ';', ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            return tags.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private static (Uri repositoryUrl, string repositoryType) GetRepositoryMetadata(NuspecReader nuspec)

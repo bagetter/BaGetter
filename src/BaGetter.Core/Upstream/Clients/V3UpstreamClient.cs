@@ -18,6 +18,7 @@ namespace BaGetter.Core
     {
         private readonly NuGetClient _client;
         private readonly ILogger<V3UpstreamClient> _logger;
+        private static readonly char[] Separator = { ',', ';', '\t', '\n', '\r' };
 
         public V3UpstreamClient(NuGetClient client, ILogger<V3UpstreamClient> logger)
         {
@@ -134,7 +135,7 @@ namespace BaGetter.Core
             if (string.IsNullOrEmpty(authors)) return Array.Empty<string>();
 
             return authors
-                .Split(new[] { ',', ';', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(Separator, StringSplitOptions.RemoveEmptyEntries)
                 .Select(a => a.Trim())
                 .ToArray();
         }

@@ -27,6 +27,8 @@ namespace BaGetter.Core
         private readonly SourceRepository _repository;
         private readonly INuGetLogger _ngLogger;
         private readonly ILogger _logger;
+        private static readonly char[] TagsSeparators = {';'};
+        private static readonly char[] AuthorsSeparators = new[] { ',', ';', '\t', '\n', '\r' };
 
         public V2UpstreamClient(
             IOptionsSnapshot<MirrorOptions> options,
@@ -152,7 +154,7 @@ namespace BaGetter.Core
                 PackageTypes = new List<PackageType>(),
                 RepositoryUrl = null,
                 RepositoryType = null,
-                Tags = package.Tags?.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries),
+                Tags = package.Tags?.Split(TagsSeparators, StringSplitOptions.RemoveEmptyEntries),
 
                 Dependencies = ToDependencies(package)
             };
@@ -163,7 +165,7 @@ namespace BaGetter.Core
             if (string.IsNullOrEmpty(authors)) return Array.Empty<string>();
 
             return authors
-                .Split(new[] { ',', ';', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(AuthorsSeparators, StringSplitOptions.RemoveEmptyEntries)
                 .Select(a => a.Trim())
                 .ToArray();
         }
