@@ -1,9 +1,15 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Run BaGetter on AWS
 
-!!! warning
-    This page is a work in progress!
+:::warning
 
-Use Amazon Web Services to scale BaGetter. You can store metadata on [Amazon RDS](https://aws.amazon.com/rds/postgresql/) and upload packages to [Amazon S3](https://aws.amazon.com/s3/).
+This page is a work in progress!
+
+:::
+
+Use Amazon Web Services to scale BaGetter. You can store metadata on [Amazon Relational Database Service (RDS)](https://aws.amazon.com/rds) and upload packages to [Amazon S3](https://aws.amazon.com/s3/).
 
 ## Configure BaGetter
 
@@ -31,7 +37,9 @@ Update the `appsettings.json` file:
 
 ### Amazon RDS
 
-To use PostgreSQL, update the `appsettings.json` file:
+<Tabs groupId="database-types">
+  <TabItem value="postgresql" label="Amazon RDS for PostgreSQL">
+To use [PostgreSQL](https://aws.amazon.com/rds/postgresql), update the `appsettings.json` file:
 
 ```json
 {
@@ -46,7 +54,9 @@ To use PostgreSQL, update the `appsettings.json` file:
 }
 ```
 
-To use MySQL, update the `appsettings.json` file:
+  </TabItem>
+  <TabItem value="mysql" label="Amazon RDS for MySQL">
+To use [MySQL](https://aws.amazon.com/rds/mysql), update the `appsettings.json` file:
 
 ```json
 {
@@ -60,6 +70,26 @@ To use MySQL, update the `appsettings.json` file:
     ...
 }
 ```
+
+  </TabItem>
+  <TabItem value="sqlserver" label="Amazon RDS for SQL Server">
+To use [SQL Server](https://aws.amazon.com/rds/sqlserver), update the `appsettings.json` file:
+
+```json
+{
+    ...
+
+    "Database": {
+        "Type": "SqlServer",
+        "ConnectionString": "..."
+    },
+
+    ...
+}
+```
+
+  </TabItem>
+</Tabs>
 
 ## Publish packages
 
@@ -75,8 +105,11 @@ Publish your first [symbol package](https://docs.microsoft.com/en-us/nuget/creat
 dotnet nuget push -s http://localhost:5000/v3/index.json symbol.package.1.0.0.snupkg
 ```
 
-!!! warning
-    You should secure your server by requiring an API Key to publish packages. For more information, please refer to the [Require an API Key](../configuration.md#require-an-api-key) guide.
+:::warning
+
+You should secure your server by requiring an API Key to publish packages. For more information, please refer to the [Require an API Key](../configuration.md#require-an-api-key) guide.
+
+:::
 
 ## Restore packages
 
@@ -86,8 +119,8 @@ You can restore packages by using the following package source:
 
 Some helpful guides:
 
-* [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
-* [NuGet.config](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file#package-source-sections)
+- [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
+- [NuGet.config](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file#package-source-sections)
 
 ## Symbol server
 

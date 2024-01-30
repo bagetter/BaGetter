@@ -18,10 +18,12 @@ Search__Type=Database
 
 For a full list of configurations, please refer to [BaGetter's configuration](../configuration.md) guide.
 
-!!! info
-    The `bagetter.env` file stores [BaGetter's configuration](../configuration) as environment
-    variables. To learn how these configurations work, please refer to
-    [ASP.NET Core's configuration documentation](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-2.1&tabs=basicconfiguration#configuration-by-environment).
+:::info
+
+The `bagetter.env` file stores [BaGetter's configuration](../configuration) as environment variables.
+To learn how these configurations work, please refer to [ASP.NET Core's configuration documentation](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-2.1&tabs=basicconfiguration#configuration-by-environment).
+
+:::
 
 If this step is omitted the default mode (unconfigured) will be Sqlite with the sql blobs stored in the path `/data/db/bagetter.db`.
 
@@ -37,11 +39,13 @@ docker pull bagetter/bagetter
 You can now run BaGetter...
 
 - ...with optional `.env` file:
+
 ```
 docker run --rm --name nuget-server -p 5000:8080 --env-file bagetter.env -v "$(pwd)/bagetter-data:/data" bagetter/bagetter:latest
 ```
 
 - ...or without:
+
 ```
 docker run --rm --name nuget-server -p 5000:8080 -v "$(pwd)/bagetter-data:/data" bagetter/bagetter:latest
 ```
@@ -60,8 +64,12 @@ Publish your first [symbol package](https://docs.microsoft.com/en-us/nuget/creat
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY symbol.package.1.0.0.snupkg
 ```
 
-!!! warning
-    The default API Key to publish packages is `NUGET-SERVER-API-KEY`. You should change this to a secret value to secure your server. See [Configure BaGetter](#configure-bagetter).
+:::warning
+
+The default API Key to publish packages is `NUGET-SERVER-API-KEY`.
+You should change this to a secret value to secure your server. See [Configure BaGetter](#configure-bagetter-optional).
+
+:::
 
 ## Browse packages
 
@@ -75,8 +83,8 @@ You can restore packages by using the following package source:
 
 Some helpful guides:
 
-* [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
-* [NuGet.config](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file#package-source-sections)
+- [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
+- [NuGet.config](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file#package-source-sections)
 
 ## Symbol server
 

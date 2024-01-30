@@ -1,7 +1,10 @@
 # LiGet
 
-!!! warning
-    This page is a work in progress!
+:::warning
+
+This page is a work in progress!
+
+:::
 
 [LiGet](https://github.com/ai-traders/liget) is a NuGet server created with a linux-first approach.
 

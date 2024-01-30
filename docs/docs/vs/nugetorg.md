@@ -1,7 +1,10 @@
 # nuget.org
 
-!!! warning
-    This page is a work in progress!
+:::warning
+
+This page is a work in progress!
+
+:::
 
 [nuget.org](https://www.nuget.org/), also known as the "Gallery", is the defacto feed to host open
 source packages. You should publish NuGet packages for your open-source projects here.

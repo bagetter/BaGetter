@@ -43,8 +43,11 @@ The following `Mirror` setting configures BaGetter to index packages from [nuget
 }
 ```
 
-!!! info
-    `PackageSource` is the value of the [NuGet service index](https://docs.microsoft.com/en-us/nuget/api/service-index).
+:::info
+
+`PackageSource` is the value of the [NuGet service index](https://docs.microsoft.com/en-us/nuget/api/service-index).
+
+:::
 
 ## Enable package hard deletions
 
@@ -83,8 +86,11 @@ to overwrite the already existing package by setting `AllowPackageOverwrites`:
 
 A private feed requires users to authenticate before accessing packages.
 
-!!! warning
-    Private feeds are not supported at this time! See [this pull request](https://github.com/loic-sharma/BaGet/pull/69) for more information.
+:::warning
+
+Private feeds are not supported at this time! See [this pull request](https://github.com/loic-sharma/BaGet/pull/69) for more information.
+
+:::
 
 ## Database configuration
 
@@ -133,7 +139,12 @@ There are two settings related to the database configuration:
 ## IIS server options
 
 IIS Server options can be configured under the `IISServerOptions` key. The available options are detailed at [docs.microsoft.com](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.iisserveroptions)
-Note: If not specified, the MaxRequestBodySize in BaGetter defaults to 250MB (262144000 bytes), rather than the ASP.NET Core default of 30MB
+
+:::note
+
+If not specified, the `MaxRequestBodySize` in BaGetter defaults to 250MB (262144000 bytes), rather than the ASP.NET Core default of 30MB.
+
+:::
 
 ```json
 {

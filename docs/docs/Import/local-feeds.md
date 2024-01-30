@@ -2,8 +2,11 @@
 
 [Local feeds](https://docs.microsoft.com/en-us/nuget/hosting-packages/local-feeds) let you use a folder as a NuGet package source.
 
-!!! info
-    Please refer to the [BaGetter vs local feeds](../vs/local-feeds.md) page for reasons to upgrade to BaGetter.
+:::info
+
+Please refer to the [BaGetter vs local feeds](../vs/local-feeds.md) page for reasons to upgrade to BaGetter.
+
+:::
 
 ## Steps
 

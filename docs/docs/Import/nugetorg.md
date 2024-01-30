@@ -1,7 +1,10 @@
 # Import nuget.org packages
 
-!!! warning
-    This page is a work in progress!
+:::warning
+
+This page is a work in progress!
+
+:::
 
 ## Mirroring
 

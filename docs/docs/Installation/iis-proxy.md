@@ -22,13 +22,17 @@ With a few extra steps you can run BaGetter behind a Windows IIS proxy. This has
 
 You **may** need to give special permissions to the top-level BaGetter folder so that the app can persist its state. This is necessary as the Application Pools' identity is a virtual account that isn't recognized by the Windows User Management Console. For more information, please refer to ASP.NET Core's documentation:
 
-* [Application Pools](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-2.2#application-pools)
-* [Application Pool Identity](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-2.2#application-pool-identity)
+- [Application Pools](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-2.2#application-pools)
+- [Application Pool Identity](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-2.2#application-pool-identity)
 
 ## Alternative storage path
 
-!!! info
-    Virtual Directories do not work with IIS and Kestrel. For more information, please refer to [ASP.NET Core's documentation](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-2.2#virtual-directories).
+:::info
+
+Virtual Directories do not work with IIS and Kestrel.
+For more information, please refer to [ASP.NET Core's documentation](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-2.2#virtual-directories).
+
+:::
 
 Ensure that the configuration's storage `Path` has the appropriate forward slashes:
 
