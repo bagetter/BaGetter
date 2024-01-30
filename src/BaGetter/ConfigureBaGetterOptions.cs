@@ -111,7 +111,7 @@ namespace BaGetter
                     $"Allowed values: {string.Join(", ", ValidSearchTypes)}");
             }
 
-            if (failures.Any()) return ValidateOptionsResult.Fail(failures);
+            if (failures.Count != 0) return ValidateOptionsResult.Fail(failures);
 
             return ValidateOptionsResult.Success;
         }
