@@ -41,7 +41,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/bagetter/bagetter.github.io/tree/main/',
+            'https://github.com/${organizationName}/${projectName}/tree/main/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -67,7 +67,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/bagetter/BaGetter',
+          href: 'https://github.com/${organizationName}/${projectName}',
           label: 'GitHub',
           position: 'right',
         },
@@ -103,12 +103,12 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/bagetter/BaGetter',
+              href: 'https://github.com/${organizationName}/${projectName}',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} BaGetter. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} BaGetter. Built with <a href="https://www.docusaurus.io">Docusaurus</a>.`,
     },
     prism: {
       theme: prismThemes.github,
