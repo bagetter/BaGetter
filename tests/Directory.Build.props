@@ -3,6 +3,7 @@
   <PropertyGroup>
     <LangVersion>7.2</LangVersion>
     <IsPackable>false</IsPackable>
+	<IsPublishable>false</IsPublishable>
   </PropertyGroup>
 
   <PropertyGroup>
