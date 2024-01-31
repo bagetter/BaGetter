@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 WORKDIR /app
 EXPOSE 80
 
@@ -7,11 +7,16 @@ WORKDIR /src
 COPY /src .
 COPY /Directory.Packages.props .
 
-RUN dotnet restore BaGetter
-RUN dotnet build BaGetter -c Release -o /app
+# Restore packages
+RUN dotnet restore BaGetter \
+    --source "https://api.nuget.org/v3/index.json"
 
+# Publish app (implicitly builds the app)
 FROM build AS publish
-RUN dotnet publish BaGetter -c Release -o /app
+RUN dotnet publish BaGetter \
+    --configuration Release \
+    --output /app \
+    --no-restore
 
 FROM base AS final
 LABEL org.opencontainers.image.source="https://github.com/bagetter/BaGetter"
