@@ -1,7 +1,7 @@
 <Project>
 
-  <PropertyGroup>    
-	<IsPublishable>false</IsPublishable>
+  <PropertyGroup>
+    <IsPublishable>false</IsPublishable>
   </PropertyGroup>
-  
+
 </Project>
