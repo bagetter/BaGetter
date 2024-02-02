@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core;
@@ -69,8 +67,10 @@ namespace BaGetter.Database.Sqlite
         private static void CreateSqliteDataSourceDirectory(SqliteConnection connection)
         {
             var pathToCreate = Path.GetDirectoryName(connection.DataSource);
-
-            if (pathToCreate is null) return;
+            if (string.IsNullOrEmpty(pathToCreate))
+            {
+                return;
+            }
 
             Directory.CreateDirectory(pathToCreate);
         }
