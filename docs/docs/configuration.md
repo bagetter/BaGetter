@@ -157,3 +157,40 @@ If not specified, the `MaxRequestBodySize` in BaGetter defaults to 250MB (262144
     ...
 }
 ```
+
+## Load secrets from files
+
+Mostly useful when running containerised (e.g. using Docker, Podman, Kubernetes, etc), the application will look for files named in the same pattern as environment variables under `/run/secrets`.
+
+```
+/run/secrets/Database__ConnectionString
+```
+
+This allows for sensitive values to be provided individually to the application, typically by bind-mounting files.
+
+### Docker Compose example
+
+```yaml
+version: '2'
+
+services:
+  bagetter:
+    image: bagetter/bagetter:latest
+    volumes:
+      # Single file mounted for API key
+      - ./secrets/api-key.txt:/run/secrets/ApiKey:ro
+      - ./data:/srv/baget
+    environment:
+      - Database__ConnectionString=Data Source=/srv/baget/bagetter.db
+      - Database__Type=Sqlite
+      - Mirror__Enabled=false
+      - Storage__Type=FileSystem
+      - Storage__Path=/srv/baget/packages
+```
+
+Aditional documentation for secrets:
+
+- [How to use secrets in Docker Compose](https://docs.docker.com/compose/use-secrets)
+- [Docker Swarm secrets](https://docs.docker.com/engine/swarm/secrets)
+- [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret)
+- [ASP.NET Core Documentation](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/#key-per-file-configuration-provider)
