@@ -56,7 +56,7 @@ namespace BaGetter.Database.Sqlite
             if (Database.GetDbConnection() is SqliteConnection connection)
             {
                 /* Create the folder of the Sqlite blob if it does not exist. */
-                CreateSqliteDataSourceDirectory(connection);
+                EnsureDataSourceDirectoryExists(connection);
             }
 
             await base.RunMigrationsAsync(cancellationToken);
@@ -66,11 +66,11 @@ namespace BaGetter.Database.Sqlite
         /// Creates directories specified in the Database::ConnectionString config for the Sqlite database file.
         /// </summary>
         /// <param name="connection">Instance of the <see cref="SqliteConnection"/>.</param>
-        private static void CreateSqliteDataSourceDirectory(SqliteConnection connection)
+        private static void EnsureDataSourceDirectoryExists(SqliteConnection connection)
         {
             var pathToCreate = Path.GetDirectoryName(connection.DataSource);
 
-            if (pathToCreate is null) return;
+            if (string.IsNullOrWhiteSpace(pathToCreate)) return;
 
             Directory.CreateDirectory(pathToCreate);
         }
