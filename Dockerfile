@@ -18,7 +18,10 @@ COPY /src .
 RUN dotnet publish BaGetter \
     --configuration Release \
     --output /app \
-    --no-restore
+    --no-restore \
+    -p DebugType=none \
+    -p DebugSymbols=false \
+    -p GenerateDocumentationFile=false
 
 # create default folders
 RUN mkdir -p "/data/packages" \
