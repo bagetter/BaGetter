@@ -26,7 +26,7 @@ RUN dotnet publish BaGetter \
 # create default folders
 RUN mkdir -p "/data/packages" \
     mkdir -p "/data/symbols" \
-    mkdir -p  "/data/db"
+    mkdir -p "/data/db"
 
 ## Create final image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine-composite AS base
