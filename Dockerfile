@@ -31,7 +31,7 @@ RUN mkdir -p "/data/packages" \
 ## Create final image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine-composite AS base
 # install cultures (same approach as Alpine SDK image)
-RUN apk add --no-cache icu-libs tzdata
+RUN apk add --no-cache icu-libs icu-data-full tzdata
 # disable the invariant mode (set in base image)
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 # set default configurations; use the `/data` folder for packages, symbols and the SQLite database
