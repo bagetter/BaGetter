@@ -5,9 +5,11 @@ using BaGetter.Protocol.Models;
 namespace BaGetter.Core
 {
     /// <summary>
-    /// BaGetter's extensions to the package metadata model. These additions
-    /// are not part of the official protocol.
+    /// BaGetter's extensions to the package metadata model.
     /// </summary>
+    /// <remarks><para>Extends <see cref="PackageMetadata"/>.</para>
+    /// These additions are not part of the official protocol.
+    /// </remarks>
     public class BaGetterPackageMetadata : PackageMetadata
     {
         [JsonPropertyName("downloads")]
