@@ -121,10 +121,10 @@ namespace BaGetter.Core.Tests.Metadata
                 .GetProperties()
                 .ToDictionary(p => p.Name, p => p);
 
-            IReadOnlyDictionary<(Type type, string name), PropertyInfo> derivedProperties = data
+            IReadOnlyDictionary<string, PropertyInfo> derivedProperties = data
                 .DerivedType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .ToDictionary(p => (p.DeclaringType, p.Name), p => p);
+                .ToDictionary(p => p.Name, p => p);
 
             // Act/Assert
 
