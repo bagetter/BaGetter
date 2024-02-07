@@ -16,9 +16,12 @@ namespace BaGetter.Tests
         private readonly Stream _packageStream;
         private readonly Stream _symbolPackageStream;
 
+        private readonly ITestOutputHelper _output;
+
         public ApiIntegrationTests(ITestOutputHelper output)
         {
-            _app = new BaGetterApplication(output);
+            _output = output;
+            _app = new BaGetterApplication(_output);
             _client = _app.CreateClient();
 
             _packageStream = TestResources.GetResourceStream(TestResources.Package);
@@ -235,68 +238,80 @@ namespace BaGetter.Tests
         [Fact]
         public async Task PackageMetadataReturnsOk()
         {
+            // Arrange
             await _app.AddPackageAsync(_packageStream);
 
-            using var response = await _client.GetAsync("v3/registration/TestData/index.json");
-            var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson();
+            const string expectedResponse = """
+                {
+                  "@id": "http://localhost/v3/registration/testdata/index.json",
+                  "@type": [
+                    "catalog:CatalogRoot",
+                    "PackageRegistration",
+                    "catalog:Permalink"
+                  ],
+                  "count": 1,
+                  "items": [
+                    {
+                      "@id": "http://localhost/v3/registration/testdata/index.json",
+                      "count": 1,
+                      "lower": "1.2.3",
+                      "upper": "1.2.3",
+                      "items": [
+                        {
+                          "@id": "http://localhost/v3/registration/testdata/1.2.3.json",
+                          "packageContent": "http://localhost/v3/package/testdata/1.2.3/testdata.1.2.3.nupkg",
+                          "catalogEntry": {
+                            "downloads": 0,
+                            "hasReadme": false,
+                            "packageTypes": [
+                              "Dependency"
+                            ],
+                            "releaseNotes": "",
+                            "repositoryUrl": "",
+                            "id": "TestData",
+                            "version": "1.2.3",
+                            "authors": "Test author",
+                            "dependencyGroups": [
+                              {
+                                "targetFramework": "net5.0",
+                                "dependencies": []
+                              }
+                            ],
+                            "description": "Test description",
+                            "iconUrl": "",
+                            "language": "",
+                            "licenseUrl": "",
+                            "listed": true,
+                            "minClientVersion": "",
+                            "packageContent": "http://localhost/v3/package/testdata/1.2.3/testdata.1.2.3.nupkg",
+                            "projectUrl": "",
+                            "published": "2020-01-01T00:00:00Z",
+                            "requireLicenseAcceptance": false,
+                            "summary": "",
+                            "tags": [],
+                            "title": ""
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "totalDownloads": 0
+                }
+                """;
 
+            // Act
+            using var response = await _client.GetAsync("v3/registration/TestData/index.json");
+
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(@"{
-  ""@id"": ""http://localhost/v3/registration/testdata/index.json"",
-  ""@type"": [
-    ""catalog:CatalogRoot"",
-    ""PackageRegistration"",
-    ""catalog:Permalink""
-  ],
-  ""count"": 1,
-  ""items"": [
-    {
-      ""@id"": ""http://localhost/v3/registration/testdata/index.json"",
-      ""count"": 1,
-      ""lower"": ""1.2.3"",
-      ""upper"": ""1.2.3"",
-      ""items"": [
-        {
-          ""@id"": ""http://localhost/v3/registration/testdata/1.2.3.json"",
-          ""packageContent"": ""http://localhost/v3/package/testdata/1.2.3/testdata.1.2.3.nupkg"",
-          ""catalogEntry"": {
-            ""downloads"": 0,
-            ""hasReadme"": false,
-            ""packageTypes"": [
-              ""Dependency""
-            ],
-            ""releaseNotes"": """",
-            ""repositoryUrl"": """",
-            ""id"": ""TestData"",
-            ""version"": ""1.2.3"",
-            ""authors"": ""Test author"",
-            ""dependencyGroups"": [
-              {
-                ""targetFramework"": ""net5.0"",
-                ""dependencies"": []
-              }
-            ],
-            ""description"": ""Test description"",
-            ""iconUrl"": """",
-            ""language"": """",
-            ""licenseUrl"": """",
-            ""listed"": true,
-            ""minClientVersion"": """",
-            ""packageContent"": ""http://localhost/v3/package/testdata/1.2.3/testdata.1.2.3.nupkg"",
-            ""projectUrl"": """",
-            ""published"": ""2020-01-01T00:00:00Z"",
-            ""requireLicenseAcceptance"": false,
-            ""summary"": """",
-            ""tags"": [],
-            ""title"": """"
-          }
-        }
-      ]
-    }
-  ],
-  ""totalDownloads"": 0
-}", json);
+
+            var content = await response.Content.ReadAsStreamAsync();
+            var actualResponse = content.ToPrettifiedJson();
+
+            _output.WriteLine($"actual response:{Environment.NewLine}{actualResponse}");
+            _output.WriteLine($"expected response:{Environment.NewLine}{expectedResponse}");
+
+            Assert.Equal(expectedResponse, actualResponse);
         }
 
         [Fact]
