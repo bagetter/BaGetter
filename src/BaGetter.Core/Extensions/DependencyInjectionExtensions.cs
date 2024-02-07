@@ -199,21 +199,12 @@ namespace BaGetter.Core
         {
             var options = provider.GetRequiredService<IOptionsSnapshot<MirrorOptions>>();
 
-            // TODO: Convert to switch expression.
-            if (!options.Value.Enabled)
+            return options.Value.Enabled switch
             {
-                return provider.GetRequiredService<DisabledUpstreamClient>();
-            }
-
-            else if (options.Value.Legacy)
-            {
-                return provider.GetRequiredService<V2UpstreamClient>();
-            }
-
-            else
-            {
-                return provider.GetRequiredService<V3UpstreamClient>();
-            }
+                false => provider.GetRequiredService<DisabledUpstreamClient>(),
+                true when options.Value.Legacy => provider.GetRequiredService<V2UpstreamClient>(),
+                _ => provider.GetRequiredService<V3UpstreamClient>()
+            };
         }
     }
 }
