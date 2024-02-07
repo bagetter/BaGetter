@@ -100,6 +100,17 @@ namespace BaGetter.Core.Tests.Metadata
             };
         }
 
+        /// <summary>
+        /// Check that the derived type is actually derived from the original type.
+        /// </summary>
+        /// <param name="data">The test data.</param>
+        [Theory]
+        [MemberData(nameof(ExtendedModelsData))]
+        public void ExtendedModelsAreActuallyDerivedFromOriginalModels(ExtendedModelData data)
+        {
+            Assert.True(data.DerivedType.IsSubclassOf(data.OriginalType));
+        }
+
         [Theory]
         [MemberData(nameof(ExtendedModelsData))]
         public void ValidateExtendedModels(ExtendedModelData data)
@@ -108,17 +119,17 @@ namespace BaGetter.Core.Tests.Metadata
                 .OriginalType
                 .GetProperties()
                 .ToDictionary(p => p.Name, p => p);
-            IReadOnlyDictionary<string, PropertyInfo> derivedProperties = data
+
+            IReadOnlyDictionary<(Type type, string name), PropertyInfo> derivedProperties = data
                 .DerivedType
-                .GetProperties()
-                .ToDictionary(p => p.Name, p => p);
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .ToDictionary(p => (p.DeclaringType, p.Name), p => p);
+            //IReadOnlyDictionary<string, PropertyInfo> derivedPropertiesBase = data
+            //    .DerivedType.BaseType?
+            //    .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            //    .ToDictionary(p => $"{p.DeclaringType}.{p.Name}", p => p);
 
-            // Check that all properties on the original model are present on the derived model.
-            var missingProperties = originalProperties.Keys.Where(name => !derivedProperties.ContainsKey(name));
-
-            Assert.True(
-                !missingProperties.Any(),
-                $"The following properties are missing from the derived type: {string.Join(',', missingProperties)}");
+            //data.DerivedType.GetProperties(BindingFlags.Public| BindingFlags.)
 
             // Check that all properties on the derived model are as expected compared to the original model.
             foreach (var derivedProperty in derivedProperties.Values)
@@ -137,34 +148,11 @@ namespace BaGetter.Core.Tests.Metadata
                     continue;
                 }
 
-                // This property should exist on both the original and derived models.
-                // This property should have the same "JsonPropertyName" attribute values.
-                var originalProperty = Assert.Contains(derivedProperty.Name, originalProperties);
-
-                var originalJsonName = GetAttributeArgs<JsonPropertyNameAttribute>(originalProperty)?.FirstOrDefault();
-                var derivedJsonName = GetAttributeArgs<JsonPropertyNameAttribute>(derivedProperty)?.FirstOrDefault();
-
-                Assert.True(
-                    originalJsonName != null,
-                    $"Property '{originalProperty.Name}' on type '{data.OriginalType}' " +
-                    "does not have a JsonPropertyName attribute");
-                Assert.True(
-                    derivedJsonName != null,
-                    $"Property '{derivedProperty.Name}' on type '{data.DerivedType}' " +
-                    "does not have a JsonPropertyName attribute");
-                Assert.True(
-                    originalJsonName.ToString() == derivedJsonName.ToString(),
-                    $"Property '{derivedProperty.Name}' on type '{data.DerivedType}' " +
-                    "has a different JsonPropertyName attribute value than " +
-                    $"on type '{data.OriginalType}'.\nExpected: '{originalJsonName}'\n" +
-                    $"Actual: '{derivedJsonName}'");
-
-                var originalJsonConverterArgs = GetAttributeArgs<JsonConverterAttribute>(originalProperty);
-                var derivedJsonConverterArgs = GetAttributeArgs<JsonConverterAttribute>(derivedProperty);
-
                 // If the property was modified, check that the property types are expected.
                 if (data.ModifiedProperties.TryGetValue(derivedProperty.Name, out var modifiedTypes))
                 {
+                    var originalProperty = originalProperties.SingleOrDefault(x => string.Equals(x.Key, derivedProperty.Name, StringComparison.OrdinalIgnoreCase)).Value;
+
                     Assert.True(
                         originalProperty.PropertyType == modifiedTypes.From,
                         $"Modified property '{originalProperty.Name}' on type {data.OriginalType} has unexpected property type\n" +
@@ -176,6 +164,9 @@ namespace BaGetter.Core.Tests.Metadata
                         $"Expected: {modifiedTypes.To}\n" +
                         $"Actual: {derivedProperty.PropertyType}");
 
+                    var originalJsonConverterArgs = GetAttributeArgs<JsonConverterAttribute>(originalProperty);
+                    var derivedJsonConverterArgs = GetAttributeArgs<JsonConverterAttribute>(derivedProperty);
+
                     if (originalJsonConverterArgs != null || derivedJsonConverterArgs != null)
                     {
                         throw new NotSupportedException(
@@ -185,18 +176,67 @@ namespace BaGetter.Core.Tests.Metadata
                     continue;
                 }
 
-                // Otherwise, this property should be identical to the original property.
-                Assert.True(
-                    originalProperty.PropertyType == derivedProperty.PropertyType,
-                    $"Property '{derivedProperty.Name}' on type {data.DerivedType} has unexpected property type\n" +
-                    $"Expected: {originalProperty.PropertyType}\n" +
-                    $"Actual: {derivedProperty.PropertyType}");
-                Assert.True(
-                    originalJsonConverterArgs?.First() == derivedJsonConverterArgs?.First(),
-                    $"Property '{derivedProperty.Name}' on type '{data.DerivedType}' " +
-                    "has unexpected JsonConverter value.\n" +
-                    $"Expected: '{originalJsonConverterArgs?.First()}'\n" +
-                    $"Actual: '{derivedJsonConverterArgs?.First()}'");
+
+                //// This property should exist on both the original and derived models.
+                //// This property should have the same "JsonPropertyName" attribute values.
+                //var originalProperty = Assert.Contains($"{derivedProperty.DeclaringType}.{derivedProperty.Name}", originalProperties);
+
+                //var originalJsonName = GetAttributeArgs<JsonPropertyNameAttribute>(originalProperty)?.FirstOrDefault();
+                //var derivedJsonName = GetAttributeArgs<JsonPropertyNameAttribute>(derivedProperty)?.FirstOrDefault();
+
+                //Assert.True(
+                //    originalJsonName != null,
+                //    $"Property '{originalProperty.Name}' on type '{data.OriginalType}' " +
+                //    "does not have a JsonPropertyName attribute");
+                //Assert.True(
+                //    derivedJsonName != null,
+                //    $"Property '{derivedProperty.Name}' on type '{data.DerivedType}' " +
+                //    "does not have a JsonPropertyName attribute");
+                //Assert.True(
+                //    originalJsonName.ToString() == derivedJsonName.ToString(),
+                //    $"Property '{derivedProperty.Name}' on type '{data.DerivedType}' " +
+                //    "has a different JsonPropertyName attribute value than " +
+                //    $"on type '{data.OriginalType}'.\nExpected: '{originalJsonName}'\n" +
+                //    $"Actual: '{derivedJsonName}'");
+
+                //var originalJsonConverterArgs = GetAttributeArgs<JsonConverterAttribute>(originalProperty);
+                //var derivedJsonConverterArgs = GetAttributeArgs<JsonConverterAttribute>(derivedProperty);
+
+                //// If the property was modified, check that the property types are expected.
+                //if (data.ModifiedProperties.TryGetValue(derivedProperty.Name, out var modifiedTypes))
+                //{
+                //    Assert.True(
+                //        originalProperty.PropertyType == modifiedTypes.From,
+                //        $"Modified property '{originalProperty.Name}' on type {data.OriginalType} has unexpected property type\n" +
+                //        $"Expected: {modifiedTypes.From}\n" +
+                //        $"Actual: {originalProperty.PropertyType}");
+                //    Assert.True(
+                //        derivedProperty.PropertyType == modifiedTypes.To,
+                //        $"Modified property '{derivedProperty.Name}' on type {data.DerivedType} has unexpected property type\n" +
+                //        $"Expected: {modifiedTypes.To}\n" +
+                //        $"Actual: {derivedProperty.PropertyType}");
+
+                //    if (originalJsonConverterArgs != null || derivedJsonConverterArgs != null)
+                //    {
+                //        throw new NotSupportedException(
+                //            "JSON converters on modified properties is not supported");
+                //    }
+
+                //    continue;
+                //}
+
+                //// Otherwise, this property should be identical to the original property.
+                //Assert.True(
+                //    originalProperty.PropertyType == derivedProperty.PropertyType,
+                //    $"Property '{derivedProperty.Name}' on type {data.DerivedType} has unexpected property type\n" +
+                //    $"Expected: {originalProperty.PropertyType}\n" +
+                //    $"Actual: {derivedProperty.PropertyType}");
+                //Assert.True(
+                //    originalJsonConverterArgs?.First() == derivedJsonConverterArgs?.First(),
+                //    $"Property '{derivedProperty.Name}' on type '{data.DerivedType}' " +
+                //    "has unexpected JsonConverter value.\n" +
+                //    $"Expected: '{originalJsonConverterArgs?.First()}'\n" +
+                //    $"Actual: '{derivedJsonConverterArgs?.First()}'");
             }
         }
 

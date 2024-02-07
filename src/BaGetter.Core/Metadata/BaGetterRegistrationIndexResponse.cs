@@ -6,40 +6,24 @@ namespace BaGetter.Core
 {
     /// <summary>
     /// BaGetter's extensions to a registration index response.
-    /// Extends <see cref="RegistrationIndexResponse"/>.
     /// </summary>
-    /// <remarks>
-    /// TODO: After this project is updated to .NET 5, make <see cref="BaGetterRegistrationIndexResponse"/>
-    /// extend <see cref="RegistrationIndexResponse"/> and remove identical properties.
-    /// Properties that are modified should be marked with the "new" modified.
-    /// See: https://github.com/dotnet/runtime/pull/32107
-    /// </remarks>
-    public class BaGetterRegistrationIndexResponse
+    /// <remarks>Extends <see cref="RegistrationIndexResponse"/>.</remarks>
+    public class BaGetterRegistrationIndexResponse : RegistrationIndexResponse
     {
-#region Original properties from RegistrationIndexResponse.
-        [JsonPropertyName("@id")]
-        public string RegistrationIndexUrl { get; set; }
-
-        [JsonPropertyName("@type")]
-        public IReadOnlyList<string> Type { get; set; }
-
-        [JsonPropertyName("count")]
-        public int Count { get; set; }
-#endregion
-
         /// <summary>
-        /// The pages that contain all of the versions of the package, ordered
-        /// by the package's version. This was modified to use BaGetter's extended
-        /// registration index page model.
+        /// The pages that contain all of the versions of the package, ordered by the package's version.
         /// </summary>
+        /// <remarks>This was modified to use BaGetter's extended registration index page model.</remarks>
         [JsonPropertyName("items")]
-        public IReadOnlyList<BaGetterRegistrationIndexPage> Pages { get; set; }
+        [JsonPropertyOrder(int.MaxValue)]
+        public new IReadOnlyList<BaGetterRegistrationIndexPage> Pages { get; set; }
 
         /// <summary>
         /// The package's total downloads across all versions.
-        /// This is not part of the official NuGet protocol.
         /// </summary>
+        /// <remarks>This is not part of the official NuGet protocol.</remarks>
         [JsonPropertyName("totalDownloads")]
+        [JsonPropertyOrder(int.MaxValue)]
         public long TotalDownloads { get; set; }
     }
 }

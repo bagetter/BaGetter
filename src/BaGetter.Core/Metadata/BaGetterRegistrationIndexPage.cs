@@ -6,34 +6,17 @@ namespace BaGetter.Core
 {
     /// <summary>
     /// BaGetter's extensions to a registration index page.
-    /// Extends <see cref="RegistrationIndexPage"/>.
     /// </summary>
-    /// <remarks>
-    /// TODO: After this project is updated to .NET 5, make <see cref="BaGetterRegistrationIndexPage"/>
-    /// extend <see cref="RegistrationIndexPage"/> and remove identical properties.
-    /// Properties that are modified should be marked with the "new" modified.
-    /// See: https://github.com/dotnet/runtime/pull/32107
-    /// </remarks>
-    public class BaGetterRegistrationIndexPage
+    /// <remarks>Extends <see cref="RegistrationIndexPage"/>.</remarks>
+    public class BaGetterRegistrationIndexPage : RegistrationIndexPage
     {
-#region Original properties from RegistrationIndexPage.
-        [JsonPropertyName("@id")]
-        public string RegistrationPageUrl { get; set; }
-
-        [JsonPropertyName("count")]
-        public int Count { get; set; }
-
-        [JsonPropertyName("lower")]
-        public string Lower { get; set; }
-
-        [JsonPropertyName("upper")]
-        public string Upper { get; set; }
-#endregion
-
         /// <summary>
-        /// This was modified to use BaGetter's extended registration index page item model.
+        /// <see langword="null"/> if this package's registration is paged. The items can be found
+        /// by following the page's <see cref="RegistrationIndexPage.RegistrationPageUrl"/>.
         /// </summary>
+        /// <remarks>This was modified to use BaGetter's extended registration index page item model.</remarks>
         [JsonPropertyName("items")]
-        public IReadOnlyList<BaGetRegistrationIndexPageItem> ItemsOrNull { get; set; }
+        [JsonPropertyOrder(int.MaxValue)]
+        public new IReadOnlyList<BaGetRegistrationIndexPageItem> ItemsOrNull { get; set; }
     }
 }
