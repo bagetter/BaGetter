@@ -4,9 +4,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// An item in the <see cref="CatalogIndex"/> that references a <see cref="CatalogLeaf"/>.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-leaf-object-in-a-page
     /// </summary>
+    /// <remarks>See <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-leaf-object-in-a-page"/></remarks>
     public class RegistrationIndexPageItem
     {
         /// <summary>

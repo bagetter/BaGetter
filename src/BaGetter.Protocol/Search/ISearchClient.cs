@@ -6,15 +6,14 @@ namespace BaGetter.Protocol
 {
     /// <summary>
     /// The client used to search for packages.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource"/></remarks>
     public interface ISearchClient
     {
         /// <summary>
         /// Perform a search query.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-for-packages
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-for-packages"/></remarks>
         /// <param name="query">The search query.</param>
         /// <param name="skip">How many results to skip.</param>
         /// <param name="take">How many results to return.</param>

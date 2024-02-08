@@ -7,9 +7,10 @@ using NuGet.Versioning;
 
 namespace BaGetter.Protocol
 {
+    // This class is based off: https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/ModelExtensions.cs
+
     /// <summary>
     /// These are documented interpretations of values returned by the catalog API.
-    /// Based off: https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/ModelExtensions.cs
     /// </summary>
     public static class CatalogModelExtensions
     {

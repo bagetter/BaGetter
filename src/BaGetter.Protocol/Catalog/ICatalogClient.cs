@@ -7,23 +7,22 @@ namespace BaGetter.Protocol
     /// <summary>
     /// The Catalog client, used to discover package events.
     /// You can use this resource to query for all published packages.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/catalog-resource
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource"/></remarks>
     public interface ICatalogClient
     {
         /// <summary>
         /// Get the entry point for the catalog resource.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-index
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-index"/></remarks>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>The catalog index.</returns>
         Task<CatalogIndex> GetIndexAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get a single catalog page, used to discover catalog leafs.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page"/></remarks>
         /// <param name="pageUrl">The URL of the page, from the <see cref="CatalogIndex"/>.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>A catalog page.</returns>
@@ -33,8 +32,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Get a single catalog leaf, representing a package deletion event.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf"/></remarks>
         /// <param name="leafUrl">The URL of the leaf, from a <see cref="CatalogPage"/>.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>A catalog leaf.</returns>
@@ -44,8 +43,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Get a single catalog leaf, representing a package creation or update event.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf"/></remarks>
         /// <param name="leafUrl">The URL of the leaf, from a <see cref="CatalogPage"/>.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>A catalog leaf.</returns>

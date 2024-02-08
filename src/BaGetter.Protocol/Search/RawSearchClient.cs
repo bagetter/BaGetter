@@ -10,9 +10,8 @@ namespace BaGetter.Protocol.Internal
 {
     /// <summary>
     /// The client used to search for packages.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource"/></remarks>
     public class RawSearchClient : ISearchClient
     {
         private readonly HttpClient _httpClient;

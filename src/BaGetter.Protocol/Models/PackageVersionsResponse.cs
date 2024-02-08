@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// The full list of versions for a single package.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource#enumerate-package-versions
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource#enumerate-package-versions"/></remarks>
     public class PackageVersionsResponse
     {
         /// <summary>

@@ -4,10 +4,11 @@ using BaGetter.Protocol.Models;
 
 namespace BaGetter.Protocol.Catalog
 {
+    // This class is based off: https://github.com/NuGet/NuGet.Services.Metadata/blob/master/src/NuGet.Protocol.Catalog/ICatalogLeafProcessor.cs
+
     /// <summary>
     /// An interface which allows custom processing of catalog leaves. This interface should be implemented when the
     /// catalog leaf documents need to be downloaded and processed in chronological order.
-    /// Based off: https://github.com/NuGet/NuGet.Services.Metadata/blob/master/src/NuGet.Protocol.Catalog/ICatalogLeafProcessor.cs
     /// </summary>
     public interface ICatalogLeafProcessor
     {

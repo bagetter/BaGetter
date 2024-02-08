@@ -4,14 +4,13 @@ using System.Text.Json.Serialization;
 
 namespace BaGetter.Protocol.Models
 {
-    /// This class is based off https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/PackageDetailsCatalogLeaf.cs
+    // This class is based off https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/PackageDetailsCatalogLeaf.cs
 
     /// <summary>
     /// A "package details" catalog leaf. Represents a single package create or update event.
     /// <see cref="PackageDetailsCatalogLeaf"/>s can be discovered from a <see cref="CatalogPage"/>.
-    /// 
-    /// See: https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf"/></remarks>
     public class PackageDetailsCatalogLeaf : CatalogLeaf
     {
         /// <summary>
@@ -59,8 +58,8 @@ namespace BaGetter.Protocol.Models
         /// <summary>
         /// Whether or not the package is prerelease. Can be detected from <see cref="CatalogLeaf.PackageVersion"/>.
         /// Note that the NuGet.org catalog had this wrong in some cases.
-        /// Example: https://api.nuget.org/v3/catalog0/data/2016.03.11.21.02.55/mvid.fody.2.json
         /// </summary>
+        /// <remarks>Example: <see href="https://api.nuget.org/v3/catalog0/data/2016.03.11.21.02.55/mvid.fody.2.json"/></remarks>
         [JsonPropertyName("isPrerelease")]
         public bool IsPrerelease { get; set; }
 
@@ -71,7 +70,7 @@ namespace BaGetter.Protocol.Models
         public string Language { get; set; }
 
         /// <summary>
-        /// THe URL to the package's license.
+        /// The URL to the package's license.
         /// </summary>
         [JsonPropertyName("licenseUrl")]
         public string LicenseUrl { get; set; }

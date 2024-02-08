@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// Represents a package dependency.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#package-dependency
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#package-dependency"/></remarks>
     public class DependencyItem
     {
         /// <summary>

@@ -6,9 +6,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// The metadata for a single version of a package.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-leaf
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-leaf"/></remarks>
     public class RegistrationLeafResponse
     {
         public static readonly IReadOnlyList<string> DefaultType = new List<string>

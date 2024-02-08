@@ -8,9 +8,8 @@ namespace BaGetter.Protocol.Internal
 {
     /// <summary>
     /// The client used to search for packages.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource"/></remarks>
     public class RawAutocompleteClient : IAutocompleteClient
     {
         private readonly HttpClient _httpClient;

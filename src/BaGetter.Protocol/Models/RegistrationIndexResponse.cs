@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// The metadata for a package and all of its versions.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-index
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-index"/></remarks>
     public class RegistrationIndexResponse
     {
         public static readonly IReadOnlyList<string> DefaultType = new List<string>

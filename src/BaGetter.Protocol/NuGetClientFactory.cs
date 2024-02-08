@@ -47,9 +47,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Create a client to interact with the NuGet Service Index resource.
-        /// 
-        /// See https://docs.microsoft.com/en-us/nuget/api/service-index
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/service-index"/></remarks>
         /// <returns>A client to interact with the NuGet Service Index resource.</returns>
         public virtual IServiceIndexClient CreateServiceIndexClient()
         {
@@ -58,9 +57,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Create a client to interact with the NuGet Package Content resource.
-        ///
-        /// See https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource"/></remarks>
         /// <returns>A client to interact with the NuGet Package Content resource.</returns>
         public virtual IPackageContentClient CreatePackageContentClient()
         {
@@ -69,9 +67,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Create a client to interact with the NuGet Package Metadata resource.
-        /// 
-        /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource"/></remarks>
         /// <returns>A client to interact with the NuGet Package Metadata resource.</returns>
         public virtual IPackageMetadataClient CreatePackageMetadataClient()
         {
@@ -80,9 +77,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Create a client to interact with the NuGet Search resource.
-        /// 
-        /// See https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource"/></remarks>
         /// <returns>A client to interact with the NuGet Search resource.</returns>
         public virtual ISearchClient CreateSearchClient()
         {
@@ -91,9 +87,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Create a client to interact with the NuGet Autocomplete resource.
-        /// 
-        /// See https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource"/></remarks>
         /// <returns>A client to interact with the NuGet Autocomplete resource.</returns>
         public virtual IAutocompleteClient CreateAutocompleteClient()
         {
@@ -102,9 +97,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Create a client to interact with the NuGet catalog resource.
-        /// 
-        /// See https://docs.microsoft.com/en-us/nuget/api/catalog-resource
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource"/></remarks>
         /// <returns>A client to interact with the Catalog resource.</returns>
         public virtual ICatalogClient CreateCatalogClient()
         {

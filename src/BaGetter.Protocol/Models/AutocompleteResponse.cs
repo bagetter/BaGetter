@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// The package ids that matched the autocomplete query.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#search-for-package-ids
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#search-for-package-ids"/></remarks>
     public class AutocompleteResponse
     {
         [JsonPropertyName("@context")]

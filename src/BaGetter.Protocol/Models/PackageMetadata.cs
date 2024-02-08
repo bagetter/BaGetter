@@ -6,9 +6,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// A package's metadata.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#catalog-entry
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#catalog-entry"/></remarks>
     public class PackageMetadata
     {
         /// <summary>
@@ -103,7 +102,7 @@ namespace BaGetter.Protocol.Models
         public DateTimeOffset Published { get; set; }
 
         /// <summary>
-        /// If true, the package requires its license to be accepted.
+        /// If <see langword="true"/>, the package requires its license to be accepted.
         /// </summary>
         [JsonPropertyName("requireLicenseAcceptance")]
         public bool RequireLicenseAcceptance { get; set; }

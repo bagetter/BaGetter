@@ -6,15 +6,14 @@ namespace BaGetter.Protocol
 {
     /// <summary>
     /// The Package Metadata client, used to fetch packages' metadata.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource"/></remarks>
     public interface IPackageMetadataClient
     {
         /// <summary>
         /// Attempt to get a package's registration index, if it exists.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-page
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-page"/></remarks>
         /// <param name="packageId">The package's ID.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>The package's registration index, or null if the package does not exist</returns>
@@ -22,8 +21,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Get a page that was linked from the package's registration index.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-page
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-page"/></remarks>
         /// <param name="pageUrl">The URL of the page, from the <see cref="RegistrationIndexResponse"/>.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>The registration index page.</returns>

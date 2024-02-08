@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// The entry point for a NuGet package source used by the client to discover NuGet APIs.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/overview
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/overview"/></remarks>
     public class ServiceIndexResponse
     {
         /// <summary>

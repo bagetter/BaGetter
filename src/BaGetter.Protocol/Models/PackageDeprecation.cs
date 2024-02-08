@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// A package's metadata.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#package-deprecation
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#package-deprecation"/></remarks>
     public class PackageDeprecation
     {
         /// <summary>

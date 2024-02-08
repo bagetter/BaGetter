@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// The dependencies of the package for a specific target framework.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#package-dependency-group
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#package-dependency-group"/></remarks>
     public class DependencyGroupItem
     {
         /// <summary>

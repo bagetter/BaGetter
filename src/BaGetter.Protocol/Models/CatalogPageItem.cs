@@ -7,9 +7,8 @@ namespace BaGetter.Protocol.Models
 
     /// <summary>
     /// An item in the <see cref="CatalogIndex"/> that references a <see cref="CatalogPage"/>.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page-object-in-the-index
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page-object-in-the-index"/></remarks>
     public class CatalogPageItem
     {
         /// <summary>

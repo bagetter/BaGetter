@@ -7,9 +7,8 @@ namespace BaGetter.Protocol.Models
 
     /// <summary>
     /// An item in a <see cref="CatalogPage"/> that references a <see cref="CatalogLeaf"/>.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-item-object-in-a-page
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-item-object-in-a-page"/></remarks>
     public class CatalogLeafItem : ICatalogLeafItem
     {
         /// <summary>

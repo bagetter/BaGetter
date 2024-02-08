@@ -9,9 +9,8 @@ namespace BaGetter.Protocol.Models
     /// <summary>
     /// The catalog index is the entry point for the catalog resource.
     /// Use this to discover catalog pages, which in turn can be used to discover catalog leafs.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-index
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-index"/></remarks>
     public class CatalogIndex
     {
         /// <summary>

@@ -6,9 +6,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// A package that matched a search query.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-result
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-result"/></remarks>
     public class SearchResult
     {
         /// <summary>

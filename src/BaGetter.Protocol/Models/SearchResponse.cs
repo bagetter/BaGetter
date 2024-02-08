@@ -5,9 +5,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// The response to a search query.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#response
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#response"/></remarks>
     public class SearchResponse
     {
         [JsonPropertyName("@context")]

@@ -8,9 +8,8 @@ namespace BaGetter.Protocol.Internal
 {
     /// <summary>
     /// The NuGet Service Index client, used to discover other resources.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/service-index
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/service-index"/></remarks>
     public class RawServiceIndexClient : IServiceIndexClient
     {
         private readonly HttpClient _httpClient;

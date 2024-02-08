@@ -6,15 +6,14 @@ namespace BaGetter.Protocol
 {
     /// <summary>
     /// The client used to search for packages.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource"/></remarks>
     public interface IAutocompleteClient
     {
         /// <summary>
-        /// Perform an autocomplete query on package IDs.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#search-for-package-ids
+        /// Perform an autocomplete query on package IDs.        
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#search-for-package-ids"/></remarks>
         /// <param name="query">The autocomplete query.</param>
         /// <param name="skip">How many results to skip.</param>
         /// <param name="take">How many results to return.</param>
@@ -32,8 +31,8 @@ namespace BaGetter.Protocol
 
         /// <summary>
         /// Enumerate listed package versions.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#enumerate-package-versions
         /// </summary>
+        /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#enumerate-package-versions"/></remarks>
         /// <param name="packageId">The package ID.</param>
         /// <param name="includePrerelease">Whether pre-release packages should be returned.</param>
         /// <param name="includeSemVer2">Whether packages that require SemVer 2.0.0 compatibility should be returned.</param>

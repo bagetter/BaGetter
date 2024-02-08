@@ -4,9 +4,8 @@ namespace BaGetter.Protocol.Models
 {
     /// <summary>
     /// A resource in the <see cref="ServiceIndexResponse"/>.
-    ///
-    /// See https://docs.microsoft.com/en-us/nuget/api/service-index#resources
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/service-index#resources"/></remarks>
     public class ServiceIndexItem
     {
         /// <summary>

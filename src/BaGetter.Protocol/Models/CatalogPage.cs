@@ -9,9 +9,8 @@ namespace BaGetter.Protocol.Models
     /// <summary>
     /// A catalog page, used to discover catalog leafs.
     /// Pages can be discovered from a <see cref="CatalogIndex"/>.
-    /// 
-    /// See https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page"/></remarks>
     public class CatalogPage
     {
         /// <summary>
