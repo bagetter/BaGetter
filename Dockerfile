@@ -21,7 +21,8 @@ RUN dotnet publish BaGetter \
     --no-restore \
     -p DebugType=none \
     -p DebugSymbols=false \
-    -p GenerateDocumentationFile=false
+    -p GenerateDocumentationFile=false \
+    -p UseAppHost=false
 
 # create default folders
 RUN mkdir -p "/data/packages" \
