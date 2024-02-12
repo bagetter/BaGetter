@@ -1,17 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BaGetter.Database.Sqlite.Migrations
+namespace BaGetter.Database.Sqlite.Migrations;
+
+public partial class RemoveReleaseNotesMaxLength : Migration
 {
-    public partial class RemoveReleaseNotesMaxLength : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
 
-        }
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
 
-        }
     }
 }

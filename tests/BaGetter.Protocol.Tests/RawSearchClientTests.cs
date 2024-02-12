@@ -2,46 +2,45 @@ using System.Threading.Tasks;
 using BaGetter.Protocol.Internal;
 using Xunit;
 
-namespace BaGetter.Protocol.Tests
+namespace BaGetter.Protocol.Tests;
+
+public class RawSearchClientTests : IClassFixture<ProtocolFixture>
 {
-    public class RawSearchClientTests : IClassFixture<ProtocolFixture>
+    private readonly RawSearchClient _target;
+
+    public RawSearchClientTests(ProtocolFixture fixture)
     {
-        private readonly RawSearchClient _target;
+        _target = fixture.SearchClient;
+    }
 
-        public RawSearchClientTests(ProtocolFixture fixture)
-        {
-            _target = fixture.SearchClient;
-        }
+    [Fact]
+    public async Task GetDefaultSearchResults()
+    {
+        var response = await _target.SearchAsync();
 
-        [Fact]
-        public async Task GetDefaultSearchResults()
-        {
-            var response = await _target.SearchAsync();
+        Assert.NotNull(response);
+        Assert.Equal(1, response.TotalHits);
 
-            Assert.NotNull(response);
-            Assert.Equal(1, response.TotalHits);
+        var result = Assert.Single(response.Data);
+        Assert.Equal("Test.Package", result.PackageId);
+        Assert.Equal("Package Authors", Assert.Single(result.Authors));
+        Assert.Equal(TestData.RegistrationIndexInlinedItemsUrl, result.RegistrationIndexUrl);
 
-            var result = Assert.Single(response.Data);
-            Assert.Equal("Test.Package", result.PackageId);
-            Assert.Equal("Package Authors", Assert.Single(result.Authors));
-            Assert.Equal(TestData.RegistrationIndexInlinedItemsUrl, result.RegistrationIndexUrl);
+        var packageType = Assert.Single(result.PackageTypes);
+        Assert.Equal("Dependency", packageType.Name);
+    }
 
-            var packageType = Assert.Single(result.PackageTypes);
-            Assert.Equal("Dependency", packageType.Name);
-        }
+    [Fact]
+    public async Task AddsParameters()
+    {
+        await Task.Yield();
 
-        [Fact]
-        public async Task AddsParameters()
-        {
-            await Task.Yield();
-
-            // TODO: Assert request URL query parameters.
-            // var response = await _target.SearchAsync(
-            //     "query",
-            //     skip: 2,
-            //     take: 5,
-            //     includePrerelease: false,
-            //     includeSemVer2: false);
-        }
+        // TODO: Assert request URL query parameters.
+        // var response = await _target.SearchAsync(
+        //     "query",
+        //     skip: 2,
+        //     take: 5,
+        //     includePrerelease: false,
+        //     includeSemVer2: false);
     }
 }

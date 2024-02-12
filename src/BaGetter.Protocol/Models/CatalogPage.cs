@@ -2,40 +2,39 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace BaGetter.Protocol.Models
+namespace BaGetter.Protocol.Models;
+
+/// <summary>
+/// A catalog page, used to discover catalog leafs.<br/>
+/// Pages can be discovered from a <see cref="CatalogIndex"/>.
+/// </summary>
+/// <remarks>
+/// See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page"/><br/>
+/// Based off: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/CatalogPage.cs"/>
+/// </remarks>
+public class CatalogPage
 {
     /// <summary>
-    /// A catalog page, used to discover catalog leafs.<br/>
-    /// Pages can be discovered from a <see cref="CatalogIndex"/>.
+    /// A unique ID associated with the most recent commit in this page.
     /// </summary>
-    /// <remarks>
-    /// See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-page"/><br/>
-    /// Based off: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/CatalogPage.cs"/>
-    /// </remarks>
-    public class CatalogPage
-    {
-        /// <summary>
-        /// A unique ID associated with the most recent commit in this page.
-        /// </summary>
-        [JsonPropertyName("commitTimeStamp")]
-        public DateTimeOffset CommitTimestamp { get; set; }
+    [JsonPropertyName("commitTimeStamp")]
+    public DateTimeOffset CommitTimestamp { get; set; }
 
-        /// <summary>
-        /// The number of items in the page.
-        /// </summary>
-        [JsonPropertyName("count")]
-        public int Count { get; set; }
+    /// <summary>
+    /// The number of items in the page.
+    /// </summary>
+    [JsonPropertyName("count")]
+    public int Count { get; set; }
 
-        /// <summary>
-        /// The items used to discover <see cref="CatalogLeaf"/>s.
-        /// </summary>
-        [JsonPropertyName("items")]
-        public List<CatalogLeafItem> Items { get; set; }
+    /// <summary>
+    /// The items used to discover <see cref="CatalogLeaf"/>s.
+    /// </summary>
+    [JsonPropertyName("items")]
+    public List<CatalogLeafItem> Items { get; set; }
 
-        /// <summary>
-        /// The URL to the Catalog Index.
-        /// </summary>
-        [JsonPropertyName("parent")]
-        public string CatalogIndexUrl { get; set; }
-    }
+    /// <summary>
+    /// The URL to the Catalog Index.
+    /// </summary>
+    [JsonPropertyName("parent")]
+    public string CatalogIndexUrl { get; set; }
 }

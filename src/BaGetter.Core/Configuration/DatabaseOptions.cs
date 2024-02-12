@@ -1,12 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BaGetter.Core
-{
-    public class DatabaseOptions
-    {
-        public string Type { get; set; }
+namespace BaGetter.Core;
 
-        [Required]
-        public string ConnectionString { get; set; }
-    }
+public class DatabaseOptions
+{
+    public string Type { get; set; }
+
+    [Required]
+    public string ConnectionString { get; set; }
 }

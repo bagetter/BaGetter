@@ -4,37 +4,36 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace BaGetterWebApplication
+namespace BaGetterWebApplication;
+
+public class Startup
 {
-    public class Startup
+    public void ConfigureServices(IServiceCollection services)
     {
-        public void ConfigureServices(IServiceCollection services)
+        services.AddBaGetterWebApplication(app =>
         {
-            services.AddBaGetterWebApplication(app =>
-            {
-                // Use SQLite as BaGetter's database and store packages on the local file system.
-                app.AddSqliteDatabase();
-                app.AddFileStorage();
-            });
+            // Use SQLite as BaGetter's database and store packages on the local file system.
+            app.AddSqliteDatabase();
+            app.AddFileStorage();
+        });
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        app.UseStaticFiles();
+        app.UseRouting();
+
+        app.UseEndpoints(endpoints =>
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            // Add BaGetter's endpoints.
+            var baget = new BaGetterEndpointBuilder();
 
-            app.UseStaticFiles();
-            app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
-            {
-                // Add BaGetter's endpoints.
-                var baget = new BaGetterEndpointBuilder();
-
-                baget.MapEndpoints(endpoints);
-            });
-        }
+            baget.MapEndpoints(endpoints);
+        });
     }
 }

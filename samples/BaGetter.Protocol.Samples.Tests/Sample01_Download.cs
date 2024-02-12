@@ -4,38 +4,37 @@ using System.Threading.Tasks;
 using NuGet.Versioning;
 using Xunit;
 
-namespace BaGetter.Protocol.Samples.Tests
+namespace BaGetter.Protocol.Samples.Tests;
+
+public class Sample01_Download
 {
-    public class Sample01_Download
+    [Fact]
+    public async Task DownloadPackage()
     {
-        [Fact]
-        public async Task DownloadPackage()
+        // Downloads a package file (.nupkg)
+        NuGetClient client = new NuGetClient("https://api.nuget.org/v3/index.json");
+
+        string packageId = "Newtonsoft.Json";
+        NuGetVersion packageVersion = new NuGetVersion("12.0.1");
+
+        using (Stream packageStream = await client.DownloadPackageAsync(packageId, packageVersion))
         {
-            // Downloads a package file (.nupkg)
-            NuGetClient client = new NuGetClient("https://api.nuget.org/v3/index.json");
-
-            string packageId = "Newtonsoft.Json";
-            NuGetVersion packageVersion = new NuGetVersion("12.0.1");
-
-            using (Stream packageStream = await client.DownloadPackageAsync(packageId, packageVersion))
-            {
-                Console.WriteLine($"Downloaded package {packageId} {packageVersion}");
-            }
+            Console.WriteLine($"Downloaded package {packageId} {packageVersion}");
         }
+    }
 
-        [Fact]
-        public async Task DownloadPackageManifest()
+    [Fact]
+    public async Task DownloadPackageManifest()
+    {
+        // Downloads a package manifest (.nuspec)
+        NuGetClient client = new NuGetClient("https://api.nuget.org/v3/index.json");
+
+        string packageId = "Newtonsoft.Json";
+        NuGetVersion packageVersion = new NuGetVersion("12.0.1");
+
+        using (Stream manifestStream = await client.DownloadPackageManifestAsync(packageId, packageVersion))
         {
-            // Downloads a package manifest (.nuspec)
-            NuGetClient client = new NuGetClient("https://api.nuget.org/v3/index.json");
-
-            string packageId = "Newtonsoft.Json";
-            NuGetVersion packageVersion = new NuGetVersion("12.0.1");
-
-            using (Stream manifestStream = await client.DownloadPackageManifestAsync(packageId, packageVersion))
-            {
-                Console.WriteLine($"Downloaded package {packageId} {packageVersion}'s nuspec");
-            }
+            Console.WriteLine($"Downloaded package {packageId} {packageVersion}'s nuspec");
         }
     }
 }

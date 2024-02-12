@@ -1,29 +1,28 @@
 using System.Text.Json.Serialization;
 
-namespace BaGetter.Protocol.Models
+namespace BaGetter.Protocol.Models;
+
+/// <summary>
+/// A resource in the <see cref="ServiceIndexResponse"/>.
+/// </summary>
+/// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/service-index#resources"/></remarks>
+public class ServiceIndexItem
 {
     /// <summary>
-    /// A resource in the <see cref="ServiceIndexResponse"/>.
+    /// The resource's base URL.
     /// </summary>
-    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/service-index#resources"/></remarks>
-    public class ServiceIndexItem
-    {
-        /// <summary>
-        /// The resource's base URL.
-        /// </summary>
-        [JsonPropertyName("@id")]
-        public string ResourceUrl { get; set; }
+    [JsonPropertyName("@id")]
+    public string ResourceUrl { get; set; }
 
-        /// <summary>
-        /// The resource's type.
-        /// </summary>
-        [JsonPropertyName("@type")]
-        public string Type { get; set; }
+    /// <summary>
+    /// The resource's type.
+    /// </summary>
+    [JsonPropertyName("@type")]
+    public string Type { get; set; }
 
-        /// <summary>
-        /// Human readable comments about the resource.
-        /// </summary>
-        [JsonPropertyName("comment")]
-        public string Comment { get; set; }
-    }
+    /// <summary>
+    /// Human readable comments about the resource.
+    /// </summary>
+    [JsonPropertyName("comment")]
+    public string Comment { get; set; }
 }

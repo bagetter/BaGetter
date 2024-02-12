@@ -1,11 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using BaGetter.Core;
 
-namespace BaGetter.Gcp
+namespace BaGetter.Gcp;
+
+public class GoogleCloudStorageOptions : StorageOptions
 {
-    public class GoogleCloudStorageOptions : StorageOptions
-    {
-        [Required]
-        public string BucketName { get; set; }
-    }
+    [Required]
+    public string BucketName { get; set; }
 }
