@@ -4,13 +4,14 @@ using System.Text.Json.Serialization;
 
 namespace BaGetter.Protocol.Models
 {
-    // This class is based off https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/PackageDetailsCatalogLeaf.cs
-
     /// <summary>
-    /// A "package details" catalog leaf. Represents a single package create or update event.
+    /// A "package details" catalog leaf. Represents a single package create or update event.<br/>
     /// <see cref="PackageDetailsCatalogLeaf"/>s can be discovered from a <see cref="CatalogPage"/>.
     /// </summary>
-    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf"/></remarks>
+    /// <remarks>
+    /// See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-leaf"/><br/>
+    /// Based off: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/PackageDetailsCatalogLeaf.cs"/>
+    /// </remarks>
     public class PackageDetailsCatalogLeaf : CatalogLeaf
     {
         /// <summary>

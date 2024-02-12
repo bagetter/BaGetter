@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 namespace BaGetter.Protocol.Catalog
 {
     /// <summary>
-    /// A cursor that does not persist any state. Use this with a <see cref="CatalogProcessor"/>
-    /// to process all leafs each time <see cref="CatalogProcessor.ProcessAsync(CancellationToken)"/>
-    /// is called.
+    /// A cursor that does not persist any state.<br/>
+    /// Use this with a <see cref="CatalogProcessor"/> to process all leafs each time <see cref="CatalogProcessor.ProcessAsync(CancellationToken)"/> is called.
     /// </summary>
     public class NullCursor : ICursor
     {

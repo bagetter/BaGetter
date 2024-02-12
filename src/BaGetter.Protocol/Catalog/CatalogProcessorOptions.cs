@@ -2,11 +2,10 @@ using System;
 
 namespace BaGetter.Protocol.Catalog
 {
-    // This class is based off: https://github.com/NuGet/NuGet.Services.Metadata/blob/3a468fe534a03dcced897eb5992209fdd3c4b6c9/src/NuGet.Protocol.Catalog/CatalogProcessorSettings.cs
-
     /// <summary>
     /// The options to configure <see cref="CatalogProcessor"/>.
     /// </summary>
+    /// <remarks>Based off: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/3a468fe534a03dcced897eb5992209fdd3c4b6c9/src/NuGet.Protocol.Catalog/CatalogProcessorSettings.cs"/></remarks>
     public class CatalogProcessorOptions
     {
         /// <summary>

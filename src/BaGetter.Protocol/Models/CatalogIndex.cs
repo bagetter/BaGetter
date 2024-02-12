@@ -4,13 +4,14 @@ using System.Text.Json.Serialization;
 
 namespace BaGetter.Protocol.Models
 {
-    // This class is based off: https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/CatalogIndex.cs
-
     /// <summary>
-    /// The catalog index is the entry point for the catalog resource.
+    /// The catalog index is the entry point for the catalog resource.<br/>
     /// Use this to discover catalog pages, which in turn can be used to discover catalog leafs.
     /// </summary>
-    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-index"/></remarks>
+    /// <remarks>
+    /// See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-index"/><br/>
+    /// Based off: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/CatalogIndex.cs"/>
+    /// </remarks>
     public class CatalogIndex
     {
         /// <summary>

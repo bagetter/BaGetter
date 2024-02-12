@@ -5,7 +5,7 @@ using BaGetter.Protocol.Models;
 namespace BaGetter.Protocol
 {
     /// <summary>
-    /// The Catalog client, used to discover package events.
+    /// The Catalog client, used to discover package events.<br/>
     /// You can use this resource to query for all published packages.
     /// </summary>
     /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource"/></remarks>

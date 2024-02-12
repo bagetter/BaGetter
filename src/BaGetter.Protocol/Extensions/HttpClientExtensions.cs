@@ -38,14 +38,13 @@ namespace BaGetter.Protocol
         }
 
         /// <summary>
-        /// Deserialize JSON content. If the HTTP response status code is 404,
-        /// returns the default value.
+        /// Deserialize JSON content.
         /// </summary>
         /// <typeparam name="TResult">The JSON type to deserialize.</typeparam>
         /// <param name="httpClient">The HTTP client that will perform the request.</param>
         /// <param name="requestUri">The request URI.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
-        /// <returns>The JSON content, or, the default value if the HTTP response status code is 404.</returns>
+        /// <returns>The JSON content, or the default value if the HTTP response status code is 404.</returns>
         public static async Task<TResult> GetFromJsonOrDefaultAsync<TResult>(
             this HttpClient httpClient,
             string requestUri,

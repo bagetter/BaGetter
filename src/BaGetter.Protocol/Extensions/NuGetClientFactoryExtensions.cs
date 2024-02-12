@@ -6,7 +6,7 @@ namespace BaGetter.Protocol
     public static class NuGetClientFactoryExtensions
     {
         /// <summary>
-        /// Create a new <see cref="CatalogProcessor"/> to discover and download catalog leafs.
+        /// Create a new <see cref="CatalogProcessor"/> to discover and download catalog leafs.<br/>
         /// Leafs are processed by the <see cref="ICatalogLeafProcessor"/>.
         /// </summary>
         /// <param name="clientFactory">The factory used to create NuGet clients.</param>

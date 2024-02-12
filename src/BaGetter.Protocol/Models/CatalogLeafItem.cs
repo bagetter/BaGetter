@@ -3,12 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace BaGetter.Protocol.Models
 {
-    // This class is based off https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/CatalogLeafItem.cs
-
     /// <summary>
     /// An item in a <see cref="CatalogPage"/> that references a <see cref="CatalogLeaf"/>.
     /// </summary>
-    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-item-object-in-a-page"/></remarks>
+    /// <remarks>
+    /// See: <see href="https://docs.microsoft.com/en-us/nuget/api/catalog-resource#catalog-item-object-in-a-page"/><br/>
+    /// Based off: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/64af0b59c5a79e0143f0808b39946df9f16cb2e7/src/NuGet.Protocol.Catalog/Models/CatalogLeafItem.cs"/>
+    /// </remarks>
     public class CatalogLeafItem : ICatalogLeafItem
     {
         /// <summary>
