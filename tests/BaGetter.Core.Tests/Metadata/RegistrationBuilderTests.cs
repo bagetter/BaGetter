@@ -10,19 +10,19 @@ namespace BaGetter.Core.Tests.Metadata
     public class RegistrationBuilderTests
     {
         private readonly Mock<IUrlGenerator> _urlGenerator;
+        private readonly RegistrationBuilder _registrationBuilder;
 
         public RegistrationBuilderTests()
         {
             _urlGenerator = new Mock<IUrlGenerator>();
+            _registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
         }
 
-        [Fact]
-        public void TheRegistrationIndexResponseIsSortedByVersion()
-        {
-            // Arrange
-            var packageId = "BaGetter.Test";
-            var authors = new string[] { "test" };
+        #region helper methods
 
+        private PackageRegistration GetPackageRegistration()
+        {
+            var packageId = "BaGetter.Test";
             var packages = new List<Package>
             {
                 GetTestPackage(packageId, "3.1.0"),
@@ -33,35 +33,13 @@ namespace BaGetter.Core.Tests.Metadata
                 GetTestPackage(packageId, "1.0.0"),
             };
 
-            /*
-             * Use current date for each packages publish date, because later a date offset will be
-             * calculated and leads to an overflow error of the offset because the default is year 0001.
-             */
-            foreach (var package in packages)
-            {
-                package.Published = DateTime.UtcNow;
-            }
-
-            var registration = new PackageRegistration(packageId, packages);
-
-            var registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
-
-            // Act
-            var response = registrationBuilder.BuildIndex(registration);
-
-            // Assert
-            Assert.Equal(packages.Count, response.Pages[0].ItemsOrNull.Count);
-            var index = 0;
-            foreach (var package in packages.OrderBy(p => p.Version))
-            {
-                Assert.Equal(package.Version.ToFullString(), response.Pages[0].ItemsOrNull[index++].PackageMetadata.Version);
-            }
+            return new PackageRegistration(packageId, packages);
         }
 
         /// <summary>
         /// Create a fake <see cref="Package"></see> with the minimum metadata needed by the <see cref="RegistrationBuilder"></see>.
         /// </summary>
-        private Package GetTestPackage(string packageId, string version)
+        private static Package GetTestPackage(string packageId, string version)
         {
             return new Package
             {
@@ -70,7 +48,83 @@ namespace BaGetter.Core.Tests.Metadata
                 PackageTypes = new List<PackageType> { new PackageType { Name = "test" } },
                 Dependencies = new List<PackageDependency> { },
                 Version = new NuGetVersion(version),
+                //Use current date for each packages publish date, because later a date offset will be
+                //calculated and leads to an overflow error of the offset because the default is year 0001.
+                Published = DateTime.UtcNow,
+                Downloads = 1
             };
+        }
+
+        #endregion
+
+        [Fact]
+        public void Ctor_UrlGeneratorIsNull_ShouldThrow()
+        {
+            // Act/Assert
+            var ex = Assert.Throws<ArgumentNullException>(() => new RegistrationBuilder(null));
+        }
+
+        [Fact]
+        public void BuildIndex_PackageRegistrationIsNull_ShouldThrow()
+        {
+            // Arrange
+            var registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
+
+            // Act/Assert
+            var ex = Assert.Throws<ArgumentNullException>(() => registrationBuilder.BuildIndex(null));
+        }
+
+        [Fact]
+        public void BuildIndex_RegistrationIndexResponse_ShouldBeSortedByVersion()
+        {
+            // Arrange
+            var registration = GetPackageRegistration();
+
+            // Act
+            var response = _registrationBuilder.BuildIndex(registration);
+
+            // Assert
+            Assert.Equal(registration.Packages.Count, response.Pages[0].ItemsOrNull.Count);
+
+            var index = 0;
+            foreach (var package in registration.Packages.OrderBy(p => p.Version))
+            {
+                Assert.Equal(package.Version.ToFullString(), response.Pages[0].ItemsOrNull[index++].PackageMetadata.Version);
+            }
+        }
+
+        [Fact]
+        public void BuildIndex_RegistrationIndexResponse_ShouldHaveCorrectTotalDownloads()
+        {
+            // Arrange
+            var registration = GetPackageRegistration();
+
+            // Act
+            var response = _registrationBuilder.BuildIndex(registration);
+
+            // Assert
+            Assert.Equal(registration.Packages.Count, response.TotalDownloads);
+        }
+
+        [Fact]
+        public void BuildLeaf_RegistrationLeafResponse_ShouldHaveCorrectProperties()
+        {
+            // Arrange
+            var packageId = "dummy";
+            var packageVersion = "1.0.42";
+            var isPackageListed = true;
+            var publishDate = DateTime.UtcNow;
+
+            var package = GetTestPackage(packageId, packageVersion);
+            package.Listed = isPackageListed;
+            package.Published = publishDate;
+
+            // Act
+            var response = _registrationBuilder.BuildLeaf(package);
+
+            // Assert
+            Assert.Equal(isPackageListed, response.Listed);
+            Assert.Equal(publishDate, response.Published);
         }
     }
 }
