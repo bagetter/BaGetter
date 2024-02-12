@@ -33,10 +33,8 @@ public class V3UpstreamClient : IUpstreamClient
     {
         try
         {
-            using (var downloadStream = await _client.DownloadPackageAsync(id, version, cancellationToken))
-            {
-                return await downloadStream.AsTemporaryFileStreamAsync(cancellationToken);
-            }
+            using var downloadStream = await _client.DownloadPackageAsync(id, version, cancellationToken);
+            return await downloadStream.AsTemporaryFileStreamAsync(cancellationToken);
         }
         catch (PackageNotFoundException)
         {

@@ -57,36 +57,34 @@ public class PackageStorageServiceTests
             // Arrange
             SetupPutResult(StoragePutResult.Success);
 
-            using (var packageStream = StringStream("My package"))
-            using (var nuspecStream = StringStream("My nuspec"))
-            using (var readmeStream = StringStream("My readme"))
-            using (var iconStream = StringStream("My icon"))
-            {
-                // Act
-                await _target.SavePackageContentAsync(
-                    _package,
-                    packageStream: packageStream,
-                    nuspecStream: nuspecStream,
-                    readmeStream: readmeStream,
-                    iconStream: iconStream);
+            using var packageStream = StringStream("My package");
+            using var nuspecStream = StringStream("My nuspec");
+            using var readmeStream = StringStream("My readme");
+            using var iconStream = StringStream("My icon");
+            // Act
+            await _target.SavePackageContentAsync(
+                _package,
+                packageStream: packageStream,
+                nuspecStream: nuspecStream,
+                readmeStream: readmeStream,
+                iconStream: iconStream);
 
-                // Assert
-                Assert.True(_puts.ContainsKey(PackagePath));
-                Assert.Equal("My package", await ToStringAsync(_puts[PackagePath].Content));
-                Assert.Equal("binary/octet-stream", _puts[PackagePath].ContentType);
+            // Assert
+            Assert.True(_puts.ContainsKey(PackagePath));
+            Assert.Equal("My package", await ToStringAsync(_puts[PackagePath].Content));
+            Assert.Equal("binary/octet-stream", _puts[PackagePath].ContentType);
 
-                Assert.True(_puts.ContainsKey(NuspecPath));
-                Assert.Equal("My nuspec", await ToStringAsync(_puts[NuspecPath].Content));
-                Assert.Equal("text/plain", _puts[NuspecPath].ContentType);
+            Assert.True(_puts.ContainsKey(NuspecPath));
+            Assert.Equal("My nuspec", await ToStringAsync(_puts[NuspecPath].Content));
+            Assert.Equal("text/plain", _puts[NuspecPath].ContentType);
 
-                Assert.True(_puts.ContainsKey(ReadmePath));
-                Assert.Equal("My readme", await ToStringAsync(_puts[ReadmePath].Content));
-                Assert.Equal("text/markdown", _puts[ReadmePath].ContentType);
+            Assert.True(_puts.ContainsKey(ReadmePath));
+            Assert.Equal("My readme", await ToStringAsync(_puts[ReadmePath].Content));
+            Assert.Equal("text/markdown", _puts[ReadmePath].ContentType);
 
-                Assert.True(_puts.ContainsKey(IconPath));
-                Assert.Equal("My icon", await ToStringAsync(_puts[IconPath].Content));
-                Assert.Equal("image/xyz", _puts[IconPath].ContentType);
-            }
+            Assert.True(_puts.ContainsKey(IconPath));
+            Assert.Equal("My icon", await ToStringAsync(_puts[IconPath].Content));
+            Assert.Equal("image/xyz", _puts[IconPath].ContentType);
         }
 
         [Fact]
@@ -144,35 +142,33 @@ public class PackageStorageServiceTests
             // Arrange
             SetupPutResult(StoragePutResult.AlreadyExists);
 
-            using (var packageStream = StringStream("My package"))
-            using (var nuspecStream = StringStream("My nuspec"))
-            using (var readmeStream = StringStream("My readme"))
-            using (var iconStream = StringStream("My icon"))
-            {
-                await _target.SavePackageContentAsync(
-                    _package,
-                    packageStream: packageStream,
-                    nuspecStream: nuspecStream,
-                    readmeStream: readmeStream,
-                    iconStream: iconStream);
+            using var packageStream = StringStream("My package");
+            using var nuspecStream = StringStream("My nuspec");
+            using var readmeStream = StringStream("My readme");
+            using var iconStream = StringStream("My icon");
+            await _target.SavePackageContentAsync(
+                _package,
+                packageStream: packageStream,
+                nuspecStream: nuspecStream,
+                readmeStream: readmeStream,
+                iconStream: iconStream);
 
-                // Assert
-                Assert.True(_puts.ContainsKey(PackagePath));
-                Assert.Equal("My package", await ToStringAsync(_puts[PackagePath].Content));
-                Assert.Equal("binary/octet-stream", _puts[PackagePath].ContentType);
+            // Assert
+            Assert.True(_puts.ContainsKey(PackagePath));
+            Assert.Equal("My package", await ToStringAsync(_puts[PackagePath].Content));
+            Assert.Equal("binary/octet-stream", _puts[PackagePath].ContentType);
 
-                Assert.True(_puts.ContainsKey(NuspecPath));
-                Assert.Equal("My nuspec", await ToStringAsync(_puts[NuspecPath].Content));
-                Assert.Equal("text/plain", _puts[NuspecPath].ContentType);
+            Assert.True(_puts.ContainsKey(NuspecPath));
+            Assert.Equal("My nuspec", await ToStringAsync(_puts[NuspecPath].Content));
+            Assert.Equal("text/plain", _puts[NuspecPath].ContentType);
 
-                Assert.True(_puts.ContainsKey(ReadmePath));
-                Assert.Equal("My readme", await ToStringAsync(_puts[ReadmePath].Content));
-                Assert.Equal("text/markdown", _puts[ReadmePath].ContentType);
+            Assert.True(_puts.ContainsKey(ReadmePath));
+            Assert.Equal("My readme", await ToStringAsync(_puts[ReadmePath].Content));
+            Assert.Equal("text/markdown", _puts[ReadmePath].ContentType);
 
-                Assert.True(_puts.ContainsKey(IconPath));
-                Assert.Equal("My icon", await ToStringAsync(_puts[IconPath].Content));
-                Assert.Equal("image/xyz", _puts[IconPath].ContentType);
-            }
+            Assert.True(_puts.ContainsKey(IconPath));
+            Assert.Equal("My icon", await ToStringAsync(_puts[IconPath].Content));
+            Assert.Equal("image/xyz", _puts[IconPath].ContentType);
         }
 
         [Fact]
@@ -181,20 +177,18 @@ public class PackageStorageServiceTests
             // Arrange
             SetupPutResult(StoragePutResult.Conflict);
 
-            using (var packageStream = StringStream("My package"))
-            using (var nuspecStream = StringStream("My nuspec"))
-            using (var readmeStream = StringStream("My readme"))
-            using (var iconStream = StringStream("My icon"))
-            {
-                // Act
-                await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                    _target.SavePackageContentAsync(
-                        _package,
-                        packageStream: packageStream,
-                        nuspecStream: nuspecStream,
-                        readmeStream: readmeStream,
-                        iconStream: iconStream));
-            }
+            using var packageStream = StringStream("My package");
+            using var nuspecStream = StringStream("My nuspec");
+            using var readmeStream = StringStream("My readme");
+            using var iconStream = StringStream("My icon");
+            // Act
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _target.SavePackageContentAsync(
+                    _package,
+                    packageStream: packageStream,
+                    nuspecStream: nuspecStream,
+                    readmeStream: readmeStream,
+                    iconStream: iconStream));
         }
     }
 
@@ -219,20 +213,18 @@ public class PackageStorageServiceTests
         {
             // Arrange
             var cancellationToken = CancellationToken.None;
-            using (var packageStream = StringStream("My package"))
-            {
-                _storage
-                    .Setup(s => s.GetAsync(PackagePath, cancellationToken))
-                    .ReturnsAsync(packageStream);
+            using var packageStream = StringStream("My package");
+            _storage
+                .Setup(s => s.GetAsync(PackagePath, cancellationToken))
+                .ReturnsAsync(packageStream);
 
-                // Act
-                var result = await _target.GetPackageStreamAsync(_package.Id, _package.Version, cancellationToken);
+            // Act
+            var result = await _target.GetPackageStreamAsync(_package.Id, _package.Version, cancellationToken);
 
-                // Assert
-                Assert.Equal("My package", await ToStringAsync(result));
+            // Assert
+            Assert.Equal("My package", await ToStringAsync(result));
 
-                _storage.Verify(s => s.GetAsync(PackagePath, cancellationToken), Times.Once);
-            }
+            _storage.Verify(s => s.GetAsync(PackagePath, cancellationToken), Times.Once);
         }
     }
 
@@ -257,20 +249,18 @@ public class PackageStorageServiceTests
         {
             // Arrange
             var cancellationToken = CancellationToken.None;
-            using (var nuspecStream = StringStream("My nuspec"))
-            {
-                _storage
-                    .Setup(s => s.GetAsync(NuspecPath, cancellationToken))
-                    .ReturnsAsync(nuspecStream);
+            using var nuspecStream = StringStream("My nuspec");
+            _storage
+                .Setup(s => s.GetAsync(NuspecPath, cancellationToken))
+                .ReturnsAsync(nuspecStream);
 
-                // Act
-                var result = await _target.GetNuspecStreamAsync(_package.Id, _package.Version, cancellationToken);
+            // Act
+            var result = await _target.GetNuspecStreamAsync(_package.Id, _package.Version, cancellationToken);
 
-                // Assert
-                Assert.Equal("My nuspec", await ToStringAsync(result));
+            // Assert
+            Assert.Equal("My nuspec", await ToStringAsync(result));
 
-                _storage.Verify(s => s.GetAsync(NuspecPath, cancellationToken), Times.Once);
-            }
+            _storage.Verify(s => s.GetAsync(NuspecPath, cancellationToken), Times.Once);
         }
     }
 
@@ -295,20 +285,18 @@ public class PackageStorageServiceTests
         {
             // Arrange
             var cancellationToken = CancellationToken.None;
-            using (var readmeStream = StringStream("My readme"))
-            {
-                _storage
-                    .Setup(s => s.GetAsync(ReadmePath, cancellationToken))
-                    .ReturnsAsync(readmeStream);
+            using var readmeStream = StringStream("My readme");
+            _storage
+                .Setup(s => s.GetAsync(ReadmePath, cancellationToken))
+                .ReturnsAsync(readmeStream);
 
-                // Act
-                var result = await _target.GetReadmeStreamAsync(_package.Id, _package.Version, cancellationToken);
+            // Act
+            var result = await _target.GetReadmeStreamAsync(_package.Id, _package.Version, cancellationToken);
 
-                // Assert
-                Assert.Equal("My readme", await ToStringAsync(result));
+            // Assert
+            Assert.Equal("My readme", await ToStringAsync(result));
 
-                _storage.Verify(s => s.GetAsync(ReadmePath, cancellationToken), Times.Once);
-            }
+            _storage.Verify(s => s.GetAsync(ReadmePath, cancellationToken), Times.Once);
         }
     }
 
@@ -362,10 +350,8 @@ public class PackageStorageServiceTests
 
         protected async Task<string> ToStringAsync(Stream input)
         {
-            using (var reader = new StreamReader(input))
-            {
-                return await reader.ReadToEndAsync();
-            }
+            using var reader = new StreamReader(input);
+            return await reader.ReadToEndAsync();
         }
 
         protected void SetupPutResult(StoragePutResult result)

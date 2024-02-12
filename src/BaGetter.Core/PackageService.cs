@@ -107,32 +107,30 @@ public class PackageService : IPackageService
 
         try
         {
-            using (var packageStream = await _upstream.DownloadPackageOrNullAsync(id, version, cancellationToken))
+            using var packageStream = await _upstream.DownloadPackageOrNullAsync(id, version, cancellationToken);
+            if (packageStream == null)
             {
-                if (packageStream == null)
-                {
-                    _logger.LogWarning(
-                        "Upstream feed does not have package {PackageId} {PackageVersion}",
-                        id,
-                        version);
-                    return false;
-                }
-
-                _logger.LogInformation(
-                    "Downloaded package {PackageId} {PackageVersion}, indexing...",
+                _logger.LogWarning(
+                    "Upstream feed does not have package {PackageId} {PackageVersion}",
                     id,
                     version);
-
-                var result = await _indexer.IndexAsync(packageStream, cancellationToken);
-
-                _logger.LogInformation(
-                    "Finished indexing package {PackageId} {PackageVersion} from upstream feed with result {Result}",
-                    id,
-                    version,
-                    result);
-
-                return result == PackageIndexingResult.Success;
+                return false;
             }
+
+            _logger.LogInformation(
+                "Downloaded package {PackageId} {PackageVersion}, indexing...",
+                id,
+                version);
+
+            var result = await _indexer.IndexAsync(packageStream, cancellationToken);
+
+            _logger.LogInformation(
+                "Finished indexing package {PackageId} {PackageVersion} from upstream feed with result {Result}",
+                id,
+                version,
+                result);
+
+            return result == PackageIndexingResult.Success;
         }
         catch (Exception e)
         {

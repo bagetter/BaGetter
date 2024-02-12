@@ -330,18 +330,16 @@ public class PackageServiceTests
                 .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
                 .ReturnsAsync(false);
 
-            using (var downloadStream = new MemoryStream())
-            {
-                _upstream
-                    .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
-                    .ReturnsAsync(downloadStream);
+            using var downloadStream = new MemoryStream();
+            _upstream
+                .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
+                .ReturnsAsync(downloadStream);
 
-                await TargetAsync();
+            await TargetAsync();
 
-                _indexer.Verify(
-                    i => i.IndexAsync(It.IsAny<Stream>(), _cancellationToken),
-                    Times.Once);
-            }
+            _indexer.Verify(
+                i => i.IndexAsync(It.IsAny<Stream>(), _cancellationToken),
+                Times.Once);
         }
     }
 

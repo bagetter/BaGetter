@@ -41,30 +41,28 @@ public class SymbolController : Controller
 
         try
         {
-            using (var uploadStream = await Request.GetUploadStreamOrNullAsync(cancellationToken))
+            using var uploadStream = await Request.GetUploadStreamOrNullAsync(cancellationToken);
+            if (uploadStream == null)
             {
-                if (uploadStream == null)
-                {
+                HttpContext.Response.StatusCode = 400;
+                return;
+            }
+
+            var result = await _indexer.IndexAsync(uploadStream, cancellationToken);
+
+            switch (result)
+            {
+                case SymbolIndexingResult.InvalidSymbolPackage:
                     HttpContext.Response.StatusCode = 400;
-                    return;
-                }
+                    break;
 
-                var result = await _indexer.IndexAsync(uploadStream, cancellationToken);
+                case SymbolIndexingResult.PackageNotFound:
+                    HttpContext.Response.StatusCode = 404;
+                    break;
 
-                switch (result)
-                {
-                    case SymbolIndexingResult.InvalidSymbolPackage:
-                        HttpContext.Response.StatusCode = 400;
-                        break;
-
-                    case SymbolIndexingResult.PackageNotFound:
-                        HttpContext.Response.StatusCode = 404;
-                        break;
-
-                    case SymbolIndexingResult.Success:
-                        HttpContext.Response.StatusCode = 201;
-                        break;
-                }
+                case SymbolIndexingResult.Success:
+                    HttpContext.Response.StatusCode = 201;
+                    break;
             }
         }
         catch (Exception e)

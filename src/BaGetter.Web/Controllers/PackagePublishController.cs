@@ -46,30 +46,28 @@ public class PackagePublishController : Controller
 
         try
         {
-            using (var uploadStream = await Request.GetUploadStreamOrNullAsync(cancellationToken))
+            using var uploadStream = await Request.GetUploadStreamOrNullAsync(cancellationToken);
+            if (uploadStream == null)
             {
-                if (uploadStream == null)
-                {
+                HttpContext.Response.StatusCode = 400;
+                return;
+            }
+
+            var result = await _indexer.IndexAsync(uploadStream, cancellationToken);
+
+            switch (result)
+            {
+                case PackageIndexingResult.InvalidPackage:
                     HttpContext.Response.StatusCode = 400;
-                    return;
-                }
+                    break;
 
-                var result = await _indexer.IndexAsync(uploadStream, cancellationToken);
+                case PackageIndexingResult.PackageAlreadyExists:
+                    HttpContext.Response.StatusCode = 409;
+                    break;
 
-                switch (result)
-                {
-                    case PackageIndexingResult.InvalidPackage:
-                        HttpContext.Response.StatusCode = 400;
-                        break;
-
-                    case PackageIndexingResult.PackageAlreadyExists:
-                        HttpContext.Response.StatusCode = 409;
-                        break;
-
-                    case PackageIndexingResult.Success:
-                        HttpContext.Response.StatusCode = 201;
-                        break;
-                }
+                case PackageIndexingResult.Success:
+                    HttpContext.Response.StatusCode = 201;
+                    break;
             }
         }
         catch (Exception e)

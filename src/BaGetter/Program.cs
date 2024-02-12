@@ -34,12 +34,10 @@ public class Program
             {
                 downloads.OnExecuteAsync(async cancellationToken =>
                 {
-                    using (var scope = host.Services.CreateScope())
-                    {
-                        var importer = scope.ServiceProvider.GetRequiredService<DownloadsImporter>();
+                    using var scope = host.Services.CreateScope();
+                    var importer = scope.ServiceProvider.GetRequiredService<DownloadsImporter>();
 
-                        await importer.ImportAsync(cancellationToken);
-                    }
+                    await importer.ImportAsync(cancellationToken);
                 });
             });
         });

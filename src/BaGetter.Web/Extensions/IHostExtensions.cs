@@ -27,13 +27,11 @@ public static class IHostExtensions
 
         if (options.Value.RunMigrationsAtStartup)
         {
-            using (var scope = host.Services.CreateScope())
+            using var scope = host.Services.CreateScope();
+            var ctx = scope.ServiceProvider.GetService<IContext>();
+            if (ctx != null)
             {
-                var ctx = scope.ServiceProvider.GetService<IContext>();
-                if (ctx != null)
-                {
-                    await ctx.RunMigrationsAsync(cancellationToken);
-                }
+                await ctx.RunMigrationsAsync(cancellationToken);
             }
         }
     }

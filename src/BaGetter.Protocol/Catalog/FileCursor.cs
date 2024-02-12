@@ -28,12 +28,10 @@ public class FileCursor : ICursor
     {
         try
         {
-            using (var file = File.OpenRead(_path))
-            {
-                var data = await JsonSerializer.DeserializeAsync<Data>(file, options: null, cancellationToken);
-                _logger.LogDebug("Read cursor value {cursor:O} from {path}.", data.Value, _path);
-                return data.Value;
-            }
+            using var file = File.OpenRead(_path);
+            var data = await JsonSerializer.DeserializeAsync<Data>(file, options: null, cancellationToken);
+            _logger.LogDebug("Read cursor value {cursor:O} from {path}.", data.Value, _path);
+            return data.Value;
         }
         catch (Exception e) when (e is FileNotFoundException || e is JsonException)
         {

@@ -31,56 +31,54 @@ public class PackageDownloadsJsonSource : IPackageDownloadsSource
 
         var results = new Dictionary<string, Dictionary<string, long>>();
 
-        using (var downloadsStream = await GetDownloadsStreamAsync())
-        using (var downloadStreamReader = new StreamReader(downloadsStream))
-        using (var jsonReader = new JsonTextReader(downloadStreamReader))
+        using var downloadsStream = await GetDownloadsStreamAsync();
+        using var downloadStreamReader = new StreamReader(downloadsStream);
+        using var jsonReader = new JsonTextReader(downloadStreamReader);
+        _logger.LogInformation("Parsing package downloads...");
+
+        jsonReader.Read();
+
+        while (jsonReader.Read())
         {
-            _logger.LogInformation("Parsing package downloads...");
-
-            jsonReader.Read();
-
-            while (jsonReader.Read())
+            try
             {
-                try
+                if (jsonReader.TokenType == JsonToken.StartArray)
                 {
-                    if (jsonReader.TokenType == JsonToken.StartArray)
+                    // TODO: This line reads the entire document into memory...
+                    var record = JToken.ReadFrom(jsonReader);
+                    var id = string.Intern(record[0].ToString().ToLowerInvariant());
+
+                    // The second entry in each record should be an array of versions, if not move on to next entry.
+                    // This is a check to safe guard against invalid entries.
+                    if (record.Count() == 2 && record[1].Type != JTokenType.Array)
                     {
-                        // TODO: This line reads the entire document into memory...
-                        var record = JToken.ReadFrom(jsonReader);
-                        var id = string.Intern(record[0].ToString().ToLowerInvariant());
+                        continue;
+                    }
 
-                        // The second entry in each record should be an array of versions, if not move on to next entry.
-                        // This is a check to safe guard against invalid entries.
-                        if (record.Count() == 2 && record[1].Type != JTokenType.Array)
-                        {
-                            continue;
-                        }
+                    if (!results.TryGetValue(id, out var value))
+                    {
+                        value = new Dictionary<string, long>();
+                        results.Add(id, value);
+                    }
 
-                        if (!results.TryGetValue(id, out var value))
+                    foreach (var token in record)
+                    {
+                        if (token != null && token.Count() == 2)
                         {
-                            value = new Dictionary<string, long>();
-                            results.Add(id, value);
-                        }
-
-                        foreach (var token in record)
-                        {
-                            if (token != null && token.Count() == 2)
-                            {
-                                var version = string.Intern(NuGetVersion.Parse(token[0].ToString()).ToNormalizedString().ToLowerInvariant());
-                                var downloads = token[1].ToObject<int>();
-                                value[version] = downloads;
-                            }
+                            var version = string.Intern(NuGetVersion.Parse(token[0].ToString()).ToNormalizedString().ToLowerInvariant());
+                            var downloads = token[1].ToObject<int>();
+                            value[version] = downloads;
                         }
                     }
                 }
-                catch (JsonReaderException e)
-                {
-                    _logger.LogError(e, "Invalid entry in downloads.v1.json");
-                }
             }
-
-            _logger.LogInformation("Parsed package downloads");
+            catch (JsonReaderException e)
+            {
+                _logger.LogError(e, "Invalid entry in downloads.v1.json");
+            }
         }
+
+        _logger.LogInformation("Parsed package downloads");
 
         return results;
     }
