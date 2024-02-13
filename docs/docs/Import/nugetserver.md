@@ -12,20 +12,20 @@ Please refer to the [BaGetter vs NuGet.Server](../vs/nugetserver.md) page for re
 
 Make sure that you've installed [nuget.exe](https://www.nuget.org/downloads). In PowerShell, run:
 
-```ps1
+```powershell
 $source = "<NuGet.Server package source>"
 $destination = "<BaGetter package source>"
 ```
 
 If you've [configured BaGetter to require an API Key](https://bagetter.com/docs/configuration/#requiring-an-api-key), set it using [the `setapikey` command](https://docs.microsoft.com/en-us/nuget/reference/cli-reference/cli-ref-setapikey):
 
-```ps1
+```powershell
 & nuget.exe setapikey "MY-API-KEY" -Source $destination
 ```
 
 Now run the following PowerShell script:
 
-```ps1
+```powershell
 if (!(Test-Path "Web.config")) {
   throw "Please run this script in the same directory as NuGet.Server's Web.config file"
 }

@@ -12,20 +12,20 @@ Please refer to the [BaGetter vs local feeds](../vs/local-feeds.md) page for rea
 
 Make sure that you've installed [nuget.exe](https://www.nuget.org/downloads). In PowerShell, run:
 
-```ps1
+```powershell
 $source = "C:\path\to\local\feed"
 $destination = "http://localhost:5000/v3/index.json"
 ```
 
 If you've [configured BaGetter to require an API Key](https://bagetter.com/docs/configuration/#requiring-an-api-key), set it using [the `setapikey` command](https://docs.microsoft.com/en-us/nuget/reference/cli-reference/cli-ref-setapikey):
 
-```ps1
+```powershell
 & nuget.exe setapikey "MY-API-KEY" -Source $destination
 ```
 
 Now run the following PowerShell script:
 
-```ps1
+```powershell
 $packages = nuget list -AllVersions -Source $source
 
 $packages | % {
