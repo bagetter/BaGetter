@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BaGetter.Core.Tests.Support;
 using Moq;
-using NuGet.Versioning;
 using Xunit;
 
 namespace BaGetter.Core.Tests.Metadata
@@ -25,34 +25,15 @@ namespace BaGetter.Core.Tests.Metadata
             var packageId = "BaGetter.Test";
             var packages = new List<Package>
             {
-                GetTestPackage(packageId, "3.1.0"),
-                GetTestPackage(packageId, "10.0.5"),
-                GetTestPackage(packageId, "3.2.0"),
-                GetTestPackage(packageId, "3.1.0-pre"),
-                GetTestPackage(packageId, "1.0.0-beta1"),
-                GetTestPackage(packageId, "1.0.0"),
+                Generator.GetPackage(packageId, "3.1.0"),
+                Generator.GetPackage(packageId, "10.0.5"),
+                Generator.GetPackage(packageId, "3.2.0"),
+                Generator.GetPackage(packageId, "3.1.0-pre"),
+                Generator.GetPackage(packageId, "1.0.0-beta1"),
+                Generator.GetPackage(packageId, "1.0.0"),
             };
 
             return new PackageRegistration(packageId, packages);
-        }
-
-        /// <summary>
-        /// Create a fake <see cref="Package"></see> with the minimum metadata needed by the <see cref="RegistrationBuilder"></see>.
-        /// </summary>
-        private static Package GetTestPackage(string packageId, string version)
-        {
-            return new Package
-            {
-                Id = packageId,
-                Authors = new string[] { "test" },
-                PackageTypes = new List<PackageType> { new PackageType { Name = "test" } },
-                Dependencies = new List<PackageDependency> { },
-                Version = new NuGetVersion(version),
-                //Use current date for each packages publish date, because later a date offset will be
-                //calculated and leads to an overflow error of the offset because the default is year 0001.
-                Published = DateTime.UtcNow,
-                Downloads = 1
-            };
         }
 
         #endregion
@@ -115,7 +96,7 @@ namespace BaGetter.Core.Tests.Metadata
             var isPackageListed = true;
             var publishDate = DateTime.UtcNow;
 
-            var package = GetTestPackage(packageId, packageVersion);
+            var package = Generator.GetPackage(packageId, packageVersion);
             package.Listed = isPackageListed;
             package.Published = publishDate;
 

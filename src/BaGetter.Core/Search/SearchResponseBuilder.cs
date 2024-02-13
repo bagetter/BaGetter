@@ -11,7 +11,9 @@ namespace BaGetter.Core
 
         public SearchResponseBuilder(IUrlGenerator url)
         {
-            _url = url ?? throw new ArgumentNullException(nameof(url));
+            ArgumentNullException.ThrowIfNull(url);
+
+            _url = url;
         }
 
         public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations)
