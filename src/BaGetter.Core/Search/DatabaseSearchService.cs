@@ -14,20 +14,20 @@ public class DatabaseSearchService : ISearchService
     private readonly IFrameworkCompatibilityService _frameworks;
     private readonly ISearchResponseBuilder _searchBuilder;
 
-        public DatabaseSearchService(IContext context, IFrameworkCompatibilityService frameworks, ISearchResponseBuilder searchBuilder)
-        {
-            ArgumentNullException.ThrowIfNull(context);
-            ArgumentNullException.ThrowIfNull(frameworks);
-            ArgumentNullException.ThrowIfNull(searchBuilder);
+    public DatabaseSearchService(IContext context, IFrameworkCompatibilityService frameworks, ISearchResponseBuilder searchBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(frameworks);
+        ArgumentNullException.ThrowIfNull(searchBuilder);
 
-            _context = context;
-            _frameworks = frameworks;
-            _searchBuilder = searchBuilder;
-        }
+        _context = context;
+        _frameworks = frameworks;
+        _searchBuilder = searchBuilder;
+    }
 
-        public async Task<SearchResponse> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
-        {
-            var frameworks = GetCompatibleFrameworksOrNull(request.Framework);
+    public async Task<SearchResponse> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
+    {
+        var frameworks = GetCompatibleFrameworksOrNull(request.Framework);
 
         IQueryable<Package> search = _context.Packages;
         search = ApplySearchQuery(search, request.Query);
@@ -78,9 +78,9 @@ public class DatabaseSearchService : ISearchService
         return _searchBuilder.BuildSearch(groupedResults);
     }
 
-        public async Task<AutocompleteResponse> AutocompleteAsync(AutocompleteRequest request, CancellationToken cancellationToken)
-        {
-            IQueryable<Package> search = _context.Packages;
+    public async Task<AutocompleteResponse> AutocompleteAsync(AutocompleteRequest request, CancellationToken cancellationToken)
+    {
+        IQueryable<Package> search = _context.Packages;
 
         search = ApplySearchQuery(search, request.Query);
         search = ApplySearchFilters(
@@ -101,12 +101,12 @@ public class DatabaseSearchService : ISearchService
         return _searchBuilder.BuildAutocomplete(packageIds);
     }
 
-        public async Task<AutocompleteResponse> ListPackageVersionsAsync(VersionsRequest request, CancellationToken cancellationToken)
-        {
-            var packageId = request.PackageId.ToLower();
-            var search = _context
-                .Packages
-                .Where(p => p.Id.ToLower().Equals(packageId));
+    public async Task<AutocompleteResponse> ListPackageVersionsAsync(VersionsRequest request, CancellationToken cancellationToken)
+    {
+        var packageId = request.PackageId.ToLower();
+        var search = _context
+            .Packages
+            .Where(p => p.Id.ToLower().Equals(packageId));
 
         search = ApplySearchFilters(
             search,

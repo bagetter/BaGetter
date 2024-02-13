@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaGetter.Protocol.Models;
@@ -9,12 +9,12 @@ public class SearchResponseBuilder : ISearchResponseBuilder
 {
     private readonly IUrlGenerator _url;
 
-        public SearchResponseBuilder(IUrlGenerator url)
-        {
-            ArgumentNullException.ThrowIfNull(url);
+    public SearchResponseBuilder(IUrlGenerator url)
+    {
+        ArgumentNullException.ThrowIfNull(url);
 
-            _url = url;
-        }
+        _url = url;
+    }
 
     public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations)
     {
