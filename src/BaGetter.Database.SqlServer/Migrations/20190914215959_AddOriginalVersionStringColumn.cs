@@ -1,23 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BaGetter.Database.SqlServer.Migrations
-{
-    public partial class AddOriginalVersionStringColumn : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<string>(
-                name: "OriginalVersion",
-                table: "Packages",
-                maxLength: 64,
-                nullable: true);
-        }
+namespace BaGetter.Database.SqlServer.Migrations;
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "OriginalVersion",
-                table: "Packages");
-        }
+public partial class AddOriginalVersionStringColumn : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AddColumn<string>(
+            name: "OriginalVersion",
+            table: "Packages",
+            maxLength: 64,
+            nullable: true);
+    }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "OriginalVersion",
+            table: "Packages");
     }
 }

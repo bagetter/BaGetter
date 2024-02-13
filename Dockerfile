@@ -1,30 +1,50 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 80
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /src
-COPY /src .
-COPY /Directory.Packages.props .
 
-RUN dotnet restore BaGetter
-RUN dotnet build BaGetter -c Release -o /app
+## Create separate layer for `dotnet restore` to allow for caching; useful for local development
+# copy only necessary files
+COPY ./Directory.Packages.props ./nuget.config ./src/**/*.csproj ./
+# create folder structure that was lost when copying
+RUN for file in $(ls *.csproj); do mkdir -p ${file%.*}/ && mv $file ${file%.*}/; done
+# useful for debugging to display all files
+#RUN echo $(ls)
+# restore packages
+RUN dotnet restore BaGetter/BaGetter.csproj
 
+## Publish app (implicitly builds the app)
 FROM build AS publish
-RUN dotnet publish BaGetter -c Release -o /app
+# copy all files
+COPY /src .
+RUN dotnet publish BaGetter \
+    --configuration Release \
+    --output /app \
+    --no-restore \
+    -p DebugType=none \
+    -p DebugSymbols=false \
+    -p GenerateDocumentationFile=false \
+    -p UseAppHost=false
 
-FROM base AS final
-LABEL org.opencontainers.image.source="https://github.com/bagetter/BaGetter"
-WORKDIR /app
-COPY --from=publish /app .
+# create default folders
+RUN mkdir -p "/data/packages" \
+    mkdir -p "/data/symbols" \
+    mkdir -p "/data/db"
 
-# Use the /data folder for packages, symbols and the sqlite database
+## Create final image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine-composite AS base
+# install cultures (same approach as Alpine SDK image)
+RUN apk add --no-cache icu-libs icu-data-full tzdata
+# disable the invariant mode (set in base image)
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+# set default configurations; use the `/data` folder for packages, symbols and the SQLite database
 ENV Storage__Path "/data"
 ENV Search__Type "Database"
 ENV Database__Type "Sqlite"
 ENV Database__ConnectionString "Data Source=/data/db/bagetter.db"
-RUN mkdir -p "/data/packages"
-RUN mkdir -p "/data/symbols"
-RUN mkdir -p  "/data/db"
+LABEL org.opencontainers.image.source="https://github.com/bagetter/BaGetter"
+# copy default folders
+COPY --from=publish /data /data
+# copy the published app
+WORKDIR /app
+COPY --from=publish /app .
 
 ENTRYPOINT ["dotnet", "BaGetter.dll"]

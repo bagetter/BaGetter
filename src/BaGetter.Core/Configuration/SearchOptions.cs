@@ -1,7 +1,6 @@
-namespace BaGetter.Core
+namespace BaGetter.Core;
+
+public class SearchOptions
 {
-    public class SearchOptions
-    {
-        public string Type { get; set; }
-    }
+    public string Type { get; set; }
 }
