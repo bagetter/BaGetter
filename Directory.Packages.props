@@ -31,7 +31,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="[5.1.3,)" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
-    <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-beta.2" />
+    <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
     <PackageVersion Include="Aliyun.OSS.SDK.NetCore" Version="2.13.0" />
     <PackageVersion Include="AWSSDK.S3" Version="3.7.205.18" />
     <PackageVersion Include="AWSSDK.SecurityToken" Version="3.7.202.13" />
