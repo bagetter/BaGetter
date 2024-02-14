@@ -4,7 +4,7 @@
 
 Create a file named `bagetter.env` to store BaGetter's configurations:
 
-```
+```shell
 # The following config is the API Key used to publish packages.
 # You should change this to a secret value to secure your server.
 ApiKey=NUGET-SERVER-API-KEY
@@ -32,7 +32,7 @@ If this step is omitted the default mode (unconfigured) will be Sqlite with the 
 1. Create a folder named `bagetter-data` in the same directory as the `bagetter.env` file. This will be used by BaGetter to persist its state.
 2. Pull BaGetter's latest [docker image](hhttps://hub.docker.com/r/bagetter/bagetter):
 
-```
+```shell
 docker pull bagetter/bagetter
 ```
 
@@ -40,13 +40,13 @@ You can now run BaGetter...
 
 - ...with optional `.env` file:
 
-```
+```shell
 docker run --rm --name nuget-server -p 5000:8080 --env-file bagetter.env -v "$(pwd)/bagetter-data:/data" bagetter/bagetter:latest
 ```
 
 - ...or without:
 
-```
+```shell
 docker run --rm --name nuget-server -p 5000:8080 -v "$(pwd)/bagetter-data:/data" bagetter/bagetter:latest
 ```
 
@@ -54,13 +54,13 @@ docker run --rm --name nuget-server -p 5000:8080 -v "$(pwd)/bagetter-data:/data"
 
 Publish your first package with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
 ```
 
 Publish your first [symbol package](https://docs.microsoft.com/en-us/nuget/create-packages/symbol-packages-snupkg) with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY symbol.package.1.0.0.snupkg
 ```
 

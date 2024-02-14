@@ -21,13 +21,13 @@ You can import package downloads from nuget.org:
 1. Navigate to `.\BaGetter\src\BaGetter`
 2. Run:
 
-```
+```shell
 dotnet run -- import-downloads
 ```
 
 ## Importing all nuget.org packages
 
-* TODO Check-in code
-* Explain scaling
-* Rebuild indexes at end
-* Importing downloads from nuget.org
+- TODO Check-in code
+- Explain scaling
+- Rebuild indexes at end
+- Importing downloads from nuget.org

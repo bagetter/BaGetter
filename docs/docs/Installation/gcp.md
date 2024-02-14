@@ -44,12 +44,12 @@ Configure BaGetter to use Google Cloud Storage by updating the `appsettings.json
 
 ## Google Cloud SQL
 
-* Follow the instructions in [Using Cloud SQL](https://cloud.google.com/appengine/docs/flexible/dotnet/using-cloud-sql) to create a 2nd Gen MySQL 5.7 Google Cloud SQL instance. The default options should work well.
-* Create a database named `bagetter`. This can be done through the Google Cloud Console. Use `utf8mb4` as the Character set.
-* Follow [Configuring SSL/TLS](https://cloud.google.com/sql/docs/mysql/configure-ssl-instance#new-client) to create a client certificate. Download the three files it creates.
-* Convert the PEM to a PFX by running `openssl pkcs12 -inkey client-key.pem -in client-cert.pem -export -out client.pfx`
-  * One way to obtain OpenSSL on Windows is to install [Git Bash](https://gitforwindows.org/).
-* Configure BaGetter to use Google Cloud SQL by updating the [`appsettings.json`](https://github.com/bagetter/BaGetter/blob/master/src/BaGetter/appsettings.json) file:
+- Follow the instructions in [Using Cloud SQL](https://cloud.google.com/appengine/docs/flexible/dotnet/using-cloud-sql) to create a 2nd Gen MySQL 5.7 Google Cloud SQL instance. The default options should work well.
+- Create a database named `bagetter`. This can be done through the Google Cloud Console. Use `utf8mb4` as the Character set.
+- Follow [Configuring SSL/TLS](https://cloud.google.com/sql/docs/mysql/configure-ssl-instance#new-client) to create a client certificate. Download the three files it creates.
+- Convert the PEM to a PFX by running `openssl pkcs12 -inkey client-key.pem -in client-cert.pem -export -out client.pfx`
+  - One way to obtain OpenSSL on Windows is to install [Git Bash](https://gitforwindows.org/).
+- Configure BaGetter to use Google Cloud SQL by updating the [`appsettings.json`](https://github.com/bagetter/BaGetter/blob/master/src/BaGetter/appsettings.json) file:
 
 ```json
 {
@@ -62,7 +62,7 @@ Configure BaGetter to use Google Cloud Storage by updating the `appsettings.json
 }
 ```
 
-* Create the tables by running `dotnet ef database update --context MySqlContext --project src\BaGetter`
+- Create the tables by running `dotnet ef database update --context MySqlContext --project src\BaGetter`
 
 ## Google AppEngine
 
@@ -72,12 +72,12 @@ for a tutorial on how to create a new AppEngine project.
 Create a `app.yaml` file to publish the Docker container built by the Dockerfile in this repo. In the template
 below, make the following replacements:
 
-* `PROJECT` - your GCP project, as returned by `gcloud config get-value project`
-* `REGION` -- the GCP region your Google Cloud SQL database is in, e.g., `us-central1` or `us-west2`
-* `DBINSTANCE` -- the name of your Google Cloud SQL database instance
-* `DBNAME` -- the name of the BaGetter database on that instance (e.g., `bagetter` in the instructions above)
-* `PASSWORD` -- the password for the database root user
-* `BUCKETNAME` -- the name of the Google Cloud Storage Bucket configured above
+- `PROJECT` - your GCP project, as returned by `gcloud config get-value project`
+- `REGION` -- the GCP region your Google Cloud SQL database is in, e.g., `us-central1` or `us-west2`
+- `DBINSTANCE` -- the name of your Google Cloud SQL database instance
+- `DBNAME` -- the name of the BaGetter database on that instance (e.g., `bagetter` in the instructions above)
+- `PASSWORD` -- the password for the database root user
+- `BUCKETNAME` -- the name of the Google Cloud Storage Bucket configured above
 
 ```yaml
 runtime: custom

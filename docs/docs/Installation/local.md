@@ -3,9 +3,9 @@
 ## Run BaGetter
 
 1. Install the [.NET Core SDK](https://www.microsoft.com/net/download)
-1. Download and extract [BaGetter's latest release](https://github.com/bagetter/BaGetter/releases)
-1. Start the service with `dotnet BaGetter.dll`
-1. Browse `http://localhost:5000/` in your browser
+2. Download and extract [BaGetter's latest release](https://github.com/bagetter/BaGetter/releases)
+3. Start the service with `dotnet BaGetter.dll`
+4. Browse `http://localhost:5000/` in your browser
 
 ## Configure BaGetter
 
@@ -15,13 +15,13 @@ You can modify BaGetter's configurations by editing the `appsettings.json` file.
 
 Publish your first package with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json package.1.0.0.nupkg
 ```
 
 Publish your first [symbol package](https://docs.microsoft.com/en-us/nuget/create-packages/symbol-packages-snupkg) with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json symbol.package.1.0.0.snupkg
 ```
 

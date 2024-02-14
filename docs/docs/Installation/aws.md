@@ -95,13 +95,13 @@ To use [SQL Server](https://aws.amazon.com/rds/sqlserver), update the `appsettin
 
 Publish your first package with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json package.1.0.0.nupkg
 ```
 
 Publish your first [symbol package](https://docs.microsoft.com/en-us/nuget/create-packages/symbol-packages-snupkg) with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json symbol.package.1.0.0.snupkg
 ```
 

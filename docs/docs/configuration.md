@@ -16,7 +16,7 @@ To do so, you can insert the desired API key in the `ApiKey` field.
 
 Users will now have to provide the API key to push packages:
 
-```c#
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
 ```
 
@@ -26,7 +26,7 @@ Read-through caching lets you index packages from an upstream source. You can us
 caching to:
 
 1. Speed up your builds if restores from [nuget.org](https://nuget.org) are slow
-1. Enable package restores in offline scenarios
+2. Enable package restores in offline scenarios
 
 The following `Mirror` setting configures BaGetter to index packages from [nuget.org](https://nuget.org):
 
@@ -96,7 +96,6 @@ Private feeds are not supported at this time! See [this pull request](https://gi
 
 BaGetter supports multiple database engines for storing package information:
 
-
 - MySQL: `MySql`
 - SQLite: `Sqlite`
 - SQL Server: `SqlServer`
@@ -162,7 +161,7 @@ If not specified, the `MaxRequestBodySize` in BaGetter defaults to 250MB (262144
 
 Mostly useful when running containerised (e.g. using Docker, Podman, Kubernetes, etc), the application will look for files named in the same pattern as environment variables under `/run/secrets`.
 
-```
+```shell
 /run/secrets/Database__ConnectionString
 ```
 
