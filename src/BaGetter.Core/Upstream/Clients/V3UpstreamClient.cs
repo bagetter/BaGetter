@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol;
 using BaGetter.Protocol.Models;
-using NuGet.Versioning;
 using Microsoft.Extensions.Logging;
+using NuGet.Versioning;
 
 namespace BaGetter.Core;
 
@@ -22,8 +22,11 @@ public class V3UpstreamClient : IUpstreamClient
 
     public V3UpstreamClient(NuGetClient client, ILogger<V3UpstreamClient> logger)
     {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _client = client;
+        _logger = logger;
     }
 
     public async Task<Stream> DownloadPackageOrNullAsync(

@@ -10,10 +10,10 @@ namespace BaGetter.Core;
 /// </summary>
 /// <remarks>
 /// This is used to store:
-///
-/// * Packages, through <see cref="PackageStorageService"/>
-/// * Symbols, through <see cref="SymbolStorageService"/>
-///
+/// <list type="bullet">
+/// <item>Packages, through <see cref="PackageStorageService"/></item>
+/// <item>Symbols, through <see cref="SymbolStorageService"/></item>
+/// </list>
 /// This storage abstraction has implementations for disk,
 /// Azure Blob Storage, Amazon Web Services S3, and Google Cloud Storage.
 /// </remarks>

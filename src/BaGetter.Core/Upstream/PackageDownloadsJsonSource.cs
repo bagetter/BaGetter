@@ -11,7 +11,7 @@ using NuGet.Versioning;
 
 namespace BaGetter.Core;
 
-// See https://github.com/NuGet/NuGet.Services.Metadata/blob/master/src/NuGet.Indexing/Downloads.cs
+/// <remarks>See: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/master/src/NuGet.Indexing/Downloads.cs"/></remarks>
 public class PackageDownloadsJsonSource : IPackageDownloadsSource
 {
     public const string PackageDownloadsV1Url = "https://nugetprod0.blob.core.windows.net/ng-search-data/downloads.v1.json";
@@ -21,8 +21,11 @@ public class PackageDownloadsJsonSource : IPackageDownloadsSource
 
     public PackageDownloadsJsonSource(HttpClient httpClient, ILogger<PackageDownloadsJsonSource> logger)
     {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _httpClient = httpClient;
+        _logger = logger;
     }
 
     public async Task<Dictionary<string, Dictionary<string, long>>> GetPackageDownloadsAsync()
