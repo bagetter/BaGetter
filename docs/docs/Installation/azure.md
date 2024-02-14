@@ -10,9 +10,9 @@ Use Azure to scale BaGetter. You can store metadata on [Azure SQL Database](http
 
 ## TODO
 
-* App Service
-* Table Storage
-* High availability setup
+- App Service
+- Table Storage
+- High availability setup
 
 ## Configure BaGetter
 
@@ -45,7 +45,6 @@ Update the `appsettings.json` file:
 
     "Storage": {
         "Type": "AzureBlobStorage",
-
         "AccountName": "my-account",
         "AccessKey": "abcd1234",
         "Container": "my-container"
@@ -63,7 +62,6 @@ Alternatively, you can use a full Azure Storage connection string:
 
     "Storage": {
         "Type": "AzureBlobStorage",
-
         "ConnectionString": "AccountName=my-account;AccountKey=abcd1234;...",
         "Container": "my-container"
     },
@@ -94,13 +92,13 @@ Update the `appsettings.json` file:
 
 Publish your first package with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json package.1.0.0.nupkg
 ```
 
 Publish your first [symbol package](https://docs.microsoft.com/en-us/nuget/create-packages/symbol-packages-snupkg) with:
 
-```
+```shell
 dotnet nuget push -s http://localhost:5000/v3/index.json symbol.package.1.0.0.snupkg
 ```
 
@@ -118,8 +116,8 @@ You can restore packages by using the following package source:
 
 Some helpful guides:
 
-* [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
-* [NuGet.config](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file#package-source-sections)
+- [Visual Studio](https://docs.microsoft.com/en-us/nuget/consume-packages/install-use-packages-visual-studio#package-sources)
+- [NuGet.config](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file#package-source-sections)
 
 ## Symbol server
 

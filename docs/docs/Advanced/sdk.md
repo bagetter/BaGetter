@@ -6,7 +6,7 @@ You can use BaGetter's [`BaGetter.Protocol`](https://www.nuget.org/packages/BaGe
 
 Install the [`BaGetter.Protocol`](https://www.nuget.org/packages/BaGetter.Protocol) package:
 
-```
+```shell
 dotnet add package BaGetter.Protocol
 ```
 

@@ -115,7 +115,7 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
       //builtInLanguages: https://github.com/FormidableLabs/prism-react-renderer/blob/master/packages/generate-prism-languages/index.ts#L9
       //supportedLanguages: https://prismjs.com/#supported-languages
-      additionalLanguages: ['csharp', 'json', 'powershell', 'javascript'],
+      additionalLanguages: ['csharp', 'json', 'powershell', 'javascript', 'bash'],
     },
   } satisfies Preset.ThemeConfig,
 };

@@ -5,15 +5,13 @@ With a few extra steps you can run BaGetter behind a Windows IIS proxy. This has
 ## IIS setup
 
 1. Install the [.NET Core Runtime](https://dotnet.microsoft.com/download) on the web server.
-1. Copy the BaGetter directory over to your hosting area such as `C:\Inetpub\wwwroot\BaGetter`
-1. Using IIS Manager, create a new Application Pool:
-
+2. Copy the BaGetter directory over to your hosting area such as `C:\Inetpub\wwwroot\BaGetter`
+3. Using IIS Manager, create a new Application Pool:
     - Name = `BaGetterAppPool` (can be whatever you want)
     - .NET CLR version = No Managed Code
     - Managed Pipeline Mode = Integrated
     - Start application pool immediately = checked
-
-1. Using IIS Manager, create a new web site:
+4. Using IIS Manager, create a new web site:
     - Choose your site name and physical path
     - Choose `BaGetterAppPool` as the application pool
     - In the Binding area, enter the default BaGetter port of 5000
@@ -46,7 +44,6 @@ Ensure that the configuration's storage `Path` has the appropriate forward slash
 ```
 
 Note that you will need to adjust folder permissions if the `Path` is created outside of the BaGetter top-level directory. See the [BaGettert Folder Permissions](#bagetter-folder-permissions).
-
 
 ## IIS server options
 
