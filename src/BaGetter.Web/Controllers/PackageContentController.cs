@@ -10,8 +10,8 @@ namespace BaGetter.Web;
 
 /// <summary>
 /// The Package Content resource, used to download content from packages.
-/// See: https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource
 /// </summary>
+/// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource"/></remarks>
 public class PackageContentController : Controller
 {
     private readonly IPackageContentService _content;
@@ -94,5 +94,21 @@ public class PackageContentController : Controller
         }
 
         return File(iconStream, "image/xyz");
+    }
+
+    public async Task<IActionResult> DownloadLicenseAsync(string id, string version, CancellationToken cancellationToken)
+    {
+        if (!NuGetVersion.TryParse(version, out var nugetVersion))
+        {
+            return NotFound();
+        }
+
+        var licenseStream = await _content.GetPackageLicenseStreamOrNullAsync(id, nugetVersion, cancellationToken);
+        if (licenseStream == null)
+        {
+            return NotFound();
+        }
+
+        return File(licenseStream, "image/plain");
     }
 }

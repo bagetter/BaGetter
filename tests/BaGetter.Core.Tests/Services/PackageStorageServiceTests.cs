@@ -24,7 +24,8 @@ public class PackageStorageServiceTests
                     packageStream: Stream.Null,
                     nuspecStream: Stream.Null,
                     readmeStream: Stream.Null,
-                    iconStream: Stream.Null));
+                    iconStream: Stream.Null,
+                    licenseStream: Stream.Null));
         }
 
         [Fact]
@@ -36,7 +37,8 @@ public class PackageStorageServiceTests
                     packageStream: null,
                     nuspecStream: Stream.Null,
                     readmeStream: Stream.Null,
-                    iconStream: Stream.Null));
+                    iconStream: Stream.Null,
+                    licenseStream: Stream.Null));
         }
 
         [Fact]
@@ -48,7 +50,8 @@ public class PackageStorageServiceTests
                     packageStream: Stream.Null,
                     nuspecStream: null,
                     readmeStream: Stream.Null,
-                    iconStream: Stream.Null));
+                    iconStream: Stream.Null,
+                    licenseStream: Stream.Null));
         }
 
         [Fact]
@@ -61,6 +64,7 @@ public class PackageStorageServiceTests
             using (var nuspecStream = StringStream("My nuspec"))
             using (var readmeStream = StringStream("My readme"))
             using (var iconStream = StringStream("My icon"))
+            using (var licenseStream = StringStream("My license"))
             {
                 // Act
                 await _target.SavePackageContentAsync(
@@ -68,7 +72,8 @@ public class PackageStorageServiceTests
                     packageStream: packageStream,
                     nuspecStream: nuspecStream,
                     readmeStream: readmeStream,
-                    iconStream: iconStream);
+                    iconStream: iconStream,
+                    licenseStream: licenseStream);
 
                 // Assert
                 Assert.True(_puts.ContainsKey(PackagePath));
@@ -86,6 +91,10 @@ public class PackageStorageServiceTests
                 Assert.True(_puts.ContainsKey(IconPath));
                 Assert.Equal("My icon", await ToStringAsync(_puts[IconPath].Content));
                 Assert.Equal("image/xyz", _puts[IconPath].ContentType);
+
+                Assert.True(_puts.ContainsKey(LicensePath));
+                Assert.Equal("My license", await ToStringAsync(_puts[LicensePath].Content));
+                Assert.Equal("text/plain", _puts[LicensePath].ContentType);
             }
         }
 
@@ -104,7 +113,8 @@ public class PackageStorageServiceTests
                     packageStream: packageStream,
                     nuspecStream: nuspecStream,
                     readmeStream: null,
-                    iconStream: null);
+                    iconStream: null,
+                    licenseStream: null);
             }
 
             // Assert
@@ -122,6 +132,7 @@ public class PackageStorageServiceTests
             using (var nuspecStream = StringStream("My nuspec"))
             using (var readmeStream = StringStream("My readme"))
             using (var iconStream = StringStream("My icon"))
+            using (var licenseStream = StringStream("My license"))
             {
                 // Act
                 await _target.SavePackageContentAsync(
@@ -129,7 +140,8 @@ public class PackageStorageServiceTests
                     packageStream: packageStream,
                     nuspecStream: nuspecStream,
                     readmeStream: readmeStream,
-                    iconStream: iconStream);
+                    iconStream: iconStream,
+                    licenseStream: licenseStream);
             }
 
             // Assert
@@ -148,13 +160,15 @@ public class PackageStorageServiceTests
             using (var nuspecStream = StringStream("My nuspec"))
             using (var readmeStream = StringStream("My readme"))
             using (var iconStream = StringStream("My icon"))
+            using (var licenseStream = StringStream("My license"))
             {
                 await _target.SavePackageContentAsync(
                     _package,
                     packageStream: packageStream,
                     nuspecStream: nuspecStream,
                     readmeStream: readmeStream,
-                    iconStream: iconStream);
+                    iconStream: iconStream,
+                    licenseStream: licenseStream);
 
                 // Assert
                 Assert.True(_puts.ContainsKey(PackagePath));
@@ -172,6 +186,10 @@ public class PackageStorageServiceTests
                 Assert.True(_puts.ContainsKey(IconPath));
                 Assert.Equal("My icon", await ToStringAsync(_puts[IconPath].Content));
                 Assert.Equal("image/xyz", _puts[IconPath].ContentType);
+
+                Assert.True(_puts.ContainsKey(LicensePath));
+                Assert.Equal("My license", await ToStringAsync(_puts[LicensePath].Content));
+                Assert.Equal("text/plain", _puts[LicensePath].ContentType);
             }
         }
 
@@ -185,6 +203,7 @@ public class PackageStorageServiceTests
             using (var nuspecStream = StringStream("My nuspec"))
             using (var readmeStream = StringStream("My readme"))
             using (var iconStream = StringStream("My icon"))
+            using (var licenseStream = StringStream("My license"))
             {
                 // Act
                 await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -193,7 +212,8 @@ public class PackageStorageServiceTests
                         packageStream: packageStream,
                         nuspecStream: nuspecStream,
                         readmeStream: readmeStream,
-                        iconStream: iconStream));
+                        iconStream: iconStream,
+                        licenseStream: licenseStream));
             }
         }
     }
@@ -352,6 +372,7 @@ public class PackageStorageServiceTests
         protected string NuspecPath => Path.Combine("packages", "my.package", "1.2.3", "my.package.nuspec");
         protected string ReadmePath => Path.Combine("packages", "my.package", "1.2.3", "readme");
         protected string IconPath => Path.Combine("packages", "my.package", "1.2.3", "icon");
+        protected string LicensePath => Path.Combine("packages", "my.package", "1.2.3", "license.txt");
 
         protected Stream StringStream(string input)
         {

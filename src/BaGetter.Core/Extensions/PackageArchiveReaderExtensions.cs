@@ -19,9 +19,39 @@ public static class PackageArchiveReaderExtensions
     public static bool HasEmbeddedIcon(this PackageArchiveReader package)
         => !string.IsNullOrEmpty(package.NuspecReader.GetIcon());
 
-    public async static Task<Stream> GetReadmeAsync(
-        this PackageArchiveReader package,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Indicates if the package has an embedded license file.
+    /// </summary>    
+    /// <returns><c>true</c> if the license file is embedded, otherwise <c>false</c>.</returns>
+    public static bool HasEmbeddedLicense(this PackageArchiveReader package)
+    {
+        var licenseMetadata = package.NuspecReader.GetLicenseMetadata();
+        if (licenseMetadata != null && licenseMetadata.Type == LicenseType.File)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Indicates if the license file format is Markdown.
+    /// </summary>    
+    /// <returns><c>true</c> if the license file format is Markdown, otherwise <c>false</c>.</returns>
+    public static bool IsLicenseFormatMarkdown(this PackageArchiveReader package)
+    {
+        var licenseMetadata = package.NuspecReader.GetLicenseMetadata();
+        if (licenseMetadata == null ||
+            licenseMetadata.Type != LicenseType.File ||
+            string.IsNullOrWhiteSpace(licenseMetadata.License))
+        {
+            return false;
+        }
+
+        return Path.GetFileName(licenseMetadata.License).EndsWith(".md", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static async Task<Stream> GetReadmeAsync(this PackageArchiveReader package, CancellationToken cancellationToken)
     {
         var readmePath = package.NuspecReader.GetReadme();
         if (readmePath == null)
@@ -34,18 +64,28 @@ public static class PackageArchiveReaderExtensions
         return await package.GetStreamAsync(readmePath, cancellationToken);
     }
 
-    public async static Task<Stream> GetIconAsync(
-        this PackageArchiveReader package,
-        CancellationToken cancellationToken)
+    public static async Task<Stream> GetIconAsync(this PackageArchiveReader package, CancellationToken cancellationToken)
     {
         return await package.GetStreamAsync(
             PathUtility.StripLeadingDirectorySeparators(package.NuspecReader.GetIcon()),
             cancellationToken);
     }
 
-    public static Package GetPackageMetadata(this PackageArchiveReader packageReader)
+    public static async Task<Stream> GetLicenseAsync(this PackageArchiveReader package, CancellationToken cancellationToken)
     {
-        var nuspec = packageReader.NuspecReader;
+        var licenseMetadata = package.NuspecReader.GetLicenseMetadata();
+        if (licenseMetadata.Type == LicenseType.File && licenseMetadata.License == null)
+        {
+            throw new InvalidOperationException("Package does not have a license file!");
+        }
+
+        var licensePath = PathUtility.StripLeadingDirectorySeparators(licenseMetadata.License);
+        return await package.GetStreamAsync(licensePath, cancellationToken);
+    }
+
+    public static Package GetPackageMetadata(this PackageArchiveReader package)
+    {
+        var nuspec = package.NuspecReader;
 
         (var repositoryUri, var repositoryType) = GetRepositoryMetadata(nuspec);
 
@@ -55,10 +95,12 @@ public static class PackageArchiveReaderExtensions
             Version = nuspec.GetVersion(),
             Authors = ParseAuthors(nuspec.GetAuthors()),
             Description = nuspec.GetDescription(),
-            HasReadme = packageReader.HasReadme(),
-            HasEmbeddedIcon = packageReader.HasEmbeddedIcon(),
+            HasReadme = package.HasReadme(),
+            HasEmbeddedIcon = package.HasEmbeddedIcon(),
+            HasEmbeddedLicense = package.HasEmbeddedLicense(),
             IsPrerelease = nuspec.GetVersion().IsPrerelease,
             Language = nuspec.GetLanguage() ?? string.Empty,
+            LicenseFormatIsMarkdown = package.IsLicenseFormatMarkdown(),
             ReleaseNotes = nuspec.GetReleaseNotes() ?? string.Empty,
             Listed = true,
             MinClientVersion = nuspec.GetMinClientVersion()?.ToNormalizedString() ?? string.Empty,
@@ -75,11 +117,11 @@ public static class PackageArchiveReaderExtensions
             Dependencies = GetDependencies(nuspec),
             Tags = ParseTags(nuspec.GetTags()),
             PackageTypes = GetPackageTypes(nuspec),
-            TargetFrameworks = GetTargetFrameworks(packageReader),
+            TargetFrameworks = GetTargetFrameworks(package),
         };
     }
 
-    // Based off https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/SemVerLevelKey.cs
+    /// <remarks>Based off: <see href="https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/SemVerLevelKey.cs"/></remarks>
     private static SemVerLevel GetSemVerLevel(NuspecReader nuspec)
     {
         if (nuspec.GetVersion().IsSemVer2)
@@ -104,7 +146,10 @@ public static class PackageArchiveReaderExtensions
 
     private static Uri ParseUri(string uriString)
     {
-        if (string.IsNullOrEmpty(uriString)) return null;
+        if (string.IsNullOrEmpty(uriString))
+        {
+            return null;
+        }
 
         return new Uri(uriString);
     }
@@ -113,14 +158,20 @@ public static class PackageArchiveReaderExtensions
 
     private static string[] ParseAuthors(string authors)
     {
-        if (string.IsNullOrEmpty(authors)) return Array.Empty<string>();
+        if (string.IsNullOrEmpty(authors))
+        {
+            return Array.Empty<string>();
+        }
 
         return authors.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
     }
 
     private static string[] ParseTags(string tags)
     {
-        if (string.IsNullOrEmpty(tags)) return Array.Empty<string>();
+        if (string.IsNullOrEmpty(tags))
+        {
+            return Array.Empty<string>();
+        }
 
         return tags.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
     }
@@ -204,9 +255,9 @@ public static class PackageArchiveReaderExtensions
         return packageTypes;
     }
 
-    private static List<TargetFramework> GetTargetFrameworks(PackageArchiveReader packageReader)
+    private static List<TargetFramework> GetTargetFrameworks(PackageArchiveReader package)
     {
-        var targetFrameworks = packageReader
+        var targetFrameworks = package
             .GetSupportedFrameworks()
             .Select(f => new TargetFramework
             {

@@ -106,7 +106,9 @@ public class PackageModel : PageModel
         IconUrl = Package.HasEmbeddedIcon
             ? _url.GetPackageIconDownloadUrl(Package.Id, packageVersion)
             : Package.IconUrlString;
-        LicenseUrl = Package.LicenseUrlString;
+        LicenseUrl = Package.HasEmbeddedLicense
+            ? _url.GetPackageLicenseDownloadUrl(Package.Id, packageVersion, Package.LicenseFormatIsMarkdown)
+            : Package.LicenseUrlString;
         PackageDownloadUrl = _url.GetPackageDownloadUrl(Package.Id, packageVersion);
     }
 

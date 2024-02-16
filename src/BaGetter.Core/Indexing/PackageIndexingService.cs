@@ -40,6 +40,7 @@ public class PackageIndexingService : IPackageIndexingService
         Stream nuspecStream;
         Stream readmeStream;
         Stream iconStream;
+        Stream licenseStream;
 
         try
         {
@@ -69,6 +70,16 @@ public class PackageIndexingService : IPackageIndexingService
                 else
                 {
                     iconStream = null;
+                }
+
+                if (package.HasEmbeddedLicense)
+                {
+                    licenseStream = await packageReader.GetLicenseAsync(cancellationToken);
+                    licenseStream = await licenseStream.AsTemporaryFileStreamAsync(cancellationToken);
+                }
+                else
+                {
+                    licenseStream = null;
                 }
             }
         }
@@ -108,6 +119,7 @@ public class PackageIndexingService : IPackageIndexingService
                 nuspecStream,
                 readmeStream,
                 iconStream,
+                licenseStream,
                 cancellationToken);
         }
         catch (Exception e)

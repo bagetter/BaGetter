@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaGetter.Protocol.Models;
@@ -25,6 +25,9 @@ public class SearchResponseBuilder : ISearchResponseBuilder
             var iconUrl = latest.HasEmbeddedIcon
                 ? _url.GetPackageIconDownloadUrl(latest.Id, latest.Version)
                 : latest.IconUrlString;
+            var licenseUrl = latest.HasEmbeddedLicense
+                ? _url.GetPackageLicenseDownloadUrl(latest.Id, latest.Version, latest.LicenseFormatIsMarkdown)
+                : latest.LicenseUrlString;
 
             result.Add(new SearchResult
             {
@@ -33,7 +36,7 @@ public class SearchResponseBuilder : ISearchResponseBuilder
                 Description = latest.Description,
                 Authors = latest.Authors,
                 IconUrl = iconUrl,
-                LicenseUrl = latest.LicenseUrlString,
+                LicenseUrl = licenseUrl,
                 ProjectUrl = latest.ProjectUrlString,
                 RegistrationIndexUrl = _url.GetRegistrationIndexUrl(latest.Id),
                 Summary = latest.Summary,

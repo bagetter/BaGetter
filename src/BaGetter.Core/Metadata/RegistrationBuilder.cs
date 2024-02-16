@@ -74,7 +74,9 @@ public class RegistrationBuilder
                     ? _url.GetPackageIconDownloadUrl(package.Id, package.Version)
                     : package.IconUrlString,
                 Language = package.Language,
-                LicenseUrl = package.LicenseUrlString,
+                LicenseUrl = package.HasEmbeddedLicense
+                    ? _url.GetPackageLicenseDownloadUrl(package.Id, package.Version, package.LicenseFormatIsMarkdown)
+                    : package.LicenseUrlString,
                 Listed = package.Listed,
                 MinClientVersion = package.MinClientVersion,
                 ReleaseNotes = package.ReleaseNotes,
