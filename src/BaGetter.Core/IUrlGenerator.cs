@@ -101,4 +101,12 @@ public interface IUrlGenerator
     /// <param name="id">The package's ID</param>
     /// <param name="version">The package's version</param>
     string GetPackageIconDownloadUrl(string id, NuGetVersion version);
+
+    /// <summary>
+    /// Get the URL to download a package's license.
+    /// </summary>
+    /// <param name="id">The package's ID</param>
+    /// <param name="version">The package's version</param>
+    /// <param name="licenseFormatIsMarkdown">Is the format of the license Markdown?</param>
+    string GetPackageLicenseDownloadUrl(string id, NuGetVersion version, bool licenseFormatIsMarkdown);
 }

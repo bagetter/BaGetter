@@ -88,4 +88,15 @@ public class DefaultPackageContentService : IPackageContentService
 
         return await _storage.GetIconStreamAsync(id, version, cancellationToken);
     }
+
+    public async Task<Stream> GetPackageLicenseStreamOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken = default)
+    {
+        var package = await _packages.FindPackageOrNullAsync(id, version, cancellationToken);
+        if (package == null || !package.HasEmbeddedLicense)
+        {
+            return null;
+        }
+
+        return await _storage.GetLicenseStreamAsync(id, version, package.LicenseFormatIsMarkdown, cancellationToken);
+    }
 }

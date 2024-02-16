@@ -127,5 +127,15 @@ public class BaGetterEndpointBuilder
             name: Routes.PackageDownloadIconRouteName,
             pattern: "v3/package/{id}/{version}/icon",
             defaults: new { controller = "PackageContent", action = "DownloadIcon" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.PackageDownloadLicenseTextRouteName,
+            pattern: "v3/package/{id}/{version}/license.txt",
+            defaults: new { controller = "PackageContent", action = "DownloadLicense" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.PackageDownloadLicenseMarkdownRouteName,
+            pattern: "v3/package/{id}/{version}/license.md",
+            defaults: new { controller = "PackageContent", action = "DownloadLicense" });
     }
 }

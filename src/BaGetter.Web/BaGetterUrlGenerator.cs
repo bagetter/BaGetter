@@ -149,6 +149,22 @@ public class BaGetterUrlGenerator : IUrlGenerator
             });
     }
 
+    public string GetPackageLicenseDownloadUrl(string id, NuGetVersion version, bool licenseFormatIsMarkdown)
+    {
+        id = id.ToLowerInvariant();
+        var versionString = version.ToNormalizedString().ToLowerInvariant();
+        var routeName = licenseFormatIsMarkdown ? Routes.PackageDownloadLicenseMarkdownRouteName : Routes.PackageDownloadLicenseTextRouteName;
+
+        return _linkGenerator.GetUriByRouteValues(
+            _httpContextAccessor.HttpContext,
+            routeName,
+            values: new
+            {
+                Id = id,
+                Version = versionString
+            });
+    }
+
     private string AbsoluteUrl(string relativePath)
     {
         var request = _httpContextAccessor.HttpContext.Request;

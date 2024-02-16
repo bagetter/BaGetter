@@ -6,8 +6,8 @@ using NuGet.Versioning;
 namespace BaGetter.Core;
 
 /// <summary>
-/// Stores packages' content. Packages' state are stored by the
-/// <see cref="IPackageDatabase"/>.
+/// Stores packages' content.<br/>
+/// Packages' state are stored by the <see cref="IPackageDatabase"/>.
 /// </summary>
 public interface IPackageStorageService
 {
@@ -20,6 +20,7 @@ public interface IPackageStorageService
     /// <param name="nuspecStream">The package's nuspec stream.</param>
     /// <param name="readmeStream">The package's readme stream, or null if none.</param>
     /// <param name="iconStream">The package's icon stream, or null if none.</param>
+    /// <param name="licenseStream">The package's license stream, or null if none.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task SavePackageContentAsync(
@@ -28,6 +29,7 @@ public interface IPackageStorageService
         Stream nuspecStream,
         Stream readmeStream,
         Stream iconStream,
+        Stream licenseStream,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -57,7 +59,24 @@ public interface IPackageStorageService
     /// <returns>The package's readme stream.</returns>
     Task<Stream> GetReadmeStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Retrieve a package's icon stream if the icon is an embedded file.
+    /// </summary>
+    /// <param name="id">The package's id.</param>
+    /// <param name="version">The package's version.</param>    
+    /// <param name="cancellationToken"></param>
+    /// <returns>The package's icon stream.</returns>
     Task<Stream> GetIconStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieve a package's license stream if the license is an embedded file.
+    /// </summary>
+    /// <param name="id">The package's id.</param>
+    /// <param name="version">The package's version.</param>
+    /// <param name="licenseFormatIsMarkdown">Is the format of the license Markdown?</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>The package's license stream.</returns>
+    Task<Stream> GetLicenseStreamAsync(string id, NuGetVersion version, bool licenseFormatIsMarkdown, CancellationToken cancellationToken);
 
     /// <summary>
     /// Remove a package's content from storage. This operation SHOULD succeed

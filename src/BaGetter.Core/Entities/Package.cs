@@ -4,7 +4,10 @@ using NuGet.Versioning;
 
 namespace BaGetter.Core;
 
-// See NuGetGallery's: https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/Entities/Package.cs
+/// <remarks>
+/// See: <see href="https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/Entities/Package.cs"/><br/>
+/// Newer version: <see href="https://github.com/NuGet/NuGetGallery/blob/main/src/NuGet.Services.Entities/Package.cs"/>
+/// </remarks>
 public class Package
 {
     public int Key { get; set; }
@@ -34,10 +37,22 @@ public class Package
     public string Description { get; set; }
     public long Downloads { get; set; }
     public bool HasReadme { get; set; }
+    /// <summary>
+    /// Indicates if the icon is embedded in the package.
+    /// </summary>
     public bool HasEmbeddedIcon { get; set; }
+    /// <summary>
+    /// Indicates if the license is embedded in the package.
+    /// </summary>
+    public bool HasEmbeddedLicense { get; set; }
     public bool IsPrerelease { get; set; }
     public string ReleaseNotes { get; set; }
     public string Language { get; set; }
+    /// <summary>
+    /// Indicates if the license format is Markdown.
+    /// </summary>
+    /// <value><c>true</c> if Markdown, <c>false</c> otherwise.</value>
+    public bool LicenseFormatIsMarkdown { get; set; }
     public bool Listed { get; set; }
     public string MinClientVersion { get; set; }
     public DateTime Published { get; set; }

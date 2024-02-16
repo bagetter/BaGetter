@@ -81,4 +81,13 @@ public interface IPackageContentService
         string id,
         NuGetVersion version,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// The package license if the license is an embedded license, or null if the license is a URL or expression.
+    /// </summary>
+    /// <param name="id">The package id.</param>
+    /// <param name="version">The package's version.</param>
+    /// <param name="cancellationToken">A token to cancel the task.</param>
+    /// <returns>The package's license stream, or null if the package license does not exist, or the license type is URL or expression.</returns>
+    Task<Stream> GetPackageLicenseStreamOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 }
