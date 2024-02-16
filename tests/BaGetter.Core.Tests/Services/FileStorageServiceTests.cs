@@ -145,11 +145,9 @@ public class FileStorageServiceTests
         {
             foreach (var path in OutsideStorePathData)
             {
-                using (var content = StringStream("Hello world"))
-                {
-                    await Assert.ThrowsAsync<ArgumentException>(async () =>
-                        await _target.PutAsync(path, content, "text/plain"));
-                }
+                using var content = StringStream("Hello world");
+                await Assert.ThrowsAsync<ArgumentException>(async () =>
+                    await _target.PutAsync(path, content, "text/plain"));
             }
         }
     }
@@ -226,10 +224,8 @@ public class FileStorageServiceTests
 
         protected async Task<string> ToStringAsync(Stream input)
         {
-            using (var reader = new StreamReader(input))
-            {
-                return await reader.ReadToEndAsync();
-            }
+            using var reader = new StreamReader(input);
+            return await reader.ReadToEndAsync();
         }
 
         public IEnumerable<string> OutsideStorePathData

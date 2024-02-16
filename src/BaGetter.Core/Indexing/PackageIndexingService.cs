@@ -43,33 +43,31 @@ public class PackageIndexingService : IPackageIndexingService
 
         try
         {
-            using (var packageReader = new PackageArchiveReader(packageStream, leaveStreamOpen: true))
+            using var packageReader = new PackageArchiveReader(packageStream, leaveStreamOpen: true);
+            package = packageReader.GetPackageMetadata();
+            package.Published = _time.UtcNow;
+
+            nuspecStream = await packageReader.GetNuspecAsync(cancellationToken);
+            nuspecStream = await nuspecStream.AsTemporaryFileStreamAsync(cancellationToken);
+
+            if (package.HasReadme)
             {
-                package = packageReader.GetPackageMetadata();
-                package.Published = _time.UtcNow;
+                readmeStream = await packageReader.GetReadmeAsync(cancellationToken);
+                readmeStream = await readmeStream.AsTemporaryFileStreamAsync(cancellationToken);
+            }
+            else
+            {
+                readmeStream = null;
+            }
 
-                nuspecStream = await packageReader.GetNuspecAsync(cancellationToken);
-                nuspecStream = await nuspecStream.AsTemporaryFileStreamAsync(cancellationToken);
-
-                if (package.HasReadme)
-                {
-                    readmeStream = await packageReader.GetReadmeAsync(cancellationToken);
-                    readmeStream = await readmeStream.AsTemporaryFileStreamAsync(cancellationToken);
-                }
-                else
-                {
-                    readmeStream = null;
-                }
-
-                if (package.HasEmbeddedIcon)
-                {
-                    iconStream = await packageReader.GetIconAsync(cancellationToken);
-                    iconStream = await iconStream.AsTemporaryFileStreamAsync(cancellationToken);
-                }
-                else
-                {
-                    iconStream = null;
-                }
+            if (package.HasEmbeddedIcon)
+            {
+                iconStream = await packageReader.GetIconAsync(cancellationToken);
+                iconStream = await iconStream.AsTemporaryFileStreamAsync(cancellationToken);
+            }
+            else
+            {
+                iconStream = null;
             }
         }
         catch (Exception e)

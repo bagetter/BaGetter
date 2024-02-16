@@ -198,16 +198,11 @@ public class PackageModel : PageModel
         NuGetVersion packageVersion,
         CancellationToken cancellationToken)
     {
-        string readme;
-        using (var readmeStream = await _content.GetPackageReadmeStreamOrNullAsync(packageId, packageVersion, cancellationToken))
-        {
-            if (readmeStream == null) return null;
+        await using var readmeStream = await _content.GetPackageReadmeStreamOrNullAsync(packageId, packageVersion, cancellationToken);
+        if (readmeStream == null) return null;
 
-            using (var reader = new StreamReader(readmeStream))
-            {
-                readme = await reader.ReadToEndAsync(cancellationToken);
-            }
-        }
+        using var reader = new StreamReader(readmeStream);
+        var readme = await reader.ReadToEndAsync(cancellationToken);
 
         var readmeHtml = Markdown.ToHtml(readme, MarkdownPipeline);
         return new HtmlString(readmeHtml);
