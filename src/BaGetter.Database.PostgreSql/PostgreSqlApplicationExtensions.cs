@@ -11,12 +11,7 @@ public static class PostgreSqlApplicationExtensions
 {
     public static BaGetterApplication AddPostgreSqlDatabase(this BaGetterApplication app)
     {
-        app.Services.AddBaGetDbContextProvider<PostgreSqlContext>("PostgreSql", (provider, options) =>
-        {
-            var databaseOptions = provider.GetRequiredService<IOptionsSnapshot<DatabaseOptions>>();
-
-            options.UseNpgsql(databaseOptions.Value.ConnectionString);
-        });
+        app.Services.AddBaGetDbContextProvider<PostgreSqlContext>("PostgreSql");
 
         return app;
     }

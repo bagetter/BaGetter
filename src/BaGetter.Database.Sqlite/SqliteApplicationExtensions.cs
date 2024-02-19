@@ -11,12 +11,7 @@ public static class SqliteApplicationExtensions
 {
     public static BaGetterApplication AddSqliteDatabase(this BaGetterApplication app)
     {
-        app.Services.AddBaGetDbContextProvider<SqliteContext>("Sqlite", (provider, options) =>
-        {
-            var databaseOptions = provider.GetRequiredService<IOptionsSnapshot<DatabaseOptions>>();
-
-            options.UseSqlite(databaseOptions.Value.ConnectionString);
-        });
+        app.Services.AddBaGetDbContextProvider<SqliteContext>("Sqlite");
 
         return app;
     }

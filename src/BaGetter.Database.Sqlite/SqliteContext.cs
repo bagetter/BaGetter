@@ -6,19 +6,24 @@ using System.Threading.Tasks;
 using BaGetter.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace BaGetter.Database.Sqlite;
 
 public class SqliteContext : AbstractContext<SqliteContext>
 {
+    private readonly DatabaseOptions _bagetterOptions;
+
     /// <summary>
     /// The Sqlite error code for when a unique constraint is violated.
     /// </summary>
     private const int SqliteUniqueConstraintViolationErrorCode = 19;
 
-    public SqliteContext(DbContextOptions<SqliteContext> options)
-        : base(options)
-    { }
+    public SqliteContext(DbContextOptions<SqliteContext> efOptions, IOptionsSnapshot<BaGetterOptions> bagetterOptions)
+        : base(efOptions)
+    {
+        _bagetterOptions = bagetterOptions.Value.Database;
+    }
 
     public override bool IsUniqueConstraintViolationException(DbUpdateException exception)
     {
@@ -73,5 +78,11 @@ public class SqliteContext : AbstractContext<SqliteContext>
         if (string.IsNullOrWhiteSpace(pathToCreate)) return;
 
         Directory.CreateDirectory(pathToCreate);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder.UseSqlite(_bagetterOptions.ConnectionString);
     }
 }
