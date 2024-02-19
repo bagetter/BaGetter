@@ -1,4 +1,4 @@
-﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
 
 /* Layout
@@ -145,6 +145,7 @@ h4 {
 .search-container button:hover {
   background-color: #a56000;
   border-color: #814b00;
+  color: #fff;
 }
 
 .link-button {
@@ -314,15 +315,33 @@ h4 {
 }
 
 .tabbed-info .content .copy-button button {
-    height: 100%;
-    min-height: 42px;
-    vertical-align: baseline;
-    border-radius: 0px;
+  height: 100%;
+  min-height: 42px;
+  vertical-align: baseline;
+  border-radius: 0px;  
 }
 
-/* Package page
+.copy-button button {
+  color: #fff;
+  background-color: #d87e00;
+  border-color: #bf6f00;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.copy-button button:active,
+.copy-button button:active:focus,
+.copy-button button:active:hover,
+.copy-button button:focus,
+.copy-button button:hover {
+  background-color: #a56000;
+  border-color: #814b00;
+  color: #fff;
+}
+
+    /* Package page
 -------------------------------------------------- */
-.display-package .package-icon {
+    .display-package .package-icon {
     margin-top: 15px;
 }
 
