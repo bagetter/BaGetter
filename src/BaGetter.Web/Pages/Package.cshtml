@@ -266,6 +266,15 @@ else
                     <p>@string.Join(", ", Model.Package.Authors)</p>
                 </div>
             }
+
+            @if (Model.Package.Tags.Any())
+            {
+                <div>
+                    <h2>Tags</h2>
+
+                    <p>@string.Join(" ", Model.Package.Tags)</p>
+                </div>
+            }
         </aside>
     </div>
 }
