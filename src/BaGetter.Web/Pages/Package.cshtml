@@ -119,7 +119,7 @@ else
             @if (!string.IsNullOrEmpty(Model.Package.ReleaseNotes))
             {
                 ExpandableSection("Release Notes", expanded: false,
-                    @<div class="package-release-notes">@Model.Package.ReleaseNotes</div>);
+                    @<div class="package-release-notes">@Model.ParsedReleaseNotes</div>);
             }
 
             @{ ExpandableSection(
