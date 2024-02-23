@@ -154,6 +154,7 @@ h4 {
 .search-container button:hover {
   background-color: #a56000;
   border-color: #814b00;
+  color: #fff;
 }
 
 .link-button {
@@ -218,7 +219,7 @@ h4 {
   margin-top: 8px;
   margin-bottom: 8px;
   margin-left: -5px;
-  line-height: 20px;
+  line-height: 22px;
   color: #666;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -330,7 +331,25 @@ h4 {
   border-radius: 0px;
 }
 
-/* Package page
+.copy-button button {
+  color: #fff;
+  background-color: #d87e00;
+  border-color: #bf6f00;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.copy-button button:active,
+.copy-button button:active:focus,
+.copy-button button:active:hover,
+.copy-button button:focus,
+.copy-button button:hover {
+  background-color: #a56000;
+  border-color: #814b00;
+  color: #fff;
+}
+
+    /* Package page
 -------------------------------------------------- */
 .display-package .package-icon {
   margin-top: 15px;
