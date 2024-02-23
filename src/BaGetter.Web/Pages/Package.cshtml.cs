@@ -216,7 +216,7 @@ public class PackageModel : PageModel
     {
         if (string.IsNullOrWhiteSpace(Package.ReleaseNotes))
         {
-            return null;
+            return HtmlString.Empty;
         }
 
         var releseNotesHtml = Markdown.ToHtml(Package.ReleaseNotes, MarkdownPipeline);
