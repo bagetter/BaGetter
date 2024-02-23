@@ -61,9 +61,7 @@ else
             </div>
 
             @{
-                ExpandableSection(
-                    "Readme",
-                    expanded: false,
+                ExpandableSection("Readme", "ms-Icon--Dictionary", expanded: false,
                     @<div>
                         @if (Model.Readme == null)
                         {
@@ -78,7 +76,7 @@ else
 
             @if (!Model.IsDotnetTemplate && !Model.IsDotnetTool)
             {
-                ExpandableSection("Used By", expanded: false,
+                ExpandableSection("Used By", "ms-Icon--BranchFork2", expanded: false,
                     @<div class="package-used-by">
                         @if (!Model.UsedBy.Any())
                         {
@@ -118,13 +116,11 @@ else
 
             @if (!string.IsNullOrEmpty(Model.Package.ReleaseNotes))
             {
-                ExpandableSection("Release Notes", expanded: false,
+                ExpandableSection("Release Notes", "ms-Icon--ReadingMode", expanded: false,
                     @<div class="package-release-notes">@Model.Package.ReleaseNotes</div>);
             }
 
-            @{ ExpandableSection(
-                "Dependencies",
-                expanded: false,
+            @{ ExpandableSection("Dependencies", "ms-Icon--Packages", expanded: false,
                 @<div class="dependency-groups">
                     @if (!Model.DependencyGroups.Any())
                     {
@@ -164,7 +160,7 @@ else
                 </div>);
             }
 
-            @{ ExpandableSection("Versions", expanded: true,
+            @{ ExpandableSection("Versions", "ms-Icon--Stopwatch", expanded: true,
                 @<div class="version-list" x-data="{ showAll: false }">
                     <table class="table borderless">
                         <thead>
@@ -327,19 +323,25 @@ else
 
     private const int DefaultVisibleVersions = 5;
 
-    private void ExpandableSection(string title, bool expanded, Func<object, IHtmlContent> template)
+    private void ExpandableSection(string title, string icon, bool expanded, Func<object, IHtmlContent> template)
     {
         <div class="expandable-section" x-data="{ expanded: @Json.Serialize(expanded) }">
             <h2>
                 <button type="button" class="link-button" @@click="expanded = !expanded">
                     <i x-bind:class="{ 'ms-Icon--ChevronDown': expanded, 'ms-Icon--ChevronRight': !expanded }"
-                       class="ms-Icon">
+                    class="ms-Icon">
                     </i>
-                    <span>@title</span>
+                    <span>
+                        @if (!string.IsNullOrWhiteSpace(icon))
+                        {
+                            <i class="ms-Icon @icon" aria-hidden="true"></i>
+                        }
+                        @title
+                    </span>
                 </button>
             </h2>
 
-            <div x-show="expanded">@template(null)</div>
+        <div x-show="expanded">@template(null)</div>
         </div>
     }
 }
