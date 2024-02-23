@@ -272,7 +272,12 @@ else
                 <div>
                     <h2>Tags</h2>
 
-                    <p>@string.Join(" ", Model.Package.Tags)</p>
+                    <p>
+                        @foreach(var tag in Model.Package.Tags)
+                        {
+                            <span class="tag">@tag</span>
+                        }
+                    </p>
                 </div>
             }
         </aside>
