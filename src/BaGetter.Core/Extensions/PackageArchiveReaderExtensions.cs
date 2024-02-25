@@ -109,20 +109,27 @@ public static class PackageArchiveReaderExtensions
         return new Uri(uriString);
     }
 
-    private static readonly char[] Separator = { ',', ';', '\t', '\n', '\r' };
+    private static readonly char[] AuthorSeparator = [',', ';', '\t', '\n', '\r'];
 
     private static string[] ParseAuthors(string authors)
     {
-        if (string.IsNullOrEmpty(authors)) return Array.Empty<string>();
+        if (string.IsNullOrEmpty(authors)) return [];
 
-        return authors.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+        return authors.Split(AuthorSeparator, StringSplitOptions.RemoveEmptyEntries);
     }
+
+    /// <summary>
+    /// MsBuild/NuGet uses semicolons for <c>PackageTags</c> to separate tags and converts them
+    /// into a space separated string for the nuspec file. Any spaces in the original tags will be
+    /// passed through as is, so tags cannot have spaces in them, and space is the only separator.
+    /// </summary>
+    private static readonly char[] TagSeparator = [' '];
 
     private static string[] ParseTags(string tags)
     {
-        if (string.IsNullOrEmpty(tags)) return Array.Empty<string>();
+        if (string.IsNullOrEmpty(tags)) return [];
 
-        return tags.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+        return tags.Split(TagSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     private static (Uri repositoryUrl, string repositoryType) GetRepositoryMetadata(NuspecReader nuspec)

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Newtonsoft.Json;
 
 namespace BaGetter.Tests;
@@ -18,6 +18,6 @@ public static class StreamExtensions
         using var jsonReader = new JsonTextReader(reader);
 
         jsonWriter.WriteToken(jsonReader);
-        return writer.ToString();
+        return writer.ToString().Replace("\r\n", "\n");
     }
 }

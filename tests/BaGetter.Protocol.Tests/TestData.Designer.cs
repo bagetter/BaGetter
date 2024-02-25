@@ -19,7 +19,7 @@ namespace BaGetter.Protocol.Tests {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -87,7 +87,9 @@ namespace BaGetter.Protocol.Tests {
         ///      &quot;commitId&quot;: &quot;c088ef83-7dd6-4d24-86e8-85e3089d2c3b&quot;,
         ///      &quot;commitTimeStamp&quot;: &quot;2010-01-05T00:00:00.000Z&quot;,
         ///      &quot;count&quot;: 2
-        ///    } [rest of string was truncated]&quot;;.
+        ///    },
+        ///    {
+        ///      &quot;@i [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CatalogIndex {
             get {
@@ -135,7 +137,7 @@ namespace BaGetter.Protocol.Tests {
         ///      &quot;@id&quot;: &quot;https://test.example/v3/catalog/2010.01.05.00.00.00/test.package.1.0.0.json&quot;,
         ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
         ///      &quot;commitId&quot;: &quot;c088ef83-7dd6-4d24-86e8-85e3089d2c3b&quot;,
-        ///      &quot;commitTimeStamp&quot;: &quot;2010-01- [rest of string was truncated]&quot;;.
+        ///      &quot;commitTimeStamp&quot;: &quot;2010-01-05T00:00:00. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CatalogPage {
             get {
@@ -194,7 +196,8 @@ namespace BaGetter.Protocol.Tests {
         ///      &quot;version&quot;: &quot;3.0.0&quot;,
         ///      &quot;description&quot;: &quot;Package description&quot;,
         ///      &quot;summary&quot;: &quot;Package summary&quot;,
-        ///      &quot;title&quot;: &quot;Test.Pack [rest of string was truncated]&quot;;.
+        ///      &quot;title&quot;: &quot;Test.Package&quot;,
+        ///      &quot;ic [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string DefaultSearch {
             get {
@@ -258,7 +261,7 @@ namespace BaGetter.Protocol.Tests {
         ///  &quot;version&quot;: &quot;1.0.0&quot;,
         ///  &quot;@context&quot;: {
         ///    &quot;@vocab&quot;: &quot;http://schema.nuget.org/schema#&quot;,
-        ///    &quot;catalog&quot;: &quot;http://schema.n [rest of string was truncated]&quot;;.
+        ///    &quot;catalog&quot;: &quot;http://schema.nuget.org/catal [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PackageDeleteCatalogLeaf {
             get {
@@ -290,7 +293,7 @@ namespace BaGetter.Protocol.Tests {
         ///  &quot;iconUrl&quot;: &quot;http://test.example/icon.png&quot;,
         ///  &quot;id&quot;: &quot;Test.Package&quot;,
         ///  &quot;isPrerelease&quot;: false,
-        ///  &quot;lastEdited&quot;: &quot;20 [rest of string was truncated]&quot;;.
+        ///  &quot;lastEdited&quot;: &quot;2010-01-05T00:00 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PackageDetailsCatalogLeaf {
             get {
@@ -331,7 +334,8 @@ namespace BaGetter.Protocol.Tests {
         ///    {
         ///      &quot;@id&quot;: &quot;https://test.example/v3/metadata/test.package/index.json#page/1.0.0/1.0.0&quot;,
         ///      &quot;@type&quot;: &quot;catalog:CatalogPage&quot;,
-        ///      &quot;commitId&quot;: &quot;c088ef83-7dd6-4d24-86e8-85e3 [rest of string was truncated]&quot;;.
+        ///      &quot;commitId&quot;: &quot;c088ef83-7dd6-4d24-86e8-85e3089d2c3b&quot;,
+        ///    [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RegistrationIndexInlinedItems {
             get {
@@ -345,6 +349,36 @@ namespace BaGetter.Protocol.Tests {
         internal static string RegistrationIndexInlinedItemsUrl {
             get {
                 return ResourceManager.GetString("RegistrationIndexInlinedItemsUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;count&quot;: 1,
+        ///    &quot;items&quot;: [
+        ///        {
+        ///            &quot;@id&quot;: &quot;https://nuget.pkg.github.com/metadata/my.github.pkg/index.json&quot;,
+        ///            &quot;lower&quot;: &quot;2.1.5&quot;,
+        ///            &quot;upper&quot;: &quot;2.1.6&quot;,
+        ///            &quot;count&quot;: 2,
+        ///            &quot;items&quot;: [
+        ///                {
+        ///                    &quot;@id&quot;: &quot;https://nuget.pkg.github.com/metadata/my.github.pkg/2.1.6.json&quot;,
+        ///                    &quot;packageContent&quot;: &quot;https://nuget.pkg.github.com/metadata/download/my.github.pkg/2.1.6/my.github.pkg.2.1.6.nupkg&quot;,
+        ///                     [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RegistrationIndexLikeGithubPackages {
+            get {
+                return ResourceManager.GetString("RegistrationIndexLikeGithubPackages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://test.example/v3/metadata/my.github.pkg/index.json.
+        /// </summary>
+        internal static string RegistrationIndexLikeGithubPackagesUrl {
+            get {
+                return ResourceManager.GetString("RegistrationIndexLikeGithubPackagesUrl", resourceCulture);
             }
         }
         
@@ -364,7 +398,7 @@ namespace BaGetter.Protocol.Tests {
         ///      &quot;@id&quot;: &quot;https://test.example/v3/metadata/paged.package/page/1.0.0/1.0.0.json&quot;,
         ///      &quot;@type&quot;: &quot;catalog:CatalogPage&quot;,
         ///      &quot;commitId&quot;: &quot;c088ef83-7dd6-4d24-86e8-85e3089d2c3b&quot;,
-        ///      &quot;commi [rest of string was truncated]&quot;;.
+        ///      &quot;commitTimeStamp&quot;: &quot;2 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RegistrationIndexPagedItems {
             get {
@@ -393,7 +427,8 @@ namespace BaGetter.Protocol.Tests {
         ///  &quot;packageContent&quot;: &quot;https://test.example/v3/content/test.package/1.0.0/test.package.1.0.0.nupkg&quot;,
         ///  &quot;published&quot;: &quot;2010-01-05T00:00:00.000Z&quot;,
         ///  &quot;registration&quot;: &quot;https://test.example/v3/metadata/test.package/index.json&quot;,
-        ///  &quot;@context&quot;:  [rest of string was truncated]&quot;;.
+        ///  &quot;@context&quot;: {
+        ///    &quot;@voc [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RegistrationLeafListed {
             get {
@@ -422,7 +457,8 @@ namespace BaGetter.Protocol.Tests {
         ///  &quot;packageContent&quot;: &quot;https://test.example/v3/content/paged.package/2.0.0/paged.package.2.0.0.nupkg&quot;,
         ///  &quot;published&quot;: &quot;2010-01-05T00:00:00.000Z&quot;,
         ///  &quot;registration&quot;: &quot;https://test.example/v3/metadata/paged.package/index.json&quot;,
-        ///  &quot;@cont [rest of string was truncated]&quot;;.
+        ///  &quot;@context&quot;: {
+        ///    [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RegistrationLeafUnlisted {
             get {
@@ -453,7 +489,7 @@ namespace BaGetter.Protocol.Tests {
         ///    {
         ///      &quot;@id&quot;: &quot;https://test.example/v3/metadata/paged.package/2.0.0.json&quot;,
         ///      &quot;@type&quot;: &quot;Package&quot;,
-        ///      &quot;commitId&quot;: &quot;c088ef83-7dd6- [rest of string was truncated]&quot;;.
+        ///      &quot;commitId&quot;: &quot;c088ef83-7dd6-4d24-86e8-85e [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RegistrationPage {
             get {
@@ -500,7 +536,7 @@ namespace BaGetter.Protocol.Tests {
         ///    },
         ///    {
         ///      &quot;@id&quot;: &quot;https://test.example/v3/search&quot;,
-        ///      &quot;@type&quot;: &quot;Searc [rest of string was truncated]&quot;;.
+        ///      &quot;@type&quot;: &quot;SearchQueryService/3.4.0&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ServiceIndex {
             get {

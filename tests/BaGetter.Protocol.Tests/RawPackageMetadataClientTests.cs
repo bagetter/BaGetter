@@ -36,6 +36,33 @@ public class RawPackageMetadataClientTests : IClassFixture<ProtocolFixture>
     }
 
     [Fact]
+    public async Task GetRegistrationIndexLikeGithubPackages()
+    {
+        var result = await _target.GetRegistrationIndexOrNullAsync("my.github.pkg");
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Count);
+        Assert.Collection(result.Pages, page =>
+        {
+            Assert.Equal(2, page.Count);
+            Assert.Collection(page.ItemsOrNull,
+                pkg1 => {
+                    Assert.Equal("2.1.6", pkg1.PackageMetadata.Version);
+                    Assert.Collection(pkg1.PackageMetadata.Tags,
+                        tag1 => Assert.Equal("json bson serializer", tag1)
+                    );
+                },
+                pkg2 => {
+                    Assert.Equal("2.1.5", pkg2.PackageMetadata.Version);
+                    Assert.Collection(pkg2.PackageMetadata.Tags,
+                        tag1 => Assert.Equal("", tag1)
+                    );
+                }
+            );
+        });
+    }
+
+    [Fact]
     public async Task GetRegistrationIndexPagedItems()
     {
         var result = await _target.GetRegistrationIndexOrNullAsync("Paged.Package");

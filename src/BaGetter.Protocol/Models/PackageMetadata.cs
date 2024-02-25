@@ -1,3 +1,4 @@
+using BaGetter.Protocol.Internal;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -117,6 +118,7 @@ public class PackageMetadata
     /// The package's tags.
     /// </summary>
     [JsonPropertyName("tags")]
+    [JsonConverter(typeof(StringOrStringArrayJsonConverter))]
     public IReadOnlyList<string> Tags { get; set; }
 
     /// <summary>
