@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -115,7 +115,7 @@ public class V3UpstreamClientTests
                         Summary = "Summary",
                         Title = "Title",
 
-                        Tags = new List<string> { "Tag1", "Tag2" },
+                        Tags = new List<string> { "Tag1 Tag2" },
 
                         Deprecation = new PackageDeprecation
                         {
@@ -150,7 +150,7 @@ public class V3UpstreamClientTests
             var package = Assert.Single(result);
 
             Assert.Equal("Foo", package.Id);
-            Assert.Equal(new[] { "Author1", "Author2"}, package.Authors);
+            Assert.Equal(new[] { "Author1", "Author2" }, package.Authors);
             Assert.Equal("Description", package.Description);
             Assert.False(package.HasReadme);
             Assert.False(package.HasEmbeddedIcon);
