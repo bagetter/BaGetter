@@ -19,7 +19,7 @@ public static class PackageArchiveReaderExtensions
     public static bool HasEmbeddedIcon(this PackageArchiveReader package)
         => !string.IsNullOrEmpty(package.NuspecReader.GetIcon());
 
-    public async static Task<Stream> GetReadmeAsync(
+    public static async Task<Stream> GetReadmeAsync(
         this PackageArchiveReader package,
         CancellationToken cancellationToken)
     {
@@ -34,7 +34,7 @@ public static class PackageArchiveReaderExtensions
         return await package.GetStreamAsync(readmePath, cancellationToken);
     }
 
-    public async static Task<Stream> GetIconAsync(
+    public static async Task<Stream> GetIconAsync(
         this PackageArchiveReader package,
         CancellationToken cancellationToken)
     {
@@ -111,18 +111,42 @@ public static class PackageArchiveReaderExtensions
 
     private static readonly char[] Separator = { ',', ';', '\t', '\n', '\r' };
 
+    /// <summary>
+    /// Parses the authors into a list of authors.
+    /// </summary>
+    /// <remarks>
+    /// Authors are delimited by comma.<br/>
+    /// See: <see href="https://learn.microsoft.com/en-us/nuget/reference/nuspec#authors"/>
+    /// </remarks>
+    /// <param name="authors">authors to be parsed</param>
+    /// <returns>A list of authors.</returns>
     private static string[] ParseAuthors(string authors)
     {
-        if (string.IsNullOrEmpty(authors)) return Array.Empty<string>();
+        if (string.IsNullOrEmpty(authors))
+        {
+            return Array.Empty<string>();
+        }
 
         return authors.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
     }
 
+    /// <summary>
+    /// Parses the tags into a list of tags.
+    /// </summary>
+    /// <remarks>
+    /// Tags are delimited by space.<br/>
+    /// See: <see href="https://learn.microsoft.com/en-us/nuget/reference/nuspec#tags"/>
+    /// </remarks>
+    /// <param name="tags">tags to be parsed</param>
+    /// <returns>A list of tags.</returns>
     private static string[] ParseTags(string tags)
     {
-        if (string.IsNullOrEmpty(tags)) return Array.Empty<string>();
+        if (string.IsNullOrEmpty(tags))
+        {
+            return Array.Empty<string>();
+        }
 
-        return tags.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+        return tags.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
 
     private static (Uri repositoryUrl, string repositoryType) GetRepositoryMetadata(NuspecReader nuspec)
