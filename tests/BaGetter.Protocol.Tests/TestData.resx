@@ -723,6 +723,70 @@
   <data name="RegistrationIndexInlinedItemsUrl" xml:space="preserve">
     <value>https://test.example/v3/metadata/test.package/index.json</value>
   </data>
+  <data name="RegistrationIndexLikeGithubPackages" xml:space="preserve">
+    <value>{
+    "count": 1,
+    "items": [
+        {
+            "@id": "https://nuget.pkg.github.com/metadata/my.github.pkg/index.json",
+            "lower": "2.1.5",
+            "upper": "2.1.6",
+            "count": 2,
+            "items": [
+                {
+                    "@id": "https://nuget.pkg.github.com/metadata/my.github.pkg/2.1.6.json",
+                    "packageContent": "https://nuget.pkg.github.com/metadata/download/my.github.pkg/2.1.6/my.github.pkg.2.1.6.nupkg",
+                    "catalogEntry": {
+                        "@id": "https://nuget.pkg.github.com/metadata/my.github.pkg/2.1.6.json",
+                        "authors": "Someone",
+                        "copyright": "",
+                        "dependencyGroups": [
+                        ],
+                        "description": "Nice library",
+                        "iconUrl": "",
+                        "id": "my.github.pkg",
+                        "isPrerelease": false,
+                        "language": "",
+                        "licenseUrl": "https://licenses.nuget.org/MIT",
+                        "packageContent": "https://nuget.pkg.github.com/metadata/download/my.github.pkg/2.1.6/my.github.pkg.2.1.6.nupkg",
+                        "projectUrl": "https://github.com/User/Project",
+                        "requireLicenseAcceptance": false,
+                        "summary": "",
+                        "tags": "json bson serializer",
+                        "version": "2.1.6"
+                    }
+                },
+                {
+                    "@id": "https://nuget.pkg.github.com/metadata/my.github.pkg/2.1.5.json",
+                    "packageContent": "https://nuget.pkg.github.com/metadata/download/my.github.pkg/2.1.5/my.github.pkg.2.1.5.nupkg",
+                    "catalogEntry": {
+                        "@id": "https://nuget.pkg.github.com/metadata/my.github.pkg/2.1.5.json",
+                        "authors": "Someone",
+                        "copyright": "",
+                        "dependencyGroups": [
+                        ],
+                        "description": "Nice library",
+                        "iconUrl": "",
+                        "id": "my.github.pkg",
+                        "isPrerelease": false,
+                        "language": "",
+                        "licenseUrl": "https://licenses.nuget.org/MIT",
+                        "packageContent": "https://nuget.pkg.github.com/metadata/download/my.github.pkg/2.1.5/my.github.pkg.2.1.5.nupkg",
+                        "projectUrl": "https://github.com/User/Project",
+                        "requireLicenseAcceptance": false,
+                        "summary": "",
+                        "tags": "",
+                        "version": "2.1.5"
+                    }
+                }
+            ]
+        }
+    ]
+}</value>
+  </data>
+  <data name="RegistrationIndexLikeGithubPackagesUrl" xml:space="preserve">
+    <value>https://test.example/v3/metadata/my.github.pkg/index.json</value>
+  </data>
   <data name="RegistrationIndexPagedItems" xml:space="preserve">
     <value>{
   "@id": "https://test.example/v3/metadata/paged.package/index.json",
