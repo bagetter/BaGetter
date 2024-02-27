@@ -21,6 +21,7 @@ public class TestDataHttpMessageHandler : HttpMessageHandler
         //{ TestData.CatalogLeafInvalidDependencyVersionRangeUrl, () => TestData.CatalogLeafInvalidDependencyVersionRange },
 
         { TestData.RegistrationIndexInlinedItemsUrl, () => TestData.RegistrationIndexInlinedItems },
+        { TestData.RegistrationIndexLikeGithubPackagesUrl, () => TestData.RegistrationIndexLikeGithubPackages },
         { TestData.RegistrationIndexPagedItemsUrl, () => TestData.RegistrationIndexPagedItems },
         { TestData.RegistrationLeafUnlistedUrl, () => TestData.RegistrationLeafUnlisted },
         { TestData.RegistrationLeafListedUrl, () => TestData.RegistrationLeafListed },

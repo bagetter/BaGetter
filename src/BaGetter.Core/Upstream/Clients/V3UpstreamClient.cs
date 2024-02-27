@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol;
 using BaGetter.Protocol.Models;
-using NuGet.Versioning;
 using Microsoft.Extensions.Logging;
+using NuGet.Versioning;
 
 namespace BaGetter.Core;
 
@@ -18,7 +18,8 @@ public class V3UpstreamClient : IUpstreamClient
 {
     private readonly NuGetClient _client;
     private readonly ILogger<V3UpstreamClient> _logger;
-    private static readonly char[] Separator = { ',', ';', '\t', '\n', '\r' };
+    private static readonly char[] AuthorSeparator = [',', ';', '\t', '\n', '\r'];
+    private static readonly char[] TagSeparator = [' '];
 
     public V3UpstreamClient(NuGetClient client, ILogger<V3UpstreamClient> logger)
     {
@@ -110,7 +111,7 @@ public class V3UpstreamClient : IUpstreamClient
             RepositoryUrl = null,
             RepositoryType = null,
             SemVerLevel = version.IsSemVer2 ? SemVerLevel.SemVer2 : SemVerLevel.Unknown,
-            Tags = metadata.Tags?.ToArray() ?? Array.Empty<string>(),
+            Tags = ParseTags(metadata.Tags),
 
             Dependencies = ToDependencies(metadata)
         };
@@ -130,11 +131,23 @@ public class V3UpstreamClient : IUpstreamClient
 
     private static string[] ParseAuthors(string authors)
     {
-        if (string.IsNullOrEmpty(authors)) return Array.Empty<string>();
+        if (string.IsNullOrEmpty(authors))
+        {
+            return Array.Empty<string>();
+        }
 
-        return authors
-            .Split(Separator, StringSplitOptions.RemoveEmptyEntries)
-            .Select(a => a.Trim())
+        return authors.Split(AuthorSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
+
+    private static string[] ParseTags(IEnumerable<string> tags)
+    {
+        if (tags is null)
+        {
+            return Array.Empty<string>();
+        }
+
+        return tags
+            .SelectMany(t => t.Split(TagSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             .ToArray();
     }
 

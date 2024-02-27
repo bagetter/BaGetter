@@ -11,12 +11,7 @@ public static class SqlServerApplicationExtensions
 {
     public static BaGetterApplication AddSqlServerDatabase(this BaGetterApplication app)
     {
-        app.Services.AddBaGetDbContextProvider<SqlServerContext>("SqlServer", (provider, options) =>
-        {
-            var databaseOptions = provider.GetRequiredService<IOptionsSnapshot<DatabaseOptions>>();
-
-            options.UseSqlServer(databaseOptions.Value.ConnectionString);
-        });
+        app.Services.AddBaGetDbContextProvider<SqlServerContext>("SqlServer");
 
         return app;
     }

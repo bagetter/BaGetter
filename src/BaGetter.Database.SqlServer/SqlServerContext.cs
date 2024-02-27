@@ -2,19 +2,24 @@ using System.Linq;
 using BaGetter.Core;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace BaGetter.Database.SqlServer;
 
 public class SqlServerContext : AbstractContext<SqlServerContext>
 {
+    private readonly DatabaseOptions _bagetterOptions;
+
     /// <summary>
-    /// The SQL Server error code for when a unique contraint is violated.
+    /// The SQL Server error code for when a unique constraint is violated.
     /// </summary>
     private const int UniqueConstraintViolationErrorCode = 2627;
 
-    public SqlServerContext(DbContextOptions<SqlServerContext> options)
-        : base(options)
-    { }
+    public SqlServerContext(DbContextOptions<SqlServerContext> efOptions, IOptionsSnapshot<BaGetterOptions> bagetterOptions)
+        : base(efOptions)
+    {
+        _bagetterOptions = bagetterOptions.Value.Database;
+    }
 
     /// <summary>
     /// Check whether a <see cref="DbUpdateException"/> is due to a SQL unique constraint violation.
@@ -31,5 +36,11 @@ public class SqlServerContext : AbstractContext<SqlServerContext>
         }
 
         return false;
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder.UseSqlServer(_bagetterOptions.ConnectionString);
     }
 }

@@ -68,14 +68,13 @@ public static partial class DependencyInjectionExtensions
 
     public static IServiceCollection AddBaGetDbContextProvider<TContext>(
         this IServiceCollection services,
-        string databaseType,
-        Action<IServiceProvider, DbContextOptionsBuilder> configureContext)
+        string databaseType)
         where TContext : DbContext, IContext
     {
         services.TryAddScoped<IContext>(provider => provider.GetRequiredService<TContext>());
         services.TryAddTransient<IPackageDatabase>(provider => provider.GetRequiredService<PackageDatabase>());
 
-        services.AddDbContext<TContext>(configureContext);
+        services.AddDbContext<TContext>();
 
         services.AddProvider<IContext>((provider, config) =>
         {
@@ -119,7 +118,7 @@ public static partial class DependencyInjectionExtensions
     public static TService GetServiceFromProviders<TService>(IServiceProvider services)
         where TService : class
     {
-        // Run through all the providers for the type. Find the first provider that results a non-null result.
+        // Run through all the providers for the type. Find the first provider that returns a non-null result.
         var providers = services.GetRequiredService<IEnumerable<IProvider<TService>>>();
         var configuration = services.GetRequiredService<IConfiguration>();
 

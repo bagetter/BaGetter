@@ -1,18 +1,22 @@
 using BaGetter.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 
 namespace BaGetter.Database.MySql;
 
 public class MySqlContext : AbstractContext<MySqlContext>
 {
+    private readonly DatabaseOptions _bagetterOptions;
+
     /// <summary>
     /// The MySQL Server error code for when a unique constraint is violated.
     /// </summary>
     private const int UniqueConstraintViolationErrorCode = 1062;
 
-    public MySqlContext(DbContextOptions<MySqlContext> options) : base(options)
+    public MySqlContext(DbContextOptions<MySqlContext> efOptions, IOptionsSnapshot<BaGetterOptions> bagetterOptions) : base(efOptions)
     {
+        _bagetterOptions = bagetterOptions.Value.Database;
     }
 
     public override bool IsUniqueConstraintViolationException(DbUpdateException exception)
@@ -33,5 +37,11 @@ public class MySqlContext : AbstractContext<MySqlContext>
         modelBuilder.HasCharSet("latin1");
 
         base.OnModelCreating(modelBuilder);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if(!optionsBuilder.IsConfigured)
+            optionsBuilder.UseMySql(_bagetterOptions.ConnectionString, ServerVersion.AutoDetect(_bagetterOptions.ConnectionString));
     }
 }
