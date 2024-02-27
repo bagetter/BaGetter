@@ -135,7 +135,7 @@ public class V3UpstreamClientTests
                         Summary = "Summary",
                         Title = "Title",
 
-                        Tags = new List<string> { "Tag1", "Tag2" },
+                        Tags = new List<string> { "Tag1 Tag2" },
 
                         Deprecation = new PackageDeprecation
                         {

@@ -2,21 +2,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace BaGetter.Database.PostgreSql;
 
 public class PostgreSqlContext : AbstractContext<PostgreSqlContext>
 {
+    private readonly DatabaseOptions _bagetterOptions;
+
     /// <summary>
     /// The PostgreSql error code for when a unique constraint is violated.
     /// See: https://www.postgresql.org/docs/9.6/errcodes-appendix.html
     /// </summary>
     private const int UniqueConstraintViolationErrorCode = 23505;
 
-    public PostgreSqlContext(DbContextOptions<PostgreSqlContext> options)
-        : base(options)
+    public PostgreSqlContext(DbContextOptions<PostgreSqlContext> efOptions, IOptionsSnapshot<BaGetterOptions> bagetterOptions)
+        : base(efOptions)
     {
+        _bagetterOptions = bagetterOptions.Value.Database;
     }
 
     public override bool IsUniqueConstraintViolationException(DbUpdateException exception)
@@ -67,5 +71,11 @@ public class PostgreSqlContext : AbstractContext<PostgreSqlContext>
         builder.Entity<TargetFramework>()
             .Property(p => p.Moniker)
             .HasColumnType("citext");
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder.UseNpgsql(_bagetterOptions.ConnectionString);
     }
 }

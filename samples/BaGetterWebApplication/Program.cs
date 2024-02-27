@@ -1,24 +1,27 @@
-using System.Threading.Tasks;
+using BaGetter;
 using BaGetter.Web;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 
-namespace BaGetterWebApplication;
+var builder = WebApplication.CreateBuilder();
 
-public class Program
+// This will add the BaGetter services and options to the container.
+builder.Services.AddBaGetterWebApplication(bagetter =>
 {
-    public static async Task Main(string[] args)
-    {
-        var host = CreateHostBuilder(args).Build();
+    bagetter.AddSqliteDatabase();
+    bagetter.AddFileStorage();
+});
+var app = builder.Build();
 
-        await host.RunMigrationsAsync();
-        await host.RunAsync();
-    }
-
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            });
+if (builder.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
 }
+
+app.UseStaticFiles();
+
+// Add BaGetter's endpoints.
+new BaGetterEndpointBuilder().MapEndpoints(app);
+
+await app.RunMigrationsAsync();
+await app.RunAsync();

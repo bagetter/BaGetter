@@ -19,7 +19,7 @@ namespace BaGetter.Protocol.Tests {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -345,6 +345,36 @@ namespace BaGetter.Protocol.Tests {
         internal static string RegistrationIndexInlinedItemsUrl {
             get {
                 return ResourceManager.GetString("RegistrationIndexInlinedItemsUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;count&quot;: 1,
+        ///    &quot;items&quot;: [
+        ///        {
+        ///            &quot;@id&quot;: &quot;https://nuget.pkg.github.com/metadata/my.github.pkg/index.json&quot;,
+        ///            &quot;lower&quot;: &quot;2.1.5&quot;,
+        ///            &quot;upper&quot;: &quot;2.1.6&quot;,
+        ///            &quot;count&quot;: 2,
+        ///            &quot;items&quot;: [
+        ///                {
+        ///                    &quot;@id&quot;: &quot;https://nuget.pkg.github.com/metadata/my.github.pkg/2.1.6.json&quot;,
+        ///                    &quot;packageContent&quot;: &quot;https://nuget.pkg.github.com/metadata/download/my.github.pkg/2.1.6/my.github.pkg.2.1.6.nupkg&quot;,
+        ///                    &quot;catalogEntr [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RegistrationIndexLikeGithubPackages {
+            get {
+                return ResourceManager.GetString("RegistrationIndexLikeGithubPackages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://test.example/v3/metadata/my.github.pkg/index.json.
+        /// </summary>
+        internal static string RegistrationIndexLikeGithubPackagesUrl {
+            get {
+                return ResourceManager.GetString("RegistrationIndexLikeGithubPackagesUrl", resourceCulture);
             }
         }
         

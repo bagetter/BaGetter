@@ -15,24 +15,21 @@ public class TestDataHttpMessageHandler : HttpMessageHandler
     private static readonly Dictionary<string, Func<string>> UrlToGetContent = new Dictionary<string, Func<string>>
     {
         { TestData.ServiceIndexUrl, () => TestData.ServiceIndex },
-
-    { TestData.CatalogIndexUrl, () => TestData.CatalogIndex },
-    { TestData.CatalogPageUrl, () => TestData.CatalogPage },
-    { TestData.PackageDeleteCatalogLeafUrl, () => TestData.PackageDeleteCatalogLeaf },
-    { TestData.PackageDetailsCatalogLeafUrl, () => TestData.PackageDetailsCatalogLeaf },
-    //{ TestData.CatalogLeafInvalidDependencyVersionRangeUrl, () => TestData.CatalogLeafInvalidDependencyVersionRange },
-
-    { TestData.RegistrationIndexInlinedItemsUrl, () => TestData.RegistrationIndexInlinedItems },
-    { TestData.RegistrationIndexPagedItemsUrl, () => TestData.RegistrationIndexPagedItems },
-    { TestData.RegistrationLeafUnlistedUrl, () => TestData.RegistrationLeafUnlisted },
-    { TestData.RegistrationLeafListedUrl, () => TestData.RegistrationLeafListed },
-    { TestData.RegistrationPageUrl, () => TestData.RegistrationPage },
-
-    { TestData.PackageContentVersionListUrl, () => TestData.PackageContentVersionList },
-
-    { TestData.DefaultSearchUrl, () => TestData.DefaultSearch },
-    { TestData.DefaultAutocompleteUrl, () => TestData.DefaultAutocomplete },
-};
+        { TestData.CatalogIndexUrl, () => TestData.CatalogIndex },
+        { TestData.CatalogPageUrl, () => TestData.CatalogPage },
+        { TestData.PackageDeleteCatalogLeafUrl, () => TestData.PackageDeleteCatalogLeaf },
+        { TestData.PackageDetailsCatalogLeafUrl, () => TestData.PackageDetailsCatalogLeaf },
+        //{ TestData.CatalogLeafInvalidDependencyVersionRangeUrl, () => TestData.CatalogLeafInvalidDependencyVersionRange },
+        { TestData.RegistrationIndexInlinedItemsUrl, () => TestData.RegistrationIndexInlinedItems },
+        { TestData.RegistrationIndexLikeGithubPackagesUrl, () => TestData.RegistrationIndexLikeGithubPackages },
+        { TestData.RegistrationIndexPagedItemsUrl, () => TestData.RegistrationIndexPagedItems },
+        { TestData.RegistrationLeafUnlistedUrl, () => TestData.RegistrationLeafUnlisted },
+        { TestData.RegistrationLeafListedUrl, () => TestData.RegistrationLeafListed },
+        { TestData.RegistrationPageUrl, () => TestData.RegistrationPage },
+        { TestData.PackageContentVersionListUrl, () => TestData.PackageContentVersionList },
+        { TestData.DefaultSearchUrl, () => TestData.DefaultSearch },
+        { TestData.DefaultAutocompleteUrl, () => TestData.DefaultAutocomplete },
+    };
 
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
