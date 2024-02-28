@@ -38,7 +38,7 @@
     <PackageVersion Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8" />
     <PackageVersion Include="Microsoft.Azure.Search" Version="10.1.0" />
     <PackageVersion Include="Microsoft.Azure.Storage.Blob" Version="11.2.3" />
-    <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.6.0" />
+    <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.8.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.1" />
   </ItemGroup>
 </Project>

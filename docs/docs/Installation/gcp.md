@@ -25,7 +25,25 @@ Follow the instructions in [Using Cloud Storage](https://cloud.google.com/appeng
 
 **NOTE:** If you plan to use AppEngine, skip this part and follow the AppEngine instructions below.
 
-Set up a service account and download credentials. Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path to the JSON file you downloaded.
+Set up a service account, create and download a key as JSON file. Set the [`GOOGLE_APPLICATION_CREDENTIALS`](https://cloud.google.com/docs/authentication/provide-credentials-adc#wlif-key)
+environment variable to the path to the JSON file you downloaded. The file should contain something like this:
+
+```
+{
+  "type": "service_account",
+  "project_id": "your_project",
+  "private_key_id": "6950mvh3690mg3h90jg3986vgm",
+  "private_key": "-----BEGIN PRIVATE KEY-----\hriv eohgrup4nhg8594nhvpog59p4w5...",
+  "client_email": "your-service-account@your_project.iam.gserviceaccount.com",
+  "client_id": "49826518658461496",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account%40your_project.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
+
+```
 
 Configure BaGetter to use Google Cloud Storage by updating the `appsettings.json` file:
 
@@ -41,6 +59,8 @@ Configure BaGetter to use Google Cloud Storage by updating the `appsettings.json
     ...
 }
 ```
+
+Or set the `Storage__Type` and `Storage__BucketName` environment variables in your deployment (i.e. AppEngine project) accordingly.
 
 ## Google Cloud SQL
 
