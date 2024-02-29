@@ -64,7 +64,7 @@ Or set the `Storage__Type` and `Storage__BucketName` environment variables in yo
 
 ## Google Cloud SQL
 
-- Follow the instructions in [Using Cloud SQL](https://cloud.google.com/appengine/docs/flexible/dotnet/using-cloud-sql) to create a 2nd Gen MySQL 5.7 Google Cloud SQL instance. The default options should work well.
+- Follow the instructions in [Using Cloud SQL](https://cloud.google.com/appengine/docs/flexible/dotnet/using-cloud-sql) to create a (for example) 2nd Gen MySQL 5.7 Google Cloud SQL instance. The default options should work well.
 - Create a database named `bagetter`. This can be done through the Google Cloud Console. Use `utf8mb4` as the Character set.
 - Follow [Configuring SSL/TLS](https://cloud.google.com/sql/docs/mysql/configure-ssl-instance#new-client) to create a client certificate. Download the three files it creates.
 - Convert the PEM to a PFX by running `openssl pkcs12 -inkey client-key.pem -in client-cert.pem -export -out client.pfx`
