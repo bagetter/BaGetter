@@ -69,18 +69,31 @@ downloaded if you know the package's id and version. You can override this behav
 
 ## Enable package overwrites
 
-Normally, BaGetter will reject a package upload if the id and version are already taken. You can configure BaGetter
-to overwrite the already existing package by setting `AllowPackageOverwrites`:
+Normally, BaGetter will reject a package upload if the id and version are already taken. This is to maintain the [immutability of semantically versioned packages](https://learn.microsoft.com/en-us/azure/devops/artifacts/artifacts-key-concepts?view=azure-devops#immutability).
+
+:::warning
+
+NuGet clients cache packages on multiple levels, so overwriting a package can lead to unexpected behavior.
+A client may have a cached version of the package that is different from the one on the server.
+Make sure, everyone involved is aware of the implications of overwriting packages.
+
+:::
+
+You can configure BaGetter to overwrite the already existing package by setting `AllowPackageOverwrites`:
 
 ```json
 {
     ...
 
-    "AllowPackageOverwrites": true,
+    "AllowPackageOverwrites": "true",
 
     ...
 }
 ```
+
+To allow pre-release versions to be overwritten but not proper releases, set `AllowPackageOverwrites` to `PrereleaseOnly`.
+
+Pushing a package with a pre-release version like "3.1.0-SNAPSHOT" will overwrite the existing "3.1.0-SNAPSHOT" package, but pushing a "3.1.0" package will fail if a "3.1.0" package already exists.
 
 ## Private feeds
 
