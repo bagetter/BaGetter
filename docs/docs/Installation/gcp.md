@@ -28,7 +28,7 @@ Follow the instructions in [Using Cloud Storage](https://cloud.google.com/appeng
 Set up a service account, create and download a key as JSON file. Set the [`GOOGLE_APPLICATION_CREDENTIALS`](https://cloud.google.com/docs/authentication/provide-credentials-adc#wlif-key)
 environment variable to the path to the JSON file you downloaded. The file should contain something like this:
 
-```
+```json
 {
   "type": "service_account",
   "project_id": "your_project",
