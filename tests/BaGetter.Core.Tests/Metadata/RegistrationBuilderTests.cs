@@ -26,10 +26,10 @@ public class RegistrationBuilderTests
         var packages = new List<Package>
         {
             Generator.GetPackage(packageId, "3.1.0"),
-            Generator.GetPackage(packageId, "10.0.5"),
+            Generator.GetPackage(packageId, "10.0.5", downloads:42),
             Generator.GetPackage(packageId, "3.2.0"),
             Generator.GetPackage(packageId, "3.1.0-pre"),
-            Generator.GetPackage(packageId, "1.0.0-beta1"),
+            Generator.GetPackage(packageId, "1.0.0-beta1", downloads:21),
             Generator.GetPackage(packageId, "1.0.0"),
         };
 
@@ -84,7 +84,7 @@ public class RegistrationBuilderTests
         var response = _registrationBuilder.BuildIndex(registration);
 
         // Assert
-        Assert.Equal(registration.Packages.Count, response.TotalDownloads);
+        Assert.Equal(registration.Packages.Sum(x => x.Downloads), response.TotalDownloads);
     }
 
     [Fact]

@@ -22,12 +22,8 @@ public class DefaultPackageMetadataServiceTests
     [Fact]
     public void Ctor_PackageServiceIsNull_ShouldThrow()
     {
-        // Arrange
-        var urlGenerator = new Mock<IUrlGenerator>();
-        var registrationBuilder = new RegistrationBuilder(urlGenerator.Object);
-
         // Act/Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => new DefaultPackageMetadataService(null, registrationBuilder));
+        var ex = Assert.Throws<ArgumentNullException>(() => new DefaultPackageMetadataService(null, _registrationBuilder));
     }
 
     [Fact]
