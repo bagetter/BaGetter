@@ -9,7 +9,7 @@ internal class Generator
     /// <summary>
     /// Create a fake <see cref="Package"></see> with the minimum metadata needed by the <see cref="RegistrationBuilder"></see>.
     /// </summary>
-    internal static Package GetPackage(string packageId, string version, int? downloads = 1)
+    internal static Package GetPackage(string packageId, string version, int downloads = 1)
     {
         return new Package
         {
@@ -21,7 +21,7 @@ internal class Generator
             //Use current date for each packages publish date, because later a date offset will be
             //calculated and leads to an overflow error of the offset because the default is year 0001.
             Published = DateTime.UtcNow,
-            Downloads = downloads ?? 1
+            Downloads = downloads
         };
     }
 }
