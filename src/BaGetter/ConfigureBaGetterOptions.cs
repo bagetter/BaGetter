@@ -64,7 +64,7 @@ public class ConfigureBaGetterOptions
 
     public void Configure(FormOptions options)
     {
-        options.MultipartBodyLengthLimit = int.MaxValue;
+        options.MultipartBodyLengthLimit = int.MaxValue * (long)4;
     }
 
     public void Configure(ForwardedHeadersOptions options)
