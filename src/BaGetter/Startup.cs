@@ -24,18 +24,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        // TODO: Ideally we'd use:
-        //
-        //       services.ConfigureOptions<ConfigureBaGetterOptions>();
-        //
-        //       However, "ConfigureOptions" doesn't register validations as expected.
-        //       We'll instead register all these configurations manually.
-        // See: https://github.com/dotnet/runtime/issues/38491
-        services.AddTransient<IConfigureOptions<CorsOptions>, ConfigureBaGetterOptions>();
-        services.AddTransient<IConfigureOptions<FormOptions>, ConfigureBaGetterOptions>();
-        services.AddTransient<IConfigureOptions<ForwardedHeadersOptions>, ConfigureBaGetterOptions>();
-        services.AddTransient<IConfigureOptions<IISServerOptions>, ConfigureBaGetterOptions>();
-        services.AddTransient<IValidateOptions<BaGetterOptions>, ConfigureBaGetterOptions>();
+        services.ConfigureOptions<ConfigureBaGetterOptions>();
 
         services.AddBaGetterOptions<IISServerOptions>(nameof(IISServerOptions));
         services.AddBaGetterWebApplication(ConfigureBaGetterApplication);
