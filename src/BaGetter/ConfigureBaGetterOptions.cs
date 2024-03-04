@@ -64,6 +64,7 @@ public class ConfigureBaGetterOptions
 
     public void Configure(FormOptions options)
     {
+        // Allow packages up to ~8GB in size
         options.MultipartBodyLengthLimit = int.MaxValue * (long)4;
     }
 
