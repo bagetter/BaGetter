@@ -11,11 +11,15 @@ public class RegistrationBuilder
 
     public RegistrationBuilder(IUrlGenerator url)
     {
-        _url = url ?? throw new ArgumentNullException(nameof(url));
+        ArgumentNullException.ThrowIfNull(url);
+
+        _url = url;
     }
 
     public virtual BaGetterRegistrationIndexResponse BuildIndex(PackageRegistration registration)
     {
+        ArgumentNullException.ThrowIfNull(registration);
+
         var sortedPackages = registration.Packages.OrderBy(p => p.Version).ToList();
 
         // TODO: Paging of registration items.

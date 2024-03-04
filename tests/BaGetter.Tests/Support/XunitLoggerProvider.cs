@@ -4,8 +4,9 @@ using Xunit.Abstractions;
 
 namespace BaGetter.Tests;
 
-// Based off:
-// https://stackoverflow.com/questions/46169169/net-core-2-0-configurelogging-xunit-test
+/// <remarks>
+/// Based off: <see href="https://stackoverflow.com/questions/46169169/net-core-2-0-configurelogging-xunit-test"/>
+/// </remarks>
 public class XunitLoggerProvider : ILoggerProvider
 {
     private readonly ITestOutputHelper _output;

@@ -13,12 +13,13 @@ public class PackageRegistration
     /// </summary>
     /// <param name="packageId"></param>
     /// <param name="packages">All versions of the package.</param>
-    public PackageRegistration(
-        string packageId,
-        IReadOnlyList<Package> packages)
+    public PackageRegistration(string packageId, IReadOnlyList<Package> packages)
     {
-        PackageId = packageId ?? throw new ArgumentNullException(nameof(packageId));
-        Packages = packages ?? throw new ArgumentNullException(nameof(packages));
+        ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
+        ArgumentNullException.ThrowIfNull(packages);
+
+        PackageId = packageId;
+        Packages = packages;
     }
 
     /// <summary>

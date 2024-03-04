@@ -6,9 +6,8 @@ namespace BaGetter.Core;
 
 /// <summary>
 /// Provides conditional validation based on related property value.
-///
-/// Inspiration: https://stackoverflow.com/a/27666044
 /// </summary>
+/// <remarks>Inspiration: <see href="https://stackoverflow.com/a/27666044"/></remarks>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class RequiredIfAttribute : ValidationAttribute
 {

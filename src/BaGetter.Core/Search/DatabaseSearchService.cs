@@ -14,17 +14,18 @@ public class DatabaseSearchService : ISearchService
     private readonly IFrameworkCompatibilityService _frameworks;
     private readonly ISearchResponseBuilder _searchBuilder;
 
-    public DatabaseSearchService(
-        IContext context,
-        IFrameworkCompatibilityService frameworks,
-        ISearchResponseBuilder searchBuilder)
+    public DatabaseSearchService(IContext context, IFrameworkCompatibilityService frameworks, ISearchResponseBuilder searchBuilder)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _frameworks = frameworks ?? throw new ArgumentNullException(nameof(frameworks));
-        _searchBuilder = searchBuilder ?? throw new ArgumentNullException(nameof(searchBuilder));
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(frameworks);
+        ArgumentNullException.ThrowIfNull(searchBuilder);
+
+        _context = context;
+        _frameworks = frameworks;
+        _searchBuilder = searchBuilder;
     }
 
-    public async Task<SearchResponse> SearchAsync(SearchRequest request,  CancellationToken cancellationToken)
+    public async Task<SearchResponse> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
     {
         var frameworks = GetCompatibleFrameworksOrNull(request.Framework);
 
@@ -77,9 +78,7 @@ public class DatabaseSearchService : ISearchService
         return _searchBuilder.BuildSearch(groupedResults);
     }
 
-    public async Task<AutocompleteResponse> AutocompleteAsync(
-        AutocompleteRequest request,
-        CancellationToken cancellationToken)
+    public async Task<AutocompleteResponse> AutocompleteAsync(AutocompleteRequest request, CancellationToken cancellationToken)
     {
         IQueryable<Package> search = _context.Packages;
 
@@ -102,9 +101,7 @@ public class DatabaseSearchService : ISearchService
         return _searchBuilder.BuildAutocomplete(packageIds);
     }
 
-    public async Task<AutocompleteResponse> ListPackageVersionsAsync(
-        VersionsRequest request,
-        CancellationToken cancellationToken)
+    public async Task<AutocompleteResponse> ListPackageVersionsAsync(VersionsRequest request, CancellationToken cancellationToken)
     {
         var packageId = request.PackageId.ToLower();
         var search = _context

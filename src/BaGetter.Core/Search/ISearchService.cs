@@ -6,15 +6,14 @@ namespace BaGetter.Core;
 
 /// <summary>
 /// The service used to search for packages.
-/// 
-/// See https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
 /// </summary>
+/// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource"/></remarks>
 public interface ISearchService
 {
     /// <summary>
     /// Perform a search query.
-    /// See: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-for-packages
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-for-packages"/></remarks>
     /// <param name="request">The search request.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The search response.</returns>
@@ -22,8 +21,8 @@ public interface ISearchService
 
     /// <summary>
     /// Perform an autocomplete query.
-    /// See: https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#search-for-package-ids
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#search-for-package-ids"/></remarks>
     /// <param name="request">The autocomplete request.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The autocomplete response.</returns>
@@ -31,8 +30,8 @@ public interface ISearchService
 
     /// <summary>
     /// Enumerate listed package versions.
-    /// See: https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#enumerate-package-versions
     /// </summary>
+    /// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#enumerate-package-versions"/></remarks>
     /// <param name="request">The autocomplete request.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package versions that matched the request.</returns>
@@ -44,7 +43,5 @@ public interface ISearchService
     /// <param name="packageId">The package whose dependents should be found.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The dependents response.</returns>
-    Task<DependentsResponse> FindDependentsAsync(
-        string packageId,
-        CancellationToken cancellationToken);
+    Task<DependentsResponse> FindDependentsAsync(string packageId, CancellationToken cancellationToken);
 }
