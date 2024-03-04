@@ -45,7 +45,7 @@ The following `Mirror` setting configures BaGetter to index packages from [nuget
 
 :::info
 
-`PackageSource` is the value of the [NuGet service index](https://docs.microsoft.com/en-us/nuget/api/service-index).
+`PackageSource` is the value of the [NuGet service index](https://docs.microsoft.com/nuget/api/service-index).
 
 :::
 
@@ -69,13 +69,13 @@ downloaded if you know the package's id and version. You can override this behav
 
 ## Enable package overwrites
 
-Normally, BaGetter will reject a package upload if the id and version are already taken. This is to maintain the [immutability of semantically versioned packages](https://learn.microsoft.com/en-us/azure/devops/artifacts/artifacts-key-concepts?view=azure-devops#immutability).
+Normally, BaGetter will reject a package upload if the id and version are already taken. This is to maintain the [immutability of semantically versioned packages](https://learn.microsoft.com/azure/devops/artifacts/artifacts-key-concepts?view=azure-devops#immutability).
 
 :::warning
 
 NuGet clients cache packages on multiple levels, so overwriting a package can lead to unexpected behavior.
 A client may have a cached version of the package that is different from the one on the server.
-Make sure, everyone involved is aware of the implications of overwriting packages.
+Make sure that everyone involved is aware of the implications of overwriting packages.
 
 :::
 
@@ -91,7 +91,7 @@ You can configure BaGetter to overwrite the already existing package by setting 
 }
 ```
 
-To allow pre-release versions to be overwritten but not proper releases, set `AllowPackageOverwrites` to `PrereleaseOnly`.
+To allow pre-release versions to be overwritten but not stable releases, set `AllowPackageOverwrites` to `PrereleaseOnly`.
 
 Pushing a package with a pre-release version like "3.1.0-SNAPSHOT" will overwrite the existing "3.1.0-SNAPSHOT" package, but pushing a "3.1.0" package will fail if a "3.1.0" package already exists.
 
@@ -150,7 +150,7 @@ There are two settings related to the database configuration:
 
 ## IIS server options
 
-IIS Server options can be configured under the `IISServerOptions` key. The available options are detailed at [docs.microsoft.com](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.iisserveroptions)
+IIS Server options can be configured under the `IISServerOptions` key. The available options are detailed at [docs.microsoft.com](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.builder.iisserveroptions)
 
 :::note
 
@@ -205,4 +205,4 @@ Aditional documentation for secrets:
 - [How to use secrets in Docker Compose](https://docs.docker.com/compose/use-secrets)
 - [Docker Swarm secrets](https://docs.docker.com/engine/swarm/secrets)
 - [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret)
-- [ASP.NET Core Documentation](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/#key-per-file-configuration-provider)
+- [ASP.NET Core Documentation](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/#key-per-file-configuration-provider)
