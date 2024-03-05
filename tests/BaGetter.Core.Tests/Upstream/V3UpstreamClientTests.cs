@@ -10,10 +10,30 @@ using Moq;
 using NuGet.Versioning;
 using Xunit;
 
-namespace BaGetter.Core.Tests;
+namespace BaGetter.Core.Tests.Upstream;
 
 public class V3UpstreamClientTests
 {
+    [Fact]
+    public void Ctor_NuGetClientIsNull_ShouldThrow()
+    {
+        // Arrange
+        var logger = new Mock<ILogger<V3UpstreamClient>>();
+
+        // Act/Assert
+        var ex = Assert.Throws<ArgumentNullException>(() => new V3UpstreamClient(null, logger.Object));
+    }
+
+    [Fact]
+    public void Ctor_LoggerIsNull_ShouldThrow()
+    {
+        // Arrange
+        var nugetClient = new Mock<NuGetClient>();
+
+        // Act/Assert
+        var ex = Assert.Throws<ArgumentNullException>(() => new V3UpstreamClient(nugetClient.Object, null));
+    }
+
     public class ListPackageVersionsAsync : FactsBase
     {
         [Fact]

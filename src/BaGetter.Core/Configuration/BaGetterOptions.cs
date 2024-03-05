@@ -30,7 +30,7 @@ public class BaGetterOptions
     /// If enabled, pushing a package that already exists will replace the
     /// existing package.
     /// </summary>
-    public bool AllowPackageOverwrites { get; set; } = false;
+    public PackageOverwriteAllowed AllowPackageOverwrites { get; set; } = PackageOverwriteAllowed.False;
 
     /// <summary>
     /// If true, disables package pushing, deleting, and re-listing.

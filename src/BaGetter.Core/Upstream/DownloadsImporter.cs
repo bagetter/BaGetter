@@ -21,9 +21,13 @@ public class DownloadsImporter
         IPackageDownloadsSource downloadsSource,
         ILogger<DownloadsImporter> logger)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _downloadsSource = downloadsSource ?? throw new ArgumentNullException(nameof(downloadsSource));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(downloadsSource);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _context = context;
+        _downloadsSource = downloadsSource;
+        _logger = logger;
     }
 
     public async Task ImportAsync(CancellationToken cancellationToken)

@@ -8,8 +8,8 @@ namespace BaGetter.Web;
 
 /// <summary>
 /// Captures <see cref="OperationCanceledException" /> and converts to HTTP 409 response.
-/// Based off: https://github.com/aspnet/AspNetCore/blob/28157e62597bf0e043bc7e937e44c5ec81946b83/src/Middleware/Diagnostics/src/DeveloperExceptionPage/DeveloperExceptionPageMiddleware.cs
 /// </summary>
+/// <remarks>Based off: <see href="https://github.com/aspnet/AspNetCore/blob/28157e62597bf0e043bc7e937e44c5ec81946b83/src/Middleware/Diagnostics/src/DeveloperExceptionPage/DeveloperExceptionPageMiddleware.cs"/></remarks>
 public class OperationCancelledMiddleware
 {
     private readonly RequestDelegate _next;

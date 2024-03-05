@@ -2,8 +2,8 @@ namespace BaGetter.Core;
 
 /// <summary>
 /// The NuGet V3 search request.
-/// See: https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#request-parameters
 /// </summary>
+/// <remarks>See: <see href="https://docs.microsoft.com/en-us/nuget/api/search-autocomplete-service-resource#request-parameters"/></remarks>
 public class AutocompleteRequest
 {
     /// <summary>

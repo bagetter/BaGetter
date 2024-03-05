@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaGetter.Protocol.Models;
@@ -11,7 +11,9 @@ public class SearchResponseBuilder : ISearchResponseBuilder
 
     public SearchResponseBuilder(IUrlGenerator url)
     {
-        _url = url ?? throw new ArgumentNullException(nameof(url));
+        ArgumentNullException.ThrowIfNull(url);
+
+        _url = url;
     }
 
     public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations)

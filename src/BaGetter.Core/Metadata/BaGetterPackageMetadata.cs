@@ -7,7 +7,8 @@ namespace BaGetter.Core;
 /// <summary>
 /// BaGetter's extensions to the package metadata model.
 /// </summary>
-/// <remarks><para>Extends <see cref="PackageMetadata"/>.</para>
+/// <remarks>
+/// Extends <see cref="PackageMetadata"/>.<br/>
 /// These additions are not part of the official protocol.
 /// </remarks>
 public class BaGetterPackageMetadata : PackageMetadata

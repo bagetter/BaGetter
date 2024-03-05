@@ -17,7 +17,8 @@ You can modify BaGetter's configurations by editing the `appsettings.json` file.
 
 ### Amazon S3
 
-Update the `appsettings.json` file:
+Create a bucket, a service account with access to the bucket, and an access key for the service account.  
+Update the `appsettings.json` file with those:
 
 ```json
 {

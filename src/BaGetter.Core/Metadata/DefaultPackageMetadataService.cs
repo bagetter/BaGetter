@@ -7,23 +7,23 @@ using NuGet.Versioning;
 
 namespace BaGetter.Core;
 
-/// <inheritdoc />
+/// <inheritdoc/>
 public class DefaultPackageMetadataService : IPackageMetadataService
 {
     private readonly IPackageService _packages;
     private readonly RegistrationBuilder _builder;
 
-    public DefaultPackageMetadataService(
-        IPackageService packages,
-        RegistrationBuilder builder)
+    public DefaultPackageMetadataService(IPackageService packages, RegistrationBuilder builder)
     {
-        _packages = packages ?? throw new ArgumentNullException(nameof(packages));
-        _builder = builder ?? throw new ArgumentNullException(nameof(builder));
+        ArgumentNullException.ThrowIfNull(packages);
+        ArgumentNullException.ThrowIfNull(builder);
+
+        _packages = packages;
+        _builder = builder;
     }
 
-    public async Task<BaGetterRegistrationIndexResponse> GetRegistrationIndexOrNullAsync(
-        string packageId,
-        CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task<BaGetterRegistrationIndexResponse> GetRegistrationIndexOrNullAsync(string packageId, CancellationToken cancellationToken = default)
     {
         var packages = await _packages.FindPackagesAsync(packageId, cancellationToken);
         if (!packages.Any())
@@ -37,10 +37,8 @@ public class DefaultPackageMetadataService : IPackageMetadataService
                 packages));
     }
 
-    public async Task<RegistrationLeafResponse> GetRegistrationLeafOrNullAsync(
-        string id,
-        NuGetVersion version,
-        CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task<RegistrationLeafResponse> GetRegistrationLeafOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken = default)
     {
         var package = await _packages.FindPackageOrNullAsync(id, version, cancellationToken);
         if (package == null)
