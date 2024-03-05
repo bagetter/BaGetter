@@ -9,7 +9,8 @@
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageVersion Condition="'$(PackageVersion)' == ''">0.1.0-prerelease</PackageVersion>
-    <PackageProjectUrl>https://www.bagetter.com</PackageProjectUrl>
+    <PackageProjectUrl>https://www.bagetter.com</PackageProjectUrl>    
+    <Version>7.8.9</Version>    
   </PropertyGroup>
 
   <!-- Compiler properties -->

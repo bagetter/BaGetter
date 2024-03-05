@@ -1,3 +1,4 @@
+@using System.Reflection
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +17,6 @@
 </head>
 <body>
     <header>
-
         <nav class="navbar navbar-inverse" role="navigation">
             <div class="container">
                 <div class="row">
@@ -60,9 +60,25 @@
         </nav>
     </header>
 
-    <section role="main" class="container main-container">
+    <main role="main" class="container main-container">
         @RenderBody()
-    </section>
+    </main>
+
+    <footer class="footer">
+        <p>Version (Web-Assembly): @typeof(BaGetter.Web.Pages_Index).Assembly.GetName().Version</p>
+        <p>
+            Version (InformationalVersion): @(Assembly.GetEntryAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            .InformationalVersion)
+        </p>
+        <p>
+            Version (InformationalVersion without Hash): @(Assembly.GetEntryAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            .InformationalVersion
+            .Split("+").First())
+        </p>
+
+    </footer>
 
     <script src="~/_content/BaGetter.Web/lib/alpinejs/dist/alpine.js"></script>
 
