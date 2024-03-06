@@ -92,6 +92,6 @@ public class Startup
             baget.MapEndpoints(endpoints);
         });
 
-        app.UseHealthChecks("/healthz");
+        app.UseHealthChecks(options.HealthCheck.Path);
     }
 }
