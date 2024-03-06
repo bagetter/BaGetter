@@ -80,7 +80,8 @@ public class PackageIndexingService : IPackageIndexingService
         // The package is well-formed. Ensure this is a new package.
         if (await _packages.ExistsAsync(package.Id, package.Version, cancellationToken))
         {
-            if (!_options.Value.AllowPackageOverwrites)
+            if (_options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.False ||
+                (_options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.PrereleaseOnly && !package.IsPrerelease))
             {
                 return PackageIndexingResult.PackageAlreadyExists;
             }
