@@ -176,7 +176,6 @@ When running within a containerized environment like Kubernetes, a basic health 
 
 This path is configurable if needed:
 
-
 ```json
 {
     ...
@@ -198,7 +197,6 @@ Mostly useful when running containerised (e.g. using Docker, Podman, Kubernetes,
 ```
 
 This allows for sensitive values to be provided individually to the application, typically by bind-mounting files.
-
 
 ### Docker Compose example
 
