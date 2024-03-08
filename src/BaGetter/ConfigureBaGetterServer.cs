@@ -49,6 +49,6 @@ public class ConfigureBaGetterServer
 
     public void Configure(IISServerOptions options)
     {
-        options.MaxRequestBodySize = 262144000;
+        options.MaxRequestBodySize = (long)_baGetterOptions.MaxPackageSizeGiB * int.MaxValue / 2;
     }
 }
