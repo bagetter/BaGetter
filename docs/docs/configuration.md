@@ -170,6 +170,24 @@ If not specified, the `MaxRequestBodySize` in BaGetter defaults to 250MB (262144
 }
 ```
 
+## Health Endpoint
+
+When running within a containerized environment like Kubernetes, a basic health endpoint is exposed at `/health` that returns 200 OK and the text "Healthy" when running.
+
+This path is configurable if needed:
+
+```json
+{
+    ...
+
+    "HealthCheck": {
+        "Path": "/healthz"
+    },
+
+    ...
+}
+```
+
 ## Load secrets from files
 
 Mostly useful when running containerised (e.g. using Docker, Podman, Kubernetes, etc), the application will look for files named in the same pattern as environment variables under `/run/secrets`.

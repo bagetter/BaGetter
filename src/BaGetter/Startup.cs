@@ -40,6 +40,8 @@ public class Startup
 
         services.AddSingleton<IConfigureOptions<MvcRazorRuntimeCompilationOptions>, ConfigureRazorRuntimeCompilation>();
 
+        services.AddHealthChecks();
+
         services.AddCors();
     }
 
@@ -89,5 +91,7 @@ public class Startup
 
             baget.MapEndpoints(endpoints);
         });
+
+        app.UseHealthChecks(options.HealthCheck.Path);
     }
 }
