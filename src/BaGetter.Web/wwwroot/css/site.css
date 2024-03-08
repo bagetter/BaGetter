@@ -24,8 +24,12 @@ main {
 
 .footer {
   flex-shrink: 0;
-  background-color: #d3d3d3;
-  text-align: center;
+  background-color: #d3d3d3;  
+}
+
+.footer p {
+  text-align: center;    
+  vertical-align: middle;    
 }
 
 h1,

@@ -64,15 +64,9 @@
         @RenderBody()
     </main>
 
-    <footer class="footer">
-        <p>Version (Web-Assembly): @typeof(BaGetter.Web.Pages_Index).Assembly.GetName().Version</p>
+    <footer class="footer">        
         <p>
-            Version (InformationalVersion): @(Assembly.GetEntryAssembly()
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            .InformationalVersion)
-        </p>
-        <p>
-            Version (InformationalVersion without Hash): @(Assembly.GetEntryAssembly()
+            Version: @(Assembly.GetEntryAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             .InformationalVersion
             .Split("+").First())
