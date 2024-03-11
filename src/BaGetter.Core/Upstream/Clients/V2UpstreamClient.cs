@@ -27,7 +27,7 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
     private readonly SourceRepository _repository;
     private readonly INuGetLogger _ngLogger;
     private readonly ILogger _logger;
-    private static readonly char[] TagsSeparators = {';'};
+    private static readonly char[] TagsSeparators = { ';' };
     private static readonly char[] AuthorsSeparators = new[] { ',', ';', '\t', '\n', '\r' };
 
     public V2UpstreamClient(
@@ -45,7 +45,27 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
 
         _ngLogger = NullLogger.Instance;
         _cache = new SourceCacheContext();
-        _repository = Repository.Factory.GetCoreV2(new PackageSource(options.Value.PackageSource.AbsoluteUri));
+        var packageSource = new PackageSource(options.Value.PackageSource.AbsoluteUri);
+        if (options.Value.Authentication is { } auth)
+        {
+            switch (auth.Type)
+            {
+                case MirrorAuthenticationType.None:
+                    break;
+                case MirrorAuthenticationType.Basic:
+                    packageSource.Credentials = new PackageSourceCredential(
+                        packageSource.Source,
+                        auth.Username,
+                        auth.Password,
+                        true,
+                        null);
+                    break;
+                default:
+                    throw new NotSupportedException($"The authentication type {auth.Type} is not supported.");
+            }
+        }
+        _repository = Repository.Factory.GetCoreV2(packageSource);
+
     }
 
     public async Task<IReadOnlyList<NuGetVersion>> ListPackageVersionsAsync(string id, CancellationToken cancellationToken)

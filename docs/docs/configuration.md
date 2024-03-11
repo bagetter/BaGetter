@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Configuration
 
 You can modify BaGetter's configurations by editing the `appsettings.json` file.
@@ -48,6 +51,70 @@ The following `Mirror` setting configures BaGetter to index packages from [nuget
 `PackageSource` is the value of the [NuGet service index](https://docs.microsoft.com/nuget/api/service-index).
 
 :::
+
+### Mirror Authentication
+
+<Tabs>
+  <TabItem value="None" label="None" default>
+    If your mirror does not require authentication, leave the `Mirror` configuration as is and you're good to go.
+  </TabItem>
+
+  <TabItem value="Basic" label="Basic">
+    For basic authentication, set `Type` to `Basic` and provide a `Username` and `Password`:
+
+    ```json
+    {
+        "Mirror": {
+            "Enabled":  true,
+            "PackageSource": "https://api.nuget.org/v3/index.json",
+            "Authentication": {
+                "Type": "Basic",
+                "Username": "username",
+                "Password": "password"
+            }
+        },
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="Token" label="Token (Bearer)">
+    For token authentication, set `Type` to `Bearer` and provide a `Token`:
+
+    ```json
+    {
+        "Mirror": {
+            "Enabled":  true,
+            "PackageSource": "https://api.nuget.org/v3/index.json",
+            "Authentication": {
+                "Type": "Bearer",
+                "Token": "your-token"
+            }
+        },
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="Custom" label="Custom">
+    With the custom authentication type, you can provide any key-value pairs which will be set as headers in the request:
+
+    ```json
+    {
+        "Mirror": {
+            "Enabled":  true,
+            "PackageSource": "https://api.nuget.org/v3/index.json",
+            "Authentication": {
+                "Type": "Custom",
+                "CustomHeaders": {
+                    "My-Auth": "your-value",
+                    "Other-Header": "value"
+                }
+            }
+        },
+    }
+    ```
+  </TabItem>
+</Tabs>
+
 
 ## Enable package hard deletions
 

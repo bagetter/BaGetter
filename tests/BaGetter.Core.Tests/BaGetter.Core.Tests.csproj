@@ -8,4 +8,8 @@
     <ProjectReference Include="..\..\src\BaGetter.Core\BaGetter.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+  </ItemGroup>
+
 </Project>
