@@ -170,6 +170,24 @@ If not specified, the `MaxRequestBodySize` in BaGetter defaults to 250MB (262144
 }
 ```
 
+## Health Endpoint
+
+When running within a containerized environment like Kubernetes, a basic health endpoint is exposed at `/health` that returns 200 OK and the text "Healthy" when running.
+
+This path is configurable if needed:
+
+```json
+{
+    ...
+
+    "HealthCheck": {
+        "Path": "/healthz"
+    },
+
+    ...
+}
+```
+
 ## Maximum package size
 
 The max package size default to 8GiB and can be configured using the `MaxPackageSizeGiB` setting. The NuGet gallery currently has a 250MB limit, which is enough for most packages.

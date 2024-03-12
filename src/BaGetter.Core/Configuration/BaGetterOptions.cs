@@ -56,4 +56,6 @@ public class BaGetterOptions
     public SearchOptions Search { get; set; }
 
     public MirrorOptions Mirror { get; set; }
+
+    public HealthCheckOptions HealthCheck { get; set; }
 }
