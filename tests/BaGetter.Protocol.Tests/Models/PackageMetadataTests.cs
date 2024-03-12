@@ -1,5 +1,4 @@
 using System.Text.Json;
-using BaGetter.Protocol.Internal;
 using BaGetter.Protocol.Models;
 using Xunit;
 
@@ -12,7 +11,6 @@ public class PackageMetadataTests
     public PackageMetadataTests()
     {
         _serializerOptions = new JsonSerializerOptions();
-        _serializerOptions.Converters.Add(new StringOrStringArrayJsonConverter());
     }
 
     [Fact]
@@ -146,5 +144,4 @@ public class PackageMetadataTests
         Assert.NotNull(result.Tags);
         Assert.Equal(2, result.Tags.Count);
     }
-
 }
