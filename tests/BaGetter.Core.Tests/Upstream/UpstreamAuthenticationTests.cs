@@ -52,22 +52,16 @@ public class UpstreamAuthenticationTests
             };
         });
 
-        mock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = JsonContent.Create(TestServices)
-            })
-            .Callback<HttpRequestMessage, CancellationToken>((r, c) =>
-            {
-                Assert.Equal("Basic", r.Headers.Authorization.Scheme);
-                Assert.Equal("dXNlcjpwYXNzd29yZA==", r.Headers.Authorization.Parameter);
-            })
-            .Verifiable(Times.Once());
+        SetupExpectedMockCall(mock, r =>
+        {
+            Assert.Equal("Basic", r.Headers.Authorization.Scheme);
+            Assert.Equal("dXNlcjpwYXNzd29yZA==", r.Headers.Authorization.Parameter);
+        });
 
         var client = services.GetRequiredService<HttpClient>();
         var res = await client.GetFromJsonAsync<ServiceIndexResponse>("http://localhost/v3/index.json");
+
+        mock.VerifyAll();
     }
 
     [Fact]
@@ -82,22 +76,16 @@ public class UpstreamAuthenticationTests
             };
         });
 
-        mock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = JsonContent.Create(TestServices)
-            })
-            .Callback<HttpRequestMessage, CancellationToken>((r, c) =>
-            {
-                Assert.Equal("Bearer", r.Headers.Authorization.Scheme);
-                Assert.Equal("token", r.Headers.Authorization.Parameter);
-            })
-            .Verifiable(Times.Once());
+        SetupExpectedMockCall(mock, r =>
+        {
+            Assert.Equal("Bearer", r.Headers.Authorization.Scheme);
+            Assert.Equal("token", r.Headers.Authorization.Parameter);
+        });
 
         var client = services.GetRequiredService<HttpClient>();
         var res = await client.GetFromJsonAsync<ServiceIndexResponse>("http://localhost/v3/index.json");
+
+        mock.VerifyAll();
     }
 
     [Fact]
@@ -115,26 +103,20 @@ public class UpstreamAuthenticationTests
             };
         });
 
-        mock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = JsonContent.Create(TestServices)
-            })
-            .Callback<HttpRequestMessage, CancellationToken>((r, c) =>
-            {
-                Assert.Equal("value1", r.Headers.GetValues("X-Auth").First());
-            })
-            .Verifiable(Times.Once());
+        SetupExpectedMockCall(mock, r =>
+        {
+            Assert.Equal("value1", r.Headers.GetValues("X-Auth").First());
+        });
 
         var client = services.GetRequiredService<HttpClient>();
         var res = await client.GetFromJsonAsync<ServiceIndexResponse>("http://localhost/v3/index.json");
+
+        mock.VerifyAll();
     }
 
     private static (IServiceProvider serivces, Mock<HttpMessageHandler> mockHandler) SetupApp(Action<MirrorOptions> setupOptions)
     {
-        Mock<HttpMessageHandler> mockHandler = new();
+        Mock<HttpMessageHandler> mockHandler = new(MockBehavior.Strict);
 
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IConfiguration>(new ConfigurationBuilder().Build())
@@ -149,5 +131,21 @@ public class UpstreamAuthenticationTests
         serviceProvider.GetRequiredService<NuGetClientFactory>();
 
         return (serviceProvider, mockHandler);
+    }
+
+    private static void SetupExpectedMockCall(Mock<HttpMessageHandler> mockHandler, Action<HttpRequestMessage> assert)
+    {
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = JsonContent.Create(TestServices)
+            })
+            .Callback<HttpRequestMessage, CancellationToken>((r, c) =>
+            {
+                assert(r);
+            })
+            .Verifiable(Times.Once());
     }
 }
