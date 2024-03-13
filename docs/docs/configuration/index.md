@@ -1,6 +1,3 @@
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
 # Configuration
 
 You can modify BaGetter's configurations by editing the `appsettings.json` file.
@@ -23,98 +20,11 @@ Users will now have to provide the API key to push packages:
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
 ```
 
-## Enable read-through caching
+## Enable Mirror (read-through caching)
 
-Read-through caching lets you index packages from an upstream source. You can use read-through
-caching to:
+To configure mirroring an external feed through BaGetter see here:
 
-1. Speed up your builds if restores from [nuget.org](https://nuget.org) are slow
-2. Enable package restores in offline scenarios
-
-The following `Mirror` setting configures BaGetter to index packages from [nuget.org](https://nuget.org):
-
-```json
-{
-    ...
-
-    "Mirror": {
-        "Enabled":  true,
-        "PackageSource": "https://api.nuget.org/v3/index.json"
-    },
-
-    ...
-}
-```
-
-:::info
-
-`PackageSource` is the value of the [NuGet service index](https://docs.microsoft.com/nuget/api/service-index).
-
-:::
-
-### Mirror Authentication
-
-<Tabs>
-  <TabItem value="None" label="None" default>
-    If your mirror does not require authentication, leave the `Mirror` configuration as is and you're good to go.
-  </TabItem>
-
-  <TabItem value="Basic" label="Basic">
-    For basic authentication, set `Type` to `Basic` and provide a `Username` and `Password`:
-
-    ```json
-    {
-        "Mirror": {
-            "Enabled":  true,
-            "PackageSource": "https://api.nuget.org/v3/index.json",
-            "Authentication": {
-                "Type": "Basic",
-                "Username": "username",
-                "Password": "password"
-            }
-        },
-    }
-    ```
-  </TabItem>
-
-  <TabItem value="Token" label="Token (Bearer)">
-    For token authentication, set `Type` to `Bearer` and provide a `Token`:
-
-    ```json
-    {
-        "Mirror": {
-            "Enabled":  true,
-            "PackageSource": "https://api.nuget.org/v3/index.json",
-            "Authentication": {
-                "Type": "Bearer",
-                "Token": "your-token"
-            }
-        },
-    }
-    ```
-  </TabItem>
-
-  <TabItem value="Custom" label="Custom">
-    With the custom authentication type, you can provide any key-value pairs which will be set as headers in the request:
-
-    ```json
-    {
-        "Mirror": {
-            "Enabled":  true,
-            "PackageSource": "https://api.nuget.org/v3/index.json",
-            "Authentication": {
-                "Type": "Custom",
-                "CustomHeaders": {
-                    "My-Auth": "your-value",
-                    "Other-Header": "value"
-                }
-            }
-        },
-    }
-    ```
-  </TabItem>
-</Tabs>
-
+[Mirror Configuration](configuration/mirror)
 
 ## Enable package hard deletions
 
