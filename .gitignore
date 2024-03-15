@@ -277,3 +277,4 @@ __pycache__/
 
 # Chart dependencies
 charts/
+Chart.lock
