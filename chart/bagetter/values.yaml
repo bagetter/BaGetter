@@ -55,13 +55,13 @@ controllers:
             - ALL
           privileged: false
           readOnlyRootFilesystem: false
-        probes:
-          liveness:
-            enabled: true
-            type: HTTP
-            path: /healthz
-          readiness:
-            enabled: true
+        # probes: # comming with v1.0.5
+        #   liveness:
+        #     enabled: true
+        #     type: HTTP
+        #     path: /healthz
+        #   readiness:
+        #     enabled: true
 
 # -- Configures service settings for the chart.
 # @default -- See values.yaml
@@ -83,8 +83,8 @@ ingress:
       #   paths:
       #     - path: /
       #       service:
-      #         identifier: app
-      #         port: http
+      #         identifier: bagetter
+      #         port: 8080
 
 # -- Configure persistence settings for the chart under this key.
 # @default -- See values.yaml
