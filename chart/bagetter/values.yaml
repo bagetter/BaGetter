@@ -59,7 +59,7 @@ controllers:
         #   liveness:
         #     enabled: true
         #     type: HTTP
-        #     path: /healthz
+        #     path: /health
         #   readiness:
         #     enabled: true
 
