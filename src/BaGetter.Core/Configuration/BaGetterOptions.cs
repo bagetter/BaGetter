@@ -43,6 +43,12 @@ public class BaGetterOptions
     /// </summary>
     public string Urls { get; set; }
 
+    /// <summary>
+    /// The maximum package size in GB.
+    /// Attempted uploads of packages larger than this will be rejected with an internal server error carrying one <see cref="System.IO.InvalidDataException"/>.
+    /// </summary>
+    public uint MaxPackageSizeGiB { get; set; } = 8;
+
     public DatabaseOptions Database { get; set; }
 
     public StorageOptions Storage { get; set; }

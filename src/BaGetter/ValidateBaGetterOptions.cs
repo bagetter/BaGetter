@@ -14,15 +14,9 @@ namespace BaGetter;
 /// BaGetter's options configuration, specific to the default BaGetter application.
 /// Don't use this if you are embedding BaGetter into your own custom ASP.NET Core application.
 /// </summary>
-public class ConfigureBaGetterOptions
-    : IConfigureOptions<CorsOptions>
-    , IConfigureOptions<FormOptions>
-    , IConfigureOptions<ForwardedHeadersOptions>
-    , IConfigureOptions<IISServerOptions>
-    , IValidateOptions<BaGetterOptions>
+public class ValidateBaGetterOptions
+    : IValidateOptions<BaGetterOptions>
 {
-    public const string CorsPolicy = "AllowAll";
-
     private static readonly HashSet<string> ValidDatabaseTypes
         = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -51,35 +45,6 @@ public class ConfigureBaGetterOptions
             "Database",
             "Null",
         };
-
-    public void Configure(CorsOptions options)
-    {
-        // TODO: Consider disabling this on production builds.
-        options.AddPolicy(
-            CorsPolicy,
-            builder => builder.AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader());
-    }
-
-    public void Configure(FormOptions options)
-    {
-        options.MultipartBodyLengthLimit = int.MaxValue;
-    }
-
-    public void Configure(ForwardedHeadersOptions options)
-    {
-        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-
-        // Do not restrict to local network/proxy
-        options.KnownNetworks.Clear();
-        options.KnownProxies.Clear();
-    }
-
-    public void Configure(IISServerOptions options)
-    {
-        options.MaxRequestBodySize = 262144000;
-    }
 
     public ValidateOptionsResult Validate(string name, BaGetterOptions options)
     {

@@ -188,6 +188,21 @@ This path is configurable if needed:
 }
 ```
 
+## Maximum package size
+
+The max package size default to 8GiB and can be configured using the `MaxPackageSizeGiB` setting. The NuGet gallery currently has a 250MB limit, which is enough for most packages.
+This can be useful if you are hosting a private feed and need to host large packages that include chocolatey installers, machine learning models, etc.
+
+```json
+{
+    ...
+
+    "MaxPackageSizeGiB": 8,
+
+    ...
+}
+```
+
 ## Load secrets from files
 
 Mostly useful when running containerised (e.g. using Docker, Podman, Kubernetes, etc), the application will look for files named in the same pattern as environment variables under `/run/secrets`.

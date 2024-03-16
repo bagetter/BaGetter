@@ -47,7 +47,7 @@ jobs:
           global-json-file: global.json
       - name: Publish
         run: |
-          dotnet publish src/BaGetter --configuration Release --output artifacts
+          dotnet publish src/BaGetter --configuration Release --output artifacts --property:Version=${{ needs.version.outputs.RELEASE_VERSION }}
           echo ${{ github.sha }} > artifacts/ReleaseSha.txt
           7z a -tzip bagetter-${{ needs.version.outputs.RELEASE_VERSION }}.zip ./artifacts/*
       - name: Generate changelog with git-cliff
@@ -79,7 +79,7 @@ jobs:
           export PackageVersion=${{ needs.version.outputs.RELEASE_VERSION }}
           export PackageSource=${PackageSource:="https://api.nuget.org/v3/index.json"}
           echo "PackageSource=${PackageSource}" >> $GITHUB_ENV
-          dotnet pack --configuration Release --output artifacts
+          dotnet pack --configuration Release --output artifacts --property:Version=${{ needs.version.outputs.RELEASE_VERSION }}
       - name: Push
         run: dotnet nuget push "*" -s ${PackageSource} -k ${{secrets.NUGET_API_KEY}}
         working-directory: artifacts

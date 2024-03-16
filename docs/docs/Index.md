@@ -16,6 +16,8 @@ BaGetter (pronounced "ba getter") is a lightweight NuGet and symbol server. It i
   <img width="100%" src="https://user-images.githubusercontent.com/737941/50140219-d8409700-0258-11e9-94c9-dad24d2b48bb.png"/>
 </CenterImg>
 
+BaGetter supports Filesystem, GCP and AWS S3 buckets for package storage, and MySQL, Sqlite, SqlServer and PostgreSQL as database. The current per-package size limit is ~8GB. It can be hosted on IIS, and is also available in a linux [docker image](https://hub.docker.com/r/bagetter/bagetter).
+
 ## Run BaGetter
 
 You can run BaGetter on your preferred platform:
