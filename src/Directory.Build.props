@@ -3,14 +3,13 @@
   <!-- Package properties -->
   <PropertyGroup>
     <Authors>Community https://github.com/bagetter/BaGetter; Loic Sharma</Authors>
-    <Copyright>Copyright (c) BaGetter 2023</Copyright>
+    <Copyright>Copyright (c) BaGetter $([System.DateTime]::Now.ToString(yyyy))</Copyright>
     <Product>BaGetter</Product>
 
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageVersion Condition="'$(PackageVersion)' == ''">0.1.0-prerelease</PackageVersion>
-    <PackageProjectUrl>https://www.bagetter.com</PackageProjectUrl>    
-    <Version>7.8.9</Version>    
+    <PackageProjectUrl>https://www.bagetter.com</PackageProjectUrl>
   </PropertyGroup>
 
   <!-- Compiler properties -->
