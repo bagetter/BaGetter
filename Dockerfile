@@ -1,4 +1,7 @@
+ARG Version=1.0.0
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+ARG Version
 WORKDIR /src
 
 ## Create separate layer for `dotnet restore` to allow for caching; useful for local development
@@ -13,12 +16,14 @@ RUN dotnet restore BaGetter/BaGetter.csproj
 
 ## Publish app (implicitly builds the app)
 FROM build AS publish
+ARG Version
 # copy all files
 COPY /src .
 RUN dotnet publish BaGetter \
     --configuration Release \
     --output /app \
     --no-restore \
+    -p Version=${Version} \
     -p DebugType=none \
     -p DebugSymbols=false \
     -p GenerateDocumentationFile=false \

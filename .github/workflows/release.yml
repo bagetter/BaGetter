@@ -106,3 +106,5 @@ jobs:
           tags: |
             bagetter/bagetter:latest
             bagetter/bagetter:${{ needs.version.outputs.RELEASE_VERSION }}
+          build-args: |
+            Version=${{ needs.version.outputs.RELEASE_VERSION }}
