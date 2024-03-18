@@ -22,6 +22,7 @@ internal class ApplicationVersion
     public string Branch { get; private set; }
     public string Commit { get; private set; }
     public DateTime BuildDateUtc { get; private set; }
+    public string Authors { get; private set; }
 
     // Calculated
     public string ShortCommit { get; private set; }
@@ -37,7 +38,7 @@ internal class ApplicationVersion
         BuildDateUtc = DateTime.UtcNow;
     }
 
-    public ApplicationVersion(Uri repositoryBase, string informationalVersion, string version, string branch, string commit, DateTime buildDateUtc)
+    public ApplicationVersion(Uri repositoryBase, string informationalVersion, string version, string branch, string commit, DateTime buildDateUtc, string authors)
     {
         Present = true;
         InformationalVersion = informationalVersion;
@@ -45,6 +46,7 @@ internal class ApplicationVersion
         Branch = branch;
         Commit = commit;
         BuildDateUtc = buildDateUtc;
+        Authors = authors;
 
         ShortCommit = string.IsNullOrEmpty(Commit) ? string.Empty : Commit.Substring(0, Math.Min(10, Commit.Length));
 

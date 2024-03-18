@@ -1,11 +1,13 @@
 @using System.Reflection
+@using BaGetter.Web.Helper
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="BaGet">
-    <meta name="author" content="Loic Sharma">
+    <meta name="author" content="@ApplicationVersionHelper.GetVersion().Authors">
+    @ReleaseMetadata()
 
     <link rel="shortcut icon" href="~/_content/BaGetter.Web/favicon.ico">
 
@@ -64,14 +66,10 @@
         @RenderBody()
     </main>
 
-    <footer class="footer">        
+    <footer class="footer">
         <p>
-            Version: @(Assembly.GetEntryAssembly()
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            .InformationalVersion
-            .Split("+").First())
+            Version: @ApplicationVersionHelper.GetVersion().Version
         </p>
-
     </footer>
 
     <script src="~/_content/BaGetter.Web/lib/alpinejs/dist/alpine.js"></script>
@@ -83,3 +81,27 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+@{
+    //based on: https://github.com/NuGet/NuGetGallery/blob/main/src/NuGetGallery/Views/Shared/Gallery/Layout.cshtml
+    object ReleaseMetadata()
+    {
+        var ver = ApplicationVersionHelper.GetVersion();
+        if (ver.Present)
+        {
+            WriteMeta("branch", ver.Branch);
+            WriteMeta("commit", ver.ShortCommit);
+            WriteMeta("time", ver.BuildDateUtc == DateTime.MinValue ? null : ver.BuildDateUtc.ToString("O"));
+        }
+
+        return null;
+    }
+
+    void WriteMeta(string name, string val)
+    {
+        if (!string.IsNullOrEmpty(val))
+        {
+            <meta name="deployment-@name" content="@val" />
+        }
+    }
+}

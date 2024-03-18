@@ -20,22 +20,24 @@ internal static class ApplicationVersionHelper
     {
         try
         {
-            var metadata = typeof(ApplicationVersionHelper)
-                .Assembly
+            var assembly = typeof(ApplicationVersionHelper).Assembly;
+            var metadataAttr = assembly
                 .GetCustomAttributes<AssemblyMetadataAttribute>()
                 .ToDictionary(a => a.Key, a => a.Value, StringComparer.OrdinalIgnoreCase);
-            var infoVer = typeof(ApplicationVersionHelper)
-                .Assembly
+            var infoVersionAttr = assembly
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+            var companyAttr = assembly
+                .GetCustomAttribute<AssemblyCompanyAttribute>();
 
-            var informationalVersion = infoVer == null ?
+            var informationalVersion = infoVersionAttr == null ?
                 typeof(ApplicationVersionHelper).Assembly.GetName().Version.ToString() :
-                infoVer.InformationalVersion;
+                infoVersionAttr.InformationalVersion;
             var version = informationalVersion.Split("+").First();
-            var branch = TryGet(metadata, "Branch");
-            var commit = TryGet(metadata, "CommitId");
-            var dateString = TryGet(metadata, "BuildDateUtc");
-            var repoUriString = TryGet(metadata, "RepositoryUrl");
+            var authors = companyAttr?.Company ?? string.Empty;
+            var branch = TryGet(metadataAttr, "CommitBranch");
+            var commit = TryGet(metadataAttr, "CommitHash");
+            var dateString = TryGet(metadataAttr, "BuildDateUtc");
+            var repoUriString = TryGet(metadataAttr, "RepositoryUrl");
 
             if (!DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var buildDate))
             {
@@ -53,7 +55,8 @@ internal static class ApplicationVersionHelper
                 version,
                 branch,
                 commit,
-                buildDate);
+                buildDate,
+                authors);
         }
         catch
         {
