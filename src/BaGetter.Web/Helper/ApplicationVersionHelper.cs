@@ -29,9 +29,9 @@ internal static class ApplicationVersionHelper
             var companyAttr = assembly
                 .GetCustomAttribute<AssemblyCompanyAttribute>();
 
-            var informationalVersion = infoVersionAttr == null ?
-                typeof(ApplicationVersionHelper).Assembly.GetName().Version.ToString() :
-                infoVersionAttr.InformationalVersion;
+            var informationalVersion = infoVersionAttr?.InformationalVersion
+                ?? typeof(ApplicationVersionHelper).Assembly.GetName().Version?.ToString()
+                ?? string.Empty;
             var version = informationalVersion.Split("+").First();
             var authors = companyAttr?.Company ?? string.Empty;
             var branch = TryGet(metadataAttr, "CommitBranch");
