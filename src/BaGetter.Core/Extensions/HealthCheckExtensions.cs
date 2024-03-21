@@ -23,13 +23,14 @@ public static class HealthCheckExtensions
     /// <param name="report">The report to format.</param>
     /// <param name="stream">A writable stream to write the report to. Will not be closed.</param>
     /// <param name="detailedReport">Whether to include detailed information about each health check.</param>
+    /// <param name="statusPropertyName">The name of the property that will contain the overall status.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>A <see cref="Task"/> completing when the report is completely written to the stream.</returns>
-    public static async Task FormatAsJson(this HealthReport report, Stream stream, bool detailedReport,
+    public static async Task FormatAsJson(this HealthReport report, Stream stream, bool detailedReport, string statusPropertyName = "Status",
         CancellationToken cancellationToken = default)
     {
         // Always include the overall status.
-        IEnumerable<(string Key, HealthStatus Value)> entries = [("Status", report.Status)];
+        IEnumerable<(string Key, HealthStatus Value)> entries = [(statusPropertyName, report.Status)];
 
         // Include details if requested.
         if (detailedReport)

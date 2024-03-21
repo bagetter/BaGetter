@@ -101,7 +101,7 @@ public class Startup
             {
                 ResponseWriter = async (context, report) =>
                 {
-                    await report.FormatAsJson(context.Response.Body, options.Statistics.ListConfiguredServices,
+                    await report.FormatAsJson(context.Response.Body, options.Statistics.ListConfiguredServices, options.HealthCheck.StatusPropertyName,
                         context.RequestAborted);
                 },
                 Predicate = check => check.IsConfigured(options)
