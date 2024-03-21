@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
@@ -81,6 +82,8 @@ public class BaGetterApplication : WebApplicationFactory<Startup>
                 {
                     services.AddSingleton(_upstreamClient);
                 }
+
+                services.Configure<HealthCheckServiceOptions>(opts => opts.Registrations.Clear());
 
                 // Setup the integration test database.
                 var provider = services.BuildServiceProvider();
