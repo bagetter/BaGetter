@@ -172,16 +172,27 @@ If not specified, the `MaxRequestBodySize` in BaGetter defaults to 250MB (262144
 
 ## Health Endpoint
 
-When running within a containerized environment like Kubernetes, a basic health endpoint is exposed at `/health` that returns 200 OK and the text "Healthy" when running.
+A health endpoint is exposed at `/health` that returns 200 OK or 503 Service Unavailable and always includes a json object listing the current status of the application:
 
-This path is configurable if needed:
+```json
+{
+  "Status": "Healthy",
+  "Sqlite": "Healthy",
+  ...
+}
+```
+
+The services can be omitted by setting the `Statistics:ListConfiguredServices` to false, in which case only the `Status` property is returned in the json object.
+
+This path and the name of the "Status" property are configurable if needed:
 
 ```json
 {
     ...
 
     "HealthCheck": {
-        "Path": "/healthz"
+        "Path": "/healthz",
+        "StatusPropertyName": "Status"
     },
 
     ...
