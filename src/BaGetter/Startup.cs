@@ -62,7 +62,7 @@ public class Startup
         app.AddFileStorage();
         app.AddAliyunOssStorage();
         app.AddAwsS3Storage();
-        //app.AddAzureBlobStorage();
+        app.AddAzureBlobStorage();
         app.AddGoogleCloudStorage();
 
         // Add search providers.

@@ -1,4 +1,6 @@
 using System;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using BaGetter.Azure;
 using BaGetter.Core;
 //using Azure.Cosmos.Table;
@@ -81,46 +83,39 @@ namespace BaGetter
 
         public static BaGetterApplication AddAzureBlobStorage(this BaGetterApplication app)
         {
-            throw new NotImplementedException();
+            app.Services.AddBaGetterOptions<AzureBlobStorageOptions>(nameof(BaGetterOptions.Storage));
+            app.Services.AddTransient<BlobStorageService>();
+            app.Services.TryAddTransient<IStorageService>(provider => provider.GetRequiredService<BlobStorageService>());
 
-            //app.Services.AddBaGetterOptions<AzureBlobStorageOptions>(nameof(BaGetterOptions.Storage));
-            //app.Services.AddTransient<BlobStorageService>();
-            //app.Services.TryAddTransient<IStorageService>(provider => provider.GetRequiredService<BlobStorageService>());
+            app.Services.AddSingleton(provider =>
+            {
+                var options = provider.GetRequiredService<IOptions<AzureBlobStorageOptions>>().Value;
 
-            //app.Services.AddSingleton(provider =>
-            //{
-            //    var options = provider.GetRequiredService<IOptions<AzureBlobStorageOptions>>().Value;
+                // TODO: Add BlobClientOptions with customer-provided key.
+                if (!string.IsNullOrEmpty(options.ConnectionString))
+                {
+                    return new BlobServiceClient(options.ConnectionString);
+                }
 
-            //    if (!string.IsNullOrEmpty(options.ConnectionString))
-            //    {
-            //        return CloudStorageAccount.Parse(options.ConnectionString);
-            //    }
+                return new BlobServiceClient(new Uri($"https://{options.AccountName}.blob.core.windows.net"), new StorageSharedKeyCredential(options.AccountName, options.AccessKey));
+            });
 
-            //    return new CloudStorageAccount(
-            //        new StorageCredentials(
-            //            options.AccountName,
-            //            options.AccessKey),
-            //        useHttps: true);
-            //});
+            app.Services.AddTransient(provider =>
+            {
+                var options = provider.GetRequiredService<IOptionsSnapshot<AzureBlobStorageOptions>>().Value;
+                var account = provider.GetRequiredService<BlobServiceClient>();
 
-            //app.Services.AddTransient(provider =>
-            //{
-            //    var options = provider.GetRequiredService<IOptionsSnapshot<AzureBlobStorageOptions>>().Value;
-            //    var account = provider.GetRequiredService<CloudStorageAccount>();
+                return account.GetBlobContainerClient(options.Container);
+            });
 
-            //    var client = account.CreateCloudBlobClient();
+            app.Services.AddProvider<IStorageService>((provider, config) =>
+            {
+                if (!config.HasStorageType("AzureBlobStorage")) return null;
 
-            //    return client.GetContainerReference(options.Container);
-            //});
+                return provider.GetRequiredService<BlobStorageService>();
+            });
 
-            //app.Services.AddProvider<IStorageService>((provider, config) =>
-            //{
-            //    if (!config.HasStorageType("AzureBlobStorage")) return null;
-
-            //    return provider.GetRequiredService<BlobStorageService>();
-            //});
-
-            //return app;
+            return app;
         }
 
         public static BaGetterApplication AddAzureBlobStorage(

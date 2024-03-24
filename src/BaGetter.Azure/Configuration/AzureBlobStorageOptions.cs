@@ -5,7 +5,7 @@ namespace BaGetter.Azure
 {
     /// <summary>
     /// BaGetter's configurations to use Azure Blob Storage to store packages.
-    /// See: https://loic-sharma.github.io/BaGet/quickstart/azure/#azure-blob-storage
+    /// See: https://www.bagetter.com/docs/Installation/azure#azure-blob-storage
     /// </summary>
     public class AzureBlobStorageOptions : IValidatableObject
     {
