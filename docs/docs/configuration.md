@@ -216,15 +216,16 @@ This can be useful if you are hosting a private feed and need to host large pack
 
 ## Statistics
 
-On the application's statistics page the currently used services are listed.
-You can hide or show this part by modifying the `EnableStatisticsPage` configuration:
+On the application's statistics page the currently used services and overall package and version counts are listed.
+You can hide or show this page by modifying the `EnableStatisticsPage` configuration.  
+If you set `ListConfiguredServices` to `false` the currently used services for database and storage (such as `Sqlite`) are omitted on the stats page:
 
 ```json
 {
     ...
 
     "Statistics": {
-        "EnableStatisticsPage": false,
+        "EnableStatisticsPage": true,
         "ListConfiguredServices": false
     },
 
@@ -232,7 +233,6 @@ You can hide or show this part by modifying the `EnableStatisticsPage` configura
 }
 ```
 
-If you set `ListConfiguredServices` to `true` the currently used services for database and storage are shown on the stats page.
 
 
 ## Load secrets from files
