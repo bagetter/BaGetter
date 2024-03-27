@@ -8,10 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Data.Tables" />
     <PackageReference Include="Azure.Search.Documents" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Azure.Storage.Common" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
   </ItemGroup>
 
@@ -21,6 +21,5 @@
 
   <ItemGroup>
     <Compile Remove="Search/*.cs" />
-    <Compile Remove="Table/*.cs" />
   </ItemGroup>
 </Project>

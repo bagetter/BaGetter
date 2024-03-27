@@ -9,21 +9,25 @@ This page is a work in progress!
 
 :::
 
-Use Azure to scale BaGetter. You can store metadata on [Azure SQL Database](https://azure.microsoft.com/products/azure-sql/database/), upload packages to [Azure Blob Storage](https://azure.microsoft.com/products/storage/blobs/), and soon provide powerful search using [Azure Search](https://azure.microsoft.com/en-us/services/search/).
+Use Azure to scale BaGetter. You can store metadata on Azure [SQL Database](https://azure.microsoft.com/products/azure-sql/database/) or [Table Storage](https://azure.microsoft.com/products/storage/tables/), upload packages to [Azure Blob Storage](https://azure.microsoft.com/products/storage/blobs/), and soon provide powerful search using [Azure Search](https://azure.microsoft.com/services/search/).
 
 ## TODO
 
 - App Service
-- Table Storage
 - High availability setup
 
 ## Configure BaGetter
 
-You can modify BaGetter's configurations by editing the `appsettings.json` file or through [environment variables](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-8.0#non-prefixed-environment-variables). For the full list of configurations, please refer to [BaGetter's configuration](../configuration.md) guide.
+You can modify BaGetter's configurations by editing the `appsettings.json` file or through [environment variables](https://learn.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-8.0#non-prefixed-environment-variables). For the full list of configurations, please refer to [BaGetter's configuration](../configuration.md) guide.
 
-### Azure SQL database
+### Package Metadata Database
 
-Set the database type to `SqlServer` and provide a [connection string](https://learn.microsoft.com/ef/core/miscellaneous/connection-strings):
+To storage the package metadata, you can use any [Azure SQL database](https://azure.microsoft.com/products/category/databases/) (as any normal SQL DB), but also [Azure Table Storage](https://azure.microsoft.com/products/storage/tables/) in a Storage Account or Azure Cosmod DB in Table API mode.
+
+<Tabs>
+<TabItem value="sql" label="SQL Database" default>
+
+To use a SQL database, set the database type to the SQL provider of your choice (e.g. `SqlServer`) and provide a [connection string](https://learn.microsoft.com/ef/core/miscellaneous/connection-strings):
 
 ```json
 {
@@ -37,6 +41,30 @@ Set the database type to `SqlServer` and provide a [connection string](https://l
     ...
 }
 ```
+
+</TabItem>
+
+<TabItem value="table" label="Table Storage">
+
+To use Azure Table Storage or Azure Cosmos DB in Table API mode, set the database type to `AzureTable` and provide a connection string and optionally a custom table name. If no table name is set, the default table name `Packages` will be used.
+If it doesn't exist, it will be created automatically.
+
+```json
+{
+    ...
+
+    "Database": {
+        "Type": "AzureTable",
+        "ConnectionString": "...",
+        "TableName": "my-nuget-packages"
+    },
+
+    ...
+}
+```
+
+</TabItem>
+</Tabs>
 
 ### Azure Blob Storage
 

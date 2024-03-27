@@ -21,9 +21,9 @@ namespace BaGetter.Azure
         //    return e?.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict;
         //}
 
-        //public static bool IsPreconditionFailedException(this TableStorageException e)
-        //{
-        //    return e?.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.PreconditionFailed;
-        //}
+        public static bool IsPreconditionFailedException(this RequestFailedException e)
+        {
+            return e?.Status == (int?)HttpStatusCode.PreconditionFailed;
+        }
     }
 }

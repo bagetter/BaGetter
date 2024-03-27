@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Data.Tables;
 using BaGetter.Core;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Versioning;
 
 namespace BaGetter.Azure
@@ -15,32 +18,32 @@ namespace BaGetter.Azure
     /// </summary>
     public class TablePackageDatabase : IPackageDatabase
     {
-        private const string TableName = "Packages";
         private const int MaxPreconditionFailures = 5;
 
-        private readonly TableOperationBuilder _operationBuilder;
-        private readonly CloudTable _table;
+        private readonly TableClient _table;
         private readonly ILogger<TablePackageDatabase> _logger;
 
         public TablePackageDatabase(
-            TableOperationBuilder operationBuilder,
-            CloudTableClient client,
-            ILogger<TablePackageDatabase> logger)
+            TableServiceClient client,
+            ILogger<TablePackageDatabase> logger,
+            IOptions<AzureTableOptions> options)
         {
-            _operationBuilder = operationBuilder ?? throw new ArgumentNullException(nameof(operationBuilder));
-            _table = client?.GetTableReference(TableName) ?? throw new ArgumentNullException(nameof(client));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            ArgumentNullException.ThrowIfNull(client);
+            ArgumentNullException.ThrowIfNull(logger);
+
+            _table = client.GetTableClient(options.Value.TableName);
+            _logger = logger;
         }
 
         public async Task<PackageAddResult> AddAsync(Package package, CancellationToken cancellationToken)
         {
             try
             {
-                var operation = _operationBuilder.AddPackage(package);
+                var entity = TableOperationBuilder.GetEntity(package);
 
-                await _table.ExecuteAsync(operation, cancellationToken);
+                await _table.AddEntityAsync(entity, cancellationToken);
             }
-            catch (StorageException e) when (e.IsAlreadyExistsException())
+            catch (RequestFailedException e) when (e.IsAlreadyExistsException())
             {
                 return PackageAddResult.PackageAlreadyExists;
             }
@@ -59,24 +62,32 @@ namespace BaGetter.Azure
             {
                 try
                 {
-                    var operation = TableOperation.Retrieve<PackageDownloadsEntity>(
-                        id.ToLowerInvariant(),
-                        version.ToNormalizedString().ToLowerInvariant());
+                    var result = await _table.GetEntityIfExistsAsync<PackageDownloadsEntity>(id, version.ToNormalizedString().ToLowerInvariant(), cancellationToken: cancellationToken);
 
-                    var result = await _table.ExecuteAsync(operation, cancellationToken);
-                    var entity = result.Result as PackageDownloadsEntity;
-
-                    if (entity == null)
+                    if (!result.HasValue)
                     {
                         return;
                     }
 
+                    var entity = result.Value;
+
                     entity.Downloads += 1;
 
-                    await _table.ExecuteAsync(TableOperation.Merge(entity), cancellationToken);
+                    var updateResponse = await _table.UpdateEntityAsync(entity, entity.ETag, TableUpdateMode.Merge, cancellationToken);
+
+                    // Not sure if there's gonna be an exception here so check both ways just in case
+                    if(updateResponse.Status == (int?)HttpStatusCode.PreconditionFailed && attempt < MaxPreconditionFailures)
+                    {
+                        attempt++;
+                        _logger.LogWarning(
+                            "Retrying due to precondition failure, attempt {Attempt} of {MaxPreconditionFailures}",
+                            attempt, MaxPreconditionFailures);
+                        continue;
+                    }
+
                     return;
                 }
-                catch (StorageException e)
+                catch (RequestFailedException e)
                     when (attempt < MaxPreconditionFailures && e.IsPreconditionFailedException())
                 {
                     attempt++;
@@ -90,15 +101,18 @@ namespace BaGetter.Azure
 
         public async Task<bool> ExistsAsync(string id, CancellationToken cancellationToken)
         {
-            var filter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, id.ToLowerInvariant());
-            var query = new TableQuery<PackageEntity>()
-                .Select(MinimalColumnSet)
-                .Where(filter)
-                .Take(1);
+            var query = _table.QueryAsync<PackageEntity>(p =>
+                            p.PartitionKey.Equals(id, StringComparison.InvariantCultureIgnoreCase),
+                            1,
+                            MinimalColumnSet,
+                            cancellationToken);
 
-            var result = await _table.ExecuteQuerySegmentedAsync(query, token: null, cancellationToken);
+            await foreach(var _ in query)
+            {
+                return true;
+            }
 
-            return result.Results.Any();
+            return false;
         }
 
         public async Task<bool> ExistsAsync(
@@ -106,44 +120,34 @@ namespace BaGetter.Azure
             NuGetVersion version,
             CancellationToken cancellationToken)
         {
-            var operation = TableOperation.Retrieve<PackageEntity>(
-                id.ToLowerInvariant(),
-                version.ToNormalizedString().ToLowerInvariant(),
-                MinimalColumnSet);
+            var query = _table.QueryAsync<PackageEntity>(p =>
+                                p.PartitionKey.Equals(id, StringComparison.InvariantCultureIgnoreCase) &&
+                                p.RowKey.Equals(version.ToNormalizedString(), StringComparison.InvariantCultureIgnoreCase),
+                                1,
+                                MinimalColumnSet,
+                                cancellationToken);
 
-            var execution = await _table.ExecuteAsync(operation, cancellationToken);
+            await foreach (var _ in query)
+            {
+                return true;
+            }
 
-            return execution.Result is PackageEntity;
+            return false;
         }
 
         public async Task<IReadOnlyList<Package>> FindAsync(string id, bool includeUnlisted, CancellationToken cancellationToken)
         {
-            var filter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, id.ToLowerInvariant());
-            if (!includeUnlisted)
-            {
-                filter = TableQuery.CombineFilters(
-                    filter,
-                    TableOperators.And,
-                    TableQuery.GenerateFilterConditionForBool(nameof(PackageEntity.Listed), QueryComparisons.Equal, true));
-            }
+            const int maxPerPage = 500;
+            var query =
+                includeUnlisted
+                ? _table.QueryAsync<PackageEntity>(p => p.PartitionKey.Equals(id, StringComparison.InvariantCultureIgnoreCase), maxPerPage, cancellationToken: cancellationToken)
+                : _table.QueryAsync<PackageEntity>(p => p.PartitionKey.Equals(id, StringComparison.InvariantCultureIgnoreCase) && p.Listed, maxPerPage, cancellationToken: cancellationToken);
 
-            var query = new TableQuery<PackageEntity>().Where(filter);
             var results = new List<Package>();
-
-            // Request 500 results at a time from the server.
-            TableContinuationToken token = null;
-            query.TakeCount = 500;
-
-            do
+            await foreach (var entity in query)
             {
-                var segment = await _table.ExecuteQuerySegmentedAsync(query, token, cancellationToken);
-
-                token = segment.ContinuationToken;
-
-                // Write out the properties for each entity returned.
-                results.AddRange(segment.Results.Select(r => r.AsPackage()));
+                results.Add(entity.AsPackage());
             }
-            while (token != null);
 
             return results.OrderBy(p => p.Version).ToList();
         }
@@ -154,17 +158,14 @@ namespace BaGetter.Azure
             bool includeUnlisted,
             CancellationToken cancellationToken)
         {
-            var operation = TableOperation.Retrieve<PackageEntity>(
-                id.ToLowerInvariant(),
-                version.ToNormalizedString().ToLowerInvariant());
+            var result = await _table.GetEntityIfExistsAsync<PackageEntity>(id, version.ToNormalizedString(), cancellationToken: cancellationToken);
 
-            var result = await _table.ExecuteAsync(operation, cancellationToken);
-            var entity = result.Result as PackageEntity;
-
-            if (entity == null)
+            if (!result.HasValue)
             {
                 return null;
             }
+
+            var entity = result.Value;
 
             // Filter out the package if it's unlisted.
             if (!includeUnlisted && !entity.Listed)
@@ -177,39 +178,46 @@ namespace BaGetter.Azure
 
         public async Task<bool> HardDeletePackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
         {
-            return await TryUpdatePackageAsync(
-                _operationBuilder.HardDeletePackage(id, version),
-                cancellationToken);
+            var result = await _table.DeleteEntityAsync(id, version.ToNormalizedString().ToLowerInvariant(), cancellationToken: cancellationToken);
+            return !result.IsError;
         }
 
         public async Task<bool> RelistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
         {
-            return await TryUpdatePackageAsync(
-                _operationBuilder.RelistPackage(id, version),
-                cancellationToken);
-        }
+            var result = await _table.GetEntityIfExistsAsync<PackageListingEntity>(id, version.ToNormalizedString().ToLowerInvariant(), cancellationToken: cancellationToken);
 
-        public async Task<bool> UnlistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
-        {
-            return await TryUpdatePackageAsync(
-                _operationBuilder.UnlistPackage(id, version),
-                cancellationToken);
-        }
-
-        private static List<string> MinimalColumnSet => new List<string> { "PartitionKey" };
-
-        private async Task<bool> TryUpdatePackageAsync(TableOperation operation, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _table.ExecuteAsync(operation, cancellationToken);
-            }
-            catch (StorageException e) when (e.IsNotFoundException())
+            if (!result.HasValue)
             {
                 return false;
             }
 
+            var entity = result.Value;
+
+            entity.Listed = true;
+
+            await _table.UpdateEntityAsync(entity, ETag.All, TableUpdateMode.Merge, cancellationToken);
+
             return true;
         }
+
+        public async Task<bool> UnlistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+        {
+            var result = await _table.GetEntityIfExistsAsync<PackageListingEntity>(id, version.ToNormalizedString().ToLowerInvariant(), cancellationToken: cancellationToken);
+
+            if (!result.HasValue)
+            {
+                return false;
+            }
+
+            var entity = result.Value;
+
+            entity.Listed = false;
+
+            await _table.UpdateEntityAsync(entity, ETag.All, TableUpdateMode.Merge, cancellationToken);
+
+            return true;
+        }
+
+        private static List<string> MinimalColumnSet => ["PartitionKey"];
     }
 }
