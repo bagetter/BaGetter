@@ -70,6 +70,7 @@ public class MirrorOptions : IValidatableObject
                             [nameof(Authentication.Password)]);
                     }
                     break;
+
                 case MirrorAuthenticationType.Bearer:
                     if (string.IsNullOrEmpty(Authentication.Token))
                     {
@@ -78,11 +79,21 @@ public class MirrorOptions : IValidatableObject
                             [nameof(Authentication.Token)]);
                     }
                     break;
+
                 case MirrorAuthenticationType.Custom:
-                    if (Authentication.CustomHeaders?.Count == 0)
+                    if (Authentication.CustomHeaders == null)
                     {
                         yield return new ValidationResult(
                             $"The {nameof(Authentication.CustomHeaders)} configuration is required for custom authentication",
+                            [nameof(Authentication.CustomHeaders)]);
+                        break;
+                    }
+
+                    if (Authentication.CustomHeaders.Count == 0)
+                    {
+                        yield return new ValidationResult(
+                            $"The {nameof(Authentication.CustomHeaders)} configuration has no headers defined." +
+                            $" Use \"{nameof(Authentication.Type)}\": \"{nameof(MirrorAuthenticationType.None)}\" instead if you intend you use no authentication.",
                             [nameof(Authentication.CustomHeaders)]);
                     }
                     break;
