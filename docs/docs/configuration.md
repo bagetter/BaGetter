@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Configuration
 
 You can modify BaGetter's configurations by editing the `appsettings.json` file.
@@ -30,18 +33,90 @@ caching to:
 
 The following `Mirror` setting configures BaGetter to index packages from [nuget.org](https://nuget.org):
 
-```json
-{
-    ...
+<Tabs>
+  <TabItem value="None" label="No Authentication" default>
+    ```json
+    {
+        ...
 
-    "Mirror": {
-        "Enabled":  true,
-        "PackageSource": "https://api.nuget.org/v3/index.json"
-    },
+        "Mirror": {
+            "Enabled":  true,
+            "PackageSource": "https://api.nuget.org/v3/index.json"
+        },
 
-    ...
-}
-```
+        ...
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="Basic" label="Basic Authentication">
+    For basic authentication, set `Type` to `Basic` and provide a `Username` and `Password`:
+
+    ```json
+    {
+        ...
+
+        "Mirror": {
+            "Enabled":  true,
+            "PackageSource": "https://api.nuget.org/v3/index.json",
+            "Authentication": {
+                "Type": "Basic",
+                "Username": "username",
+                "Password": "password"
+            }
+        },
+
+        ...
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="Bearer" label="Bearer Token">
+    For bearer authentication, set `Type` to `Bearer` and provide a `Token`:
+
+    ```json
+    {
+        ...
+
+        "Mirror": {
+            "Enabled":  true,
+            "PackageSource": "https://api.nuget.org/v3/index.json",
+            "Authentication": {
+                "Type": "Bearer",
+                "Token": "your-token"
+            }
+        },
+
+        ...
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="Custom" label="Custom Authentication">
+    With the custom authentication type, you can provide any key-value pairs which will be set as headers in the request:
+
+    ```json
+    {
+        ...
+
+        "Mirror": {
+            "Enabled":  true,
+            "PackageSource": "https://api.nuget.org/v3/index.json",
+            "Authentication": {
+                "Type": "Custom",
+                "CustomHeaders": {
+                    "My-Auth": "your-value",
+                    "Other-Header": "value"
+                }
+            }
+        },
+
+        ...
+    }
+    ```
+  </TabItem>
+</Tabs>
+
 
 :::info
 
