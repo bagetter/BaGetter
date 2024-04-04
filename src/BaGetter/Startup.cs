@@ -48,9 +48,6 @@ public class Startup
 
     private void ConfigureBaGetterApplication(BaGetterApplication app)
     {
-        // Add application statistics.
-        app.AddStatistics();
-
         // Add database providers.
         //app.AddAzureTableDatabase();
         app.AddMySqlDatabase();
