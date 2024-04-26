@@ -102,6 +102,7 @@ jobs:
         uses: docker/build-push-action@v5.1.0
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             bagetter/bagetter:latest
