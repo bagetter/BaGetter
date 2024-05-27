@@ -20,6 +20,18 @@ Users will now have to provide the API key to push packages:
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
 ```
 
+## Hosting on a different path
+
+By default, BaGetter is hosted at the root path `/` (e.g. `bagetter.your-company.org`). You can host BaGetter at a different path (e.g. `bagetter.your-company.org/bagetter`) by setting the `PathBase` field:
+
+```json
+{
+    ...
+    "PathBase": "/bagetter",
+    ...
+}
+```
+
 ## Enable read-through caching
 
 Read-through caching lets you index packages from an upstream source. You can use read-through
