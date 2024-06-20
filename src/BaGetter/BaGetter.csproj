@@ -27,4 +27,16 @@
     <ProjectReference Include="..\BaGetter.Protocol\BaGetter.Protocol.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Web.DisableWebDAV.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="CustomWebConfig" AfterTargets="AfterPublish">
+    <ItemGroup>
+      <WebConfigFiles Include="$(PublishUrl)web.config" />
+    </ItemGroup>
+    <TransformXml Source="$(PublishUrl)web.config" Transform="Web.DisableWebDAV.config" Destination="$(PublishUrl)web.config" />
+  </Target>
 </Project>
