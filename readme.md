@@ -25,7 +25,7 @@ With .NET:
 
 With IIS ([official microsoft documentation](https://learn.microsoft.com/aspnet/core/host-and-deploy/iis)):
 
-1. Install the [hosting budle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer)
+1. Install the [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer)
 2. Download the [zip release](https://github.com/bagetter/BaGetter/releases) of BaGetter
 3. Unpack the zip file contents to a folder of your choice
 4. Create a new or configure an existing IIS site to point its physical path to the folder where you unpacked the zip file
