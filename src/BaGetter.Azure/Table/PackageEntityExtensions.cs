@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using BaGetter.Core;
-using Newtonsoft.Json;
 
 namespace BaGetter.Azure
 {
@@ -12,12 +12,10 @@ namespace BaGetter.Azure
         {
             return new Package
             {
-                Id = entity.Id,
+                Id = entity.PartitionKey,
                 NormalizedVersionString = entity.NormalizedVersion,
                 OriginalVersionString = entity.OriginalVersion,
-
-                // TODO: Convert to System.Text.Json
-                Authors = JsonConvert.DeserializeObject<string[]>(entity.Authors),
+                Authors = JsonSerializer.Deserialize<string[]>(entity.Authors),
                 Description = entity.Description,
                 Downloads = entity.Downloads,
                 HasReadme = entity.HasReadme,
@@ -37,7 +35,7 @@ namespace BaGetter.Azure
                 ProjectUrl = ParseUri(entity.ProjectUrl),
                 RepositoryUrl = ParseUri(entity.RepositoryUrl),
                 RepositoryType = entity.RepositoryType,
-                Tags = JsonConvert.DeserializeObject<string[]>(entity.Tags),
+                Tags = JsonSerializer.Deserialize<string[]>(entity.Tags),
                 Dependencies = ParseDependencies(entity.Dependencies),
                 PackageTypes = ParsePackageTypes(entity.PackageTypes),
                 TargetFrameworks = ParseTargetFrameworks(entity.TargetFrameworks),
@@ -51,8 +49,7 @@ namespace BaGetter.Azure
 
         private static List<PackageDependency> ParseDependencies(string input)
         {
-            // TODO: Convert to System.Text.Json
-            return JsonConvert.DeserializeObject<List<DependencyModel>>(input)
+            return JsonSerializer.Deserialize<List<DependencyModel>>(input)
                 .Select(e => new PackageDependency
                 {
                     Id = e.Id,
@@ -64,8 +61,7 @@ namespace BaGetter.Azure
 
         private static List<PackageType> ParsePackageTypes(string input)
         {
-            // TODO: Convert to System.Text.Json
-            return JsonConvert.DeserializeObject<List<PackageTypeModel>>(input)
+            return JsonSerializer.Deserialize<List<PackageTypeModel>>(input)
                 .Select(e => new PackageType
                 {
                     Name = e.Name,
@@ -76,8 +72,7 @@ namespace BaGetter.Azure
 
         private static List<TargetFramework> ParseTargetFrameworks(string targetFrameworks)
         {
-            // TODO: Convert to System.Text.Json
-            return JsonConvert.DeserializeObject<List<string>>(targetFrameworks)
+            return JsonSerializer.Deserialize<List<string>>(targetFrameworks)
                 .Select(f => new TargetFramework { Moniker = f })
                 .ToList();
         }

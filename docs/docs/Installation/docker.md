@@ -30,7 +30,7 @@ If this step is omitted the default mode (unconfigured) will be Sqlite with the 
 ## Run BaGetter
 
 1. Create a folder named `bagetter-data` in the same directory as the `bagetter.env` file. This will be used by BaGetter to persist its state.
-2. Pull BaGetter's latest [docker image](hhttps://hub.docker.com/r/bagetter/bagetter):
+2. Pull BaGetter's latest [docker image](https://hub.docker.com/r/bagetter/bagetter):
 
 ```shell
 docker pull bagetter/bagetter

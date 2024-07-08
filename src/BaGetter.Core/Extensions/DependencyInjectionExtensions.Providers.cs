@@ -106,6 +106,9 @@ public static partial class DependencyInjectionExtensions
             return provider.GetRequiredService<DatabaseSearchService>();
         });
 
+        services.AddHealthChecks()
+            .AddDbContextCheck<TContext>(databaseType, tags: [databaseType]);
+
         return services;
     }
 

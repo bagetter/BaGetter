@@ -9,7 +9,7 @@ This page is a work in progress!
 
 :::
 
-Use Amazon Web Services to scale BaGetter. You can store metadata on [Amazon Relational Database Service (RDS)](https://aws.amazon.com/rds) and upload packages to [Amazon S3](https://aws.amazon.com/s3/).
+Use Amazon Web Services to scale BaGetter. You can store metadata on [Amazon Relational Database Service (RDS)](https://aws.amazon.com/rds) and upload packages to [Amazon S3](https://aws.amazon.com/s3/) or any other S3-compatible service.
 
 ## Configure BaGetter
 
@@ -35,6 +35,33 @@ Update the `appsettings.json` file with those:
     ...
 }
 ```
+
+#### S3-compatible object storage
+
+You can use any other S3-compatible storage service, as long as it's compatible with Amazon AWS S3. Since the URL for services other than Amazon AWS will change, you need to provide this Service URL instead of the Region. For example:
+
+```json
+{
+    ...
+
+    "Storage": {
+        "Type": "AwsS3",
+        "Endpoint": "https://eu-central-1.linodeobjects.com",
+        "Bucket": "nuget-packages",
+        "AccessKey": "",
+        "SecretKey": ""
+    },
+
+    ...
+}
+```
+
+Note: to avoid errors, only one of `Region` or `Endpoint` setting can be set at the same time.
+
+#### Known compatible services
+
+So far, it has been tested in [Linode’s Object Storage](https://www.linode.com/docs/products/storage/object-storage/). If you succeed in using other storage service, let us know so we can state it here.
+
 
 ### Amazon RDS
 
