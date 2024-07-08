@@ -3,7 +3,7 @@
   <!-- Package properties -->
   <PropertyGroup>
     <Authors>Community https://github.com/bagetter/BaGetter; Loic Sharma</Authors>
-    <Copyright>Copyright (c) BaGetter 2023</Copyright>
+    <Copyright>Copyright (c) BaGetter $([System.DateTime]::Now.ToString(yyyy))</Copyright>
     <Product>BaGetter</Product>
 
     <PackageIcon>packageIcon.png</PackageIcon>

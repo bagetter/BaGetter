@@ -98,11 +98,18 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Set release version
         run: echo "PackageVersion=${{ needs.version.outputs.RELEASE_VERSION }}" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Build and push Docker image
         uses: docker/build-push-action@v5.1.0
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             bagetter/bagetter:latest
             bagetter/bagetter:${{ needs.version.outputs.RELEASE_VERSION }}
+          build-args: |
+            Version=${{ needs.version.outputs.RELEASE_VERSION }}

@@ -1,0 +1,30 @@
+<Project>
+
+  <PropertyGroup>
+    <!--Azure Pipelines-->
+    <CommitBranch Condition=" '$(CommitBranch)' == '' ">$(BUILD_SOURCEBRANCHNAME)</CommitBranch>
+    <CommitHash Condition=" '$(CommitHash)' == '' ">$(BUILD_SOURCEVERSION)</CommitHash>
+    <!--GitHub Actions-->
+    <CommitBranch Condition=" '$(CommitBranch)' == '' and '$(GITHUB_REF_NAME)' != '' ">$(GITHUB_REF_NAME)</CommitBranch>
+    <CommitHash Condition=" '$(CommitHash)' == '' ">$(GITHUB_SHA)</CommitHash>
+  </PropertyGroup>
+
+  <Target Name="AddGitMetadaAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">
+
+    <!--Executes the Git Commands to get the Hash and Branch-->
+    <Exec Command="git rev-parse HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low" IgnoreExitCode="true" Condition=" '$(CommitHash)' == '' ">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CommitHash" />
+    </Exec>
+    <Exec Command="git rev-parse --abbrev-ref HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low" IgnoreExitCode="true" Condition=" '$(CommitBranch)' == '' ">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CommitBranch" />
+    </Exec>
+
+    <!--Generates the ItemGroup and all AssemblyMetadata Tags-->
+    <ItemGroup>
+      <AssemblyMetadata Include="BuildDateUtc" Value="$([System.DateTime]::UtcNow.ToString(o))" />
+      <AssemblyMetadata Condition=" $(CommitHash) != '' " Include="CommitHash" Value="$(CommitHash)" />
+      <AssemblyMetadata Condition=" $(CommitBranch) != '' " Include="CommitBranch" Value="$(CommitBranch)" />
+    </ItemGroup>
+
+  </Target>
+</Project>

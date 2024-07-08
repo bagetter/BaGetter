@@ -1,0 +1,55 @@
+@page "/stats"
+
+@model StatisticsModel
+
+@using BaGetter.Core.Statistics
+@using BaGetter.Web.Helper
+@using Microsoft.Extensions.Options
+
+@inject IOptionsSnapshot<StatisticsOptions> Options
+@inject IStatisticsService StatisticsService
+@inject ApplicationVersion Version
+
+@{
+    ViewData["Title"] = "Stats";
+}
+
+<div class="col-sm-12">
+    <h1>Statistics</h1>
+    <hr class="breadcrumb-divider" />
+    <div class="row">
+        <article class="col-sm-4">
+            <h4>Current version</h4>
+        </article>
+        <div class="col-sm-8">
+            <h4>@Version.InformationalVersion</h4>
+        </div>
+    </div>
+    <div class="row">
+        <article class="col-sm-4">
+            <h4>Total amount of packages</h4>
+        </article>
+        <div class="col-sm-8">
+            <h4>@await StatisticsService.GetPackagesTotalAmount()</h4>
+        </div>
+    </div>
+    <div class="row">
+        <article class="col-sm-4">
+            <h4>Total amount of package versions</h4>
+        </article>
+        <div class="col-sm-8">
+            <h4>@await StatisticsService.GetVersionsTotalAmount()</h4>
+        </div>
+    </div>
+    @if (Options.Value.ListConfiguredServices)
+    {
+        <div class="row">
+            <article class="col-sm-4">
+                <h4>Services in use</h4>
+            </article>
+            <div class="col-sm-8">
+                <h4>@string.Join(", ", StatisticsService.GetKnownServices())</h4>
+            </div>
+        </div>
+    }
+</div>

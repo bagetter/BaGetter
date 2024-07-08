@@ -31,10 +31,9 @@ public static class AwsApplicationExtensions
         {
             var options = provider.GetRequiredService<IOptions<S3StorageOptions>>().Value;
 
-            var config = new AmazonS3Config
-            {
-                RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region)
-            };
+            var config = options.Endpoint != null
+                ? new AmazonS3Config { ServiceURL = options.Endpoint.AbsoluteUri }
+                : new AmazonS3Config { RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region) };
 
             if (options.UseInstanceProfile)
             {
@@ -70,7 +69,9 @@ public static class AwsApplicationExtensions
         return app;
     }
 
-    public static BaGetterApplication AddAwsS3Storage(this BaGetterApplication app, Action<S3StorageOptions> configure)
+    public static BaGetterApplication AddAwsS3Storage(
+        this BaGetterApplication app,
+        Action<S3StorageOptions> configure)
     {
         app.AddAwsS3Storage();
         app.Services.Configure(configure);

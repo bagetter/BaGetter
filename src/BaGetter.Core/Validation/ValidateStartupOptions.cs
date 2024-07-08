@@ -14,6 +14,7 @@ public class ValidateStartupOptions
     private readonly IOptions<StorageOptions> _storage;
     private readonly IOptions<MirrorOptions> _mirror;
     private readonly IOptions<HealthCheckOptions> _healthCheck;
+    private readonly IOptions<StatisticsOptions> _statistics;
     private readonly ILogger<ValidateStartupOptions> _logger;
 
     public ValidateStartupOptions(
@@ -22,6 +23,7 @@ public class ValidateStartupOptions
         IOptions<StorageOptions> storage,
         IOptions<MirrorOptions> mirror,
         IOptions<HealthCheckOptions> healthCheck,
+        IOptions<StatisticsOptions> statistics,
         ILogger<ValidateStartupOptions> logger)
     {
         _root = root ?? throw new ArgumentNullException(nameof(root));
@@ -29,6 +31,7 @@ public class ValidateStartupOptions
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         _mirror = mirror ?? throw new ArgumentNullException(nameof(mirror));
         _healthCheck = healthCheck ?? throw new ArgumentNullException(nameof(healthCheck));
+        _statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -43,6 +46,7 @@ public class ValidateStartupOptions
             _ = _storage.Value;
             _ = _mirror.Value;
             _ = _healthCheck.Value;
+            _ = _statistics.Value;
 
             return true;
         }

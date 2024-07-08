@@ -3,11 +3,33 @@ for details on configuring this project to bundle and minify static web assets. 
 
 /* Layout
 -------------------------------------------------- */
+
+html {
+  height: 100%;
+}
+
 body {
+  height: 100%;
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+.footer {
+  flex-shrink: 0;
+  background-color: #d3d3d3;  
+}
+
+.footer p {
+  text-align: center;    
+  vertical-align: middle;    
 }
 
 h1,

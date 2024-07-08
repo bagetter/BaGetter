@@ -23,11 +23,19 @@ With .NET:
 3. Start the service with `dotnet BaGetter.dll`
 4. Browse `http://localhost:5000/` in your browser
 
+With IIS ([official microsoft documentation](https://learn.microsoft.com/aspnet/core/host-and-deploy/iis)):
+
+1. Install the [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer)
+2. Download the [zip release](https://github.com/bagetter/BaGetter/releases) of BaGetter
+3. Unpack the zip file contents to a folder of your choice
+4. Create a new or configure an existing IIS site to point its physical path to the folder where you unpacked the zip file
+
 For more information, please refer to the [documentation].
 
 ## 📦 Features
 
 * **Cross-platform**: runs on Windows, macOS, and Linux!
+* **ARM** (64bit) **support**. You can host your NuGets on a device like Raspberry Pi!
 * **Cloud native**: supports [Docker][Docker doc link], [AWS][AWS doc link], [Google Cloud][GCP doc link], [Alibaba Cloud][Aliyun doc link]
 * **Offline support**: [Mirror a NuGet server][Read through caching] to speed up builds and enable offline downloads
 

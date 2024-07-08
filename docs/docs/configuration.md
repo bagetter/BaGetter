@@ -20,6 +20,18 @@ Users will now have to provide the API key to push packages:
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
 ```
 
+## Hosting on a different path
+
+By default, BaGetter is hosted at the root path `/` (e.g. `bagetter.your-company.org`). You can host BaGetter at a different path (e.g. `bagetter.your-company.org/bagetter`) by setting the `PathBase` field:
+
+```json
+{
+    ...
+    "PathBase": "/bagetter",
+    ...
+}
+```
+
 ## Enable read-through caching
 
 Read-through caching lets you index packages from an upstream source. You can use read-through
@@ -172,16 +184,27 @@ If not specified, the `MaxRequestBodySize` in BaGetter defaults to 250MB (262144
 
 ## Health Endpoint
 
-When running within a containerized environment like Kubernetes, a basic health endpoint is exposed at `/health` that returns 200 OK and the text "Healthy" when running.
+A health endpoint is exposed at `/health` that returns 200 OK or 503 Service Unavailable and always includes a json object listing the current status of the application:
 
-This path is configurable if needed:
+```json
+{
+  "Status": "Healthy",
+  "Sqlite": "Healthy",
+  ...
+}
+```
+
+The services can be omitted by setting the `Statistics:ListConfiguredServices` to false, in which case only the `Status` property is returned in the json object.
+
+This path and the name of the "Status" property are configurable if needed:
 
 ```json
 {
     ...
 
     "HealthCheck": {
-        "Path": "/healthz"
+        "Path": "/healthz",
+        "StatusPropertyName": "Status"
     },
 
     ...
@@ -202,6 +225,27 @@ This can be useful if you are hosting a private feed and need to host large pack
     ...
 }
 ```
+
+## Statistics
+
+On the application's statistics page the currently used services and overall package and version counts are listed.
+You can hide or show this page by modifying the `EnableStatisticsPage` configuration.  
+If you set `ListConfiguredServices` to `false` the currently used services for database and storage (such as `Sqlite`) are omitted on the stats page:
+
+```json
+{
+    ...
+
+    "Statistics": {
+        "EnableStatisticsPage": true,
+        "ListConfiguredServices": false
+    },
+
+    ...
+}
+```
+
+
 
 ## Load secrets from files
 

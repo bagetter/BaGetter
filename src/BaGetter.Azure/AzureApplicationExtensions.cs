@@ -1,73 +1,60 @@
 using System;
+using Azure.Data.Tables;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using BaGetter.Azure;
 using BaGetter.Core;
-//using Azure.Cosmos.Table;
-//using Azure.Search;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-//using Azure.Storage.Blobs;
 
 namespace BaGetter
 {
-    //using CloudStorageAccount = Azure.Storage.CloudStorageAccount;
-    //using StorageCredentials = Azure.Storage.Auth.StorageCredentials;
-
-    //using TableStorageAccount = Azure.Cosmos.Table.CloudStorageAccount;
-
     public static class AzureApplicationExtensions
     {
         public static BaGetterApplication AddAzureTableDatabase(this BaGetterApplication app)
         {
-            throw new NotImplementedException();
+            app.Services.AddBaGetterOptions<AzureTableOptions>(nameof(BaGetterOptions.Database));
 
-            //app.Services.AddBaGetterOptions<AzureTableOptions>(nameof(BaGetterOptions.Database));
+            app.Services.AddTransient<TablePackageDatabase>();
+            app.Services.AddTransient<TableSearchService>();
+            app.Services.TryAddTransient<IPackageDatabase>(provider => provider.GetRequiredService<TablePackageDatabase>());
+            app.Services.TryAddTransient<ISearchService>(provider => provider.GetRequiredService<TableSearchService>());
+            app.Services.TryAddTransient<ISearchIndexer>(provider => provider.GetRequiredService<NullSearchIndexer>());
 
-            //app.Services.AddTransient<TablePackageDatabase>();
-            //app.Services.AddTransient<TableOperationBuilder>();
-            //app.Services.AddTransient<TableSearchService>();
-            //app.Services.TryAddTransient<IPackageDatabase>(provider => provider.GetRequiredService<TablePackageDatabase>());
-            //app.Services.TryAddTransient<ISearchService>(provider => provider.GetRequiredService<TableSearchService>());
-            //app.Services.TryAddTransient<ISearchIndexer>(provider => provider.GetRequiredService<NullSearchIndexer>());
+            app.Services.AddSingleton(provider =>
+            {
+                var options = provider.GetRequiredService<IOptions<AzureTableOptions>>().Value;
 
-            //app.Services.AddSingleton(provider =>
-            //{
-            //    var options = provider.GetRequiredService<IOptions<AzureTableOptions>>().Value;
+                var tableServiceClient = new TableServiceClient(options.ConnectionString);
+                tableServiceClient.CreateTableIfNotExists(options.TableName);
+                return tableServiceClient;
+            });
 
-            //    return TableStorageAccount.Parse(options.ConnectionString);
-            //});
+            app.Services.AddProvider<IPackageDatabase>((provider, config) =>
+            {
+                if (!config.HasDatabaseType("AzureTable")) return null;
 
-            //app.Services.AddTransient(provider =>
-            //{
-            //    var account = provider.GetRequiredService<TableStorageAccount>();
+                return provider.GetRequiredService<TablePackageDatabase>();
+            });
 
-            //    return account.CreateCloudTableClient();
-            //});
+            app.Services.AddProvider<ISearchService>((provider, config) =>
+            {
+                if (!config.HasSearchType("Database")) return null;
+                if (!config.HasDatabaseType("AzureTable")) return null;
 
-            //app.Services.AddProvider<IPackageDatabase>((provider, config) =>
-            //{
-            //    if (!config.HasDatabaseType("AzureTable")) return null;
+                return provider.GetRequiredService<TableSearchService>();
+            });
 
-            //    return provider.GetRequiredService<TablePackageDatabase>();
-            //});
+            app.Services.AddProvider<ISearchIndexer>((provider, config) =>
+            {
+                if (!config.HasSearchType("Database")) return null;
+                if (!config.HasDatabaseType("AzureTable")) return null;
 
-            //app.Services.AddProvider<ISearchService>((provider, config) =>
-            //{
-            //    if (!config.HasSearchType("Database")) return null;
-            //    if (!config.HasDatabaseType("AzureTable")) return null;
+                return provider.GetRequiredService<NullSearchIndexer>();
+            });
 
-            //    return provider.GetRequiredService<TableSearchService>();
-            //});
-
-            //app.Services.AddProvider<ISearchIndexer>((provider, config) =>
-            //{
-            //    if (!config.HasSearchType("Database")) return null;
-            //    if (!config.HasDatabaseType("AzureTable")) return null;
-
-            //    return provider.GetRequiredService<NullSearchIndexer>();
-            //});
-
-            //return app;
+            return app;
         }
 
         public static BaGetterApplication AddAzureTableDatabase(
@@ -81,46 +68,39 @@ namespace BaGetter
 
         public static BaGetterApplication AddAzureBlobStorage(this BaGetterApplication app)
         {
-            throw new NotImplementedException();
+            app.Services.AddBaGetterOptions<AzureBlobStorageOptions>(nameof(BaGetterOptions.Storage));
+            app.Services.AddTransient<BlobStorageService>();
+            app.Services.TryAddTransient<IStorageService>(provider => provider.GetRequiredService<BlobStorageService>());
 
-            //app.Services.AddBaGetterOptions<AzureBlobStorageOptions>(nameof(BaGetterOptions.Storage));
-            //app.Services.AddTransient<BlobStorageService>();
-            //app.Services.TryAddTransient<IStorageService>(provider => provider.GetRequiredService<BlobStorageService>());
+            app.Services.AddSingleton(provider =>
+            {
+                var options = provider.GetRequiredService<IOptions<AzureBlobStorageOptions>>().Value;
 
-            //app.Services.AddSingleton(provider =>
-            //{
-            //    var options = provider.GetRequiredService<IOptions<AzureBlobStorageOptions>>().Value;
+                // TODO: Add BlobClientOptions with customer-provided key.
+                if (!string.IsNullOrEmpty(options.ConnectionString))
+                {
+                    return new BlobServiceClient(options.ConnectionString);
+                }
 
-            //    if (!string.IsNullOrEmpty(options.ConnectionString))
-            //    {
-            //        return CloudStorageAccount.Parse(options.ConnectionString);
-            //    }
+                return new BlobServiceClient(new Uri($"https://{options.AccountName}.blob.core.windows.net"), new StorageSharedKeyCredential(options.AccountName, options.AccessKey));
+            });
 
-            //    return new CloudStorageAccount(
-            //        new StorageCredentials(
-            //            options.AccountName,
-            //            options.AccessKey),
-            //        useHttps: true);
-            //});
+            app.Services.AddTransient(provider =>
+            {
+                var options = provider.GetRequiredService<IOptionsSnapshot<AzureBlobStorageOptions>>().Value;
+                var account = provider.GetRequiredService<BlobServiceClient>();
 
-            //app.Services.AddTransient(provider =>
-            //{
-            //    var options = provider.GetRequiredService<IOptionsSnapshot<AzureBlobStorageOptions>>().Value;
-            //    var account = provider.GetRequiredService<CloudStorageAccount>();
+                return account.GetBlobContainerClient(options.Container);
+            });
 
-            //    var client = account.CreateCloudBlobClient();
+            app.Services.AddProvider<IStorageService>((provider, config) =>
+            {
+                if (!config.HasStorageType("AzureBlobStorage")) return null;
 
-            //    return client.GetContainerReference(options.Container);
-            //});
+                return provider.GetRequiredService<BlobStorageService>();
+            });
 
-            //app.Services.AddProvider<IStorageService>((provider, config) =>
-            //{
-            //    if (!config.HasStorageType("AzureBlobStorage")) return null;
-
-            //    return provider.GetRequiredService<BlobStorageService>();
-            //});
-
-            //return app;
+            return app;
         }
 
         public static BaGetterApplication AddAzureBlobStorage(

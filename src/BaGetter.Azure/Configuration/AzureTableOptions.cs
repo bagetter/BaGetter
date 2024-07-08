@@ -6,5 +6,6 @@ namespace BaGetter.Azure
     {
         [Required]
         public string ConnectionString { get; set; }
+        public string TableName { get; set; } = "Packages";
     }
 }

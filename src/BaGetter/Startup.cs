@@ -1,26 +1,26 @@
 using System;
 using BaGetter.Core;
+using BaGetter.Core.Extensions;
 using BaGetter.Web;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using HealthCheckOptions = Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions;
 
 namespace BaGetter;
 
 public class Startup
 {
+    private IConfiguration Configuration { get; }
+
     public Startup(IConfiguration configuration)
     {
         Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
-
-    private IConfiguration Configuration { get; }
 
     public void ConfigureServices(IServiceCollection services)
     {
@@ -49,7 +49,7 @@ public class Startup
     private void ConfigureBaGetterApplication(BaGetterApplication app)
     {
         // Add database providers.
-        //app.AddAzureTableDatabase();
+        app.AddAzureTableDatabase();
         app.AddMySqlDatabase();
         app.AddPostgreSqlDatabase();
         app.AddSqliteDatabase();
@@ -59,7 +59,7 @@ public class Startup
         app.AddFileStorage();
         app.AddAliyunOssStorage();
         app.AddAwsS3Storage();
-        //app.AddAzureBlobStorage();
+        app.AddAzureBlobStorage();
         app.AddGoogleCloudStorage();
 
         // Add search providers.
@@ -93,6 +93,16 @@ public class Startup
             baget.MapEndpoints(endpoints);
         });
 
-        app.UseHealthChecks(options.HealthCheck.Path);
+        app.UseHealthChecks(options.HealthCheck.Path,
+            new HealthCheckOptions
+            {
+                ResponseWriter = async (context, report) =>
+                {
+                    await report.FormatAsJson(context.Response.Body, options.Statistics.ListConfiguredServices, options.HealthCheck.StatusPropertyName,
+                        context.RequestAborted);
+                },
+                Predicate = check => check.IsConfigured(options)
+            }
+        );
     }
 }
