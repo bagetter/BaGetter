@@ -7,24 +7,25 @@ using Azure;
 using Azure.Data.Tables;
 using BaGetter.Core;
 using BaGetter.Protocol.Models;
+using Microsoft.Extensions.Options;
 
 namespace BaGetter.Azure
 {
     public class TableSearchService : ISearchService
     {
-        private const string TableName = "Packages";
-
         private readonly TableClient _table;
         private readonly ISearchResponseBuilder _responseBuilder;
 
         public TableSearchService(
             TableServiceClient client,
-            ISearchResponseBuilder responseBuilder)
+            ISearchResponseBuilder responseBuilder,
+            IOptionsSnapshot<AzureTableOptions> options)
         {
             ArgumentNullException.ThrowIfNull(client, nameof(client));
             ArgumentNullException.ThrowIfNull(responseBuilder, nameof(responseBuilder));
+            ArgumentNullException.ThrowIfNull(options, nameof(options));
 
-            _table = client.GetTableClient(TableName);
+            _table = client.GetTableClient(options.Value.TableName);
             _responseBuilder = responseBuilder;
         }
 

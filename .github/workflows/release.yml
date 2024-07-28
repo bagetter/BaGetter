@@ -113,3 +113,24 @@ jobs:
             bagetter/bagetter:${{ needs.version.outputs.RELEASE_VERSION }}
           build-args: |
             Version=${{ needs.version.outputs.RELEASE_VERSION }}
+
+  release_helm_chart:
+    if: ${{ github.ref_type == 'tag' }}
+    needs: [version, verify]
+    name: Release Helm chart to GitHub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - name: Update version in helm chart
+        run: |
+          sed -i "s/version: \".*\"/version: \"${{ needs.version.outputs.RELEASE_VERSION }}\"/" deployment%20templates/chart/bagetter/Chart.yaml
+          sed -i "s/appVersion: \".*\"/appVersion: \"${{ needs.version.outputs.RELEASE_VERSION }}\"/" deployment%20templates/chart/bagetter/Chart.yaml
+      - name: Generate helm docs
+        uses: losisin/helm-docs-github-action@v1
+        with:
+          chart-search-root: deployment%20templates
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Release helm chart version ${{ needs.version.outputs.RELEASE_VERSION }}"
+          file_pattern: 'deployment%20templates/chart/bagetter/Chart.yaml deployment%20templates/chart/bagetter/README.md'

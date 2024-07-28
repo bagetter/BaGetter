@@ -158,7 +158,7 @@ namespace BaGetter.Azure
             bool includeUnlisted,
             CancellationToken cancellationToken)
         {
-            var result = await _table.GetEntityIfExistsAsync<PackageEntity>(id, version.ToNormalizedString(), cancellationToken: cancellationToken);
+            var result = await _table.GetEntityIfExistsAsync<PackageEntity>(id.ToLowerInvariant(), version.ToNormalizedString(), cancellationToken: cancellationToken);
 
             if (!result.HasValue)
             {
