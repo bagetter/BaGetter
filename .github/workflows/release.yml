@@ -13,8 +13,10 @@ jobs:
         run: |
           export GITHUB_REF_NAME="${{ github.ref_name }}"
           export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
-          export RELEASE_MINOR_VERSION="${RELEASE_VERSION%.*}"
-          export RELEASE_MAJOR_VERSION="${RELEASE_MINOR_VERSION%.*}"
+          export RELEASE_MAJOR_VERSION="${RELEASE_VERSION%%.*}"
+          export remaining_version="${RELEASE_VERSION#*.}"
+          export RELEASE_MINOR_VERSION="${RELEASE_MAJOR_VERSION}.${remaining_version%%.*}"
+
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "RELEASE_MINOR_VERSION=$RELEASE_MINOR_VERSION" >> $GITHUB_OUTPUT
           echo "RELEASE_MAJOR_VERSION=$RELEASE_MAJOR_VERSION" >> $GITHUB_OUTPUT
