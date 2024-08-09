@@ -1,7 +1,11 @@
 using System;
+using BaGetter.Authentication;
 using BaGetter.Core;
 using BaGetter.Core.Extensions;
 using BaGetter.Web;
+using BaGetter.Web.Authentication;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
@@ -81,9 +85,12 @@ public class Startup
         app.UsePathBase(options.PathBase);
 
         app.UseStaticFiles();
-        app.UseRouting();
+        app.UseAuthentication(); 
+        app.UseRouting(); 
+        app.UseAuthorization();
 
         app.UseCors(ConfigureBaGetterServer.CorsPolicy);
+
         app.UseOperationCancelledMiddleware();
 
         app.UseEndpoints(endpoints =>

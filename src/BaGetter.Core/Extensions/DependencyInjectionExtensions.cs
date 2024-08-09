@@ -13,7 +13,7 @@ namespace BaGetter.Core;
 
 public static partial class DependencyInjectionExtensions
 {
-    public static IServiceCollection AddBaGetterApplication(
+    public static BaGetterApplication AddBaGetterApplication(
         this IServiceCollection services,
         Action<BaGetterApplication> configureAction)
     {
@@ -27,7 +27,7 @@ public static partial class DependencyInjectionExtensions
 
         services.AddFallbackServices();
 
-        return services;
+        return app;
     }
 
     /// <summary>

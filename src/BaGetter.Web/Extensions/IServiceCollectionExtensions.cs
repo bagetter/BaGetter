@@ -1,7 +1,9 @@
 using System;
 using System.Text.Json.Serialization;
+using BaGetter.Authentication;
 using BaGetter.Core;
 using BaGetter.Web;
+using BaGetter.Web.Authentication;
 using BaGetter.Web.Helper;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,8 +30,40 @@ public static class IServiceCollectionExtensions
         services.AddTransient<IUrlGenerator, BaGetterUrlGenerator>();
 
         services.AddSingleton(ApplicationVersionHelper.GetVersion());
-        services.AddBaGetterApplication(configureAction);
+
+        var app = services.AddBaGetterApplication(configureAction);
+        app.AddNugetBasicHttpAuthentication();
+        app.AddNugetBasicHttpAuthorization();
 
         return services;
+    }
+
+    private static BaGetterApplication AddNugetBasicHttpAuthentication(this BaGetterApplication app)
+    {
+        app.Services.AddAuthentication(options =>
+        {
+            // Breaks existing tests if the contains check is not here.
+            if (!options.SchemeMap.ContainsKey(AuthenticationConstants.NugetBasicAuthenticationScheme))
+            {
+                options.AddScheme<NugetBasicAuthenticationHandler>(AuthenticationConstants.NugetBasicAuthenticationScheme, AuthenticationConstants.NugetBasicAuthenticationScheme);
+                options.DefaultAuthenticateScheme = AuthenticationConstants.NugetBasicAuthenticationScheme;
+                options.DefaultChallengeScheme = AuthenticationConstants.NugetBasicAuthenticationScheme;
+            }
+        });
+
+        return app;
+    }
+
+    private static BaGetterApplication AddNugetBasicHttpAuthorization(this BaGetterApplication app)
+    {
+        app.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy(AuthenticationConstants.NugetUserPolicy, policy =>
+            {
+                policy.RequireAuthenticatedUser();
+            });
+        });
+
+        return app;
     }
 }
