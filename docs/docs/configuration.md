@@ -260,8 +260,6 @@ This allows for sensitive values to be provided individually to the application,
 ### Docker Compose example
 
 ```yaml
-version: '2'
-
 services:
   bagetter:
     image: bagetter/bagetter:latest
@@ -269,6 +267,8 @@ services:
       # Single file mounted for API key
       - ./secrets/api-key.txt:/run/secrets/ApiKey:ro
       - ./data:/srv/baget
+    ports:
+      - "5000:8080"
     environment:
       - Database__ConnectionString=Data Source=/srv/baget/bagetter.db
       - Database__Type=Sqlite
@@ -276,6 +276,10 @@ services:
       - Storage__Type=FileSystem
       - Storage__Path=/srv/baget/packages
 ```
+
+The specified file `./secrets/api-key.txt` contains the clear text key only.
+
+Instead of targeting the `latest` version you may also refer to tags for major, minor and fixed releases, e.g. `1`, `1.4` or `1.4.8`.
 
 Aditional documentation for secrets:
 
