@@ -229,7 +229,7 @@ This can be useful if you are hosting a private feed and need to host large pack
 ## Statistics
 
 On the application's statistics page the currently used services and overall package and version counts are listed.
-You can hide or show this page by modifying the `EnableStatisticsPage` configuration.  
+You can hide or show this page by modifying the `EnableStatisticsPage` configuration.
 If you set `ListConfiguredServices` to `false` the currently used services for database and storage (such as `Sqlite`) are omitted on the stats page:
 
 ```json
@@ -280,6 +280,13 @@ services:
 The specified file `./secrets/api-key.txt` contains the clear text api key only.
 
 The port mapping will make available the service at `http://localhost:5000`. (To make it available using `https` you should use an additional reverse proxy service, like "apache" or "nginx".)
+
+To enable HTTP protocol on the docker Console you can add the following variable:
+
+```yaml
+environment:
+ - Logging__Console__LogLevel__Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware=Information
+```
 
 Instead of targeting the `latest` version you may also refer to tags for major, minor and fixed releases, e.g. `1`, `1.4` or `1.4.8`.
 
