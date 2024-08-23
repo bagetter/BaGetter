@@ -23,6 +23,18 @@ Users will now have to provide the API key to push packages:
 dotnet nuget push -s http://localhost:5000/v3/index.json -k NUGET-SERVER-API-KEY package.1.0.0.nupkg
 ```
 
+## Hosting on a different path
+
+By default, BaGetter is hosted at the root path `/` (e.g. `bagetter.your-company.org`). You can host BaGetter at a different path (e.g. `bagetter.your-company.org/bagetter`) by setting the `PathBase` field:
+
+```json
+{
+    ...
+    "PathBase": "/bagetter",
+    ...
+}
+```
+
 ## Enable read-through caching
 
 Read-through caching lets you index packages from an upstream source. You can use read-through
@@ -323,8 +335,6 @@ This allows for sensitive values to be provided individually to the application,
 ### Docker Compose example
 
 ```yaml
-version: '2'
-
 services:
   bagetter:
     image: bagetter/bagetter:latest
@@ -332,6 +342,8 @@ services:
       # Single file mounted for API key
       - ./secrets/api-key.txt:/run/secrets/ApiKey:ro
       - ./data:/srv/baget
+    ports:
+      - "5000:8080"
     environment:
       - Database__ConnectionString=Data Source=/srv/baget/bagetter.db
       - Database__Type=Sqlite
@@ -339,6 +351,12 @@ services:
       - Storage__Type=FileSystem
       - Storage__Path=/srv/baget/packages
 ```
+
+The specified file `./secrets/api-key.txt` contains the clear text api key only.
+
+The port mapping will make available the service at `http://localhost:5000`. (To make it available using `https` you should use an additional reverse proxy service, like "apache" or "nginx".)
+
+Instead of targeting the `latest` version you may also refer to tags for major, minor and fixed releases, e.g. `1`, `1.4` or `1.4.8`.
 
 Aditional documentation for secrets:
 

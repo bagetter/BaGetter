@@ -6,7 +6,7 @@
 @using BaGetter.Web.Helper
 @using Microsoft.Extensions.Options
 
-@inject IOptionsSnapshot<BaGetterOptions> Options
+@inject IOptionsSnapshot<StatisticsOptions> Options
 @inject IStatisticsService StatisticsService
 @inject ApplicationVersion Version
 
@@ -41,7 +41,7 @@
             <h4>@await StatisticsService.GetVersionsTotalAmount()</h4>
         </div>
     </div>
-    @if (Options.Value.Statistics.ListConfiguredServices)
+    @if (Options.Value.ListConfiguredServices)
     {
         <div class="row">
             <article class="col-sm-4">

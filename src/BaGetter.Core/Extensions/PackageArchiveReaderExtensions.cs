@@ -159,7 +159,7 @@ public static class PackageArchiveReaderExtensions
             return (null, null);
         }
 
-        if (repositoryUri.Scheme != Uri.UriSchemeHttps)
+        if (repositoryUri.Scheme != Uri.UriSchemeHttps && repositoryUri.Scheme != Uri.UriSchemeHttp)
         {
             return (null, null);
         }

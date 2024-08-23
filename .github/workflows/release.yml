@@ -13,9 +13,17 @@ jobs:
         run: |
           export GITHUB_REF_NAME="${{ github.ref_name }}"
           export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
+          export RELEASE_MAJOR_VERSION="${RELEASE_VERSION%%.*}"
+          export remaining_version="${RELEASE_VERSION#*.}"
+          export RELEASE_MINOR_VERSION="${RELEASE_MAJOR_VERSION}.${remaining_version%%.*}"
+
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "RELEASE_MINOR_VERSION=$RELEASE_MINOR_VERSION" >> $GITHUB_OUTPUT
+          echo "RELEASE_MAJOR_VERSION=$RELEASE_MAJOR_VERSION" >> $GITHUB_OUTPUT
     outputs:
       RELEASE_VERSION: ${{ steps.get-version-tag.outputs.RELEASE_VERSION }}
+      RELEASE_MINOR_VERSION: ${{ steps.get-version-tag.outputs.RELEASE_MINOR_VERSION }}
+      RELEASE_MAJOR_VERSION: ${{ steps.get-version-tag.outputs.RELEASE_MAJOR_VERSION }}
 
   verify:
     name: Run tests
@@ -98,13 +106,41 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Set release version
         run: echo "PackageVersion=${{ needs.version.outputs.RELEASE_VERSION }}" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Build and push Docker image
         uses: docker/build-push-action@v5.1.0
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             bagetter/bagetter:latest
             bagetter/bagetter:${{ needs.version.outputs.RELEASE_VERSION }}
+            bagetter/bagetter:${{ needs.version.outputs.RELEASE_MINOR_VERSION }}
+            bagetter/bagetter:${{ needs.version.outputs.RELEASE_MAJOR_VERSION }}
           build-args: |
             Version=${{ needs.version.outputs.RELEASE_VERSION }}
+
+  release_helm_chart:
+    if: ${{ github.ref_type == 'tag' }}
+    needs: [version, verify]
+    name: Release Helm chart to GitHub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+      - name: Update version in helm chart
+        run: |
+          sed -i "s/version: \".*\"/version: \"${{ needs.version.outputs.RELEASE_VERSION }}\"/" "deployment templates/chart/bagetter/Chart.yaml"
+          sed -i "s/appVersion: \".*\"/appVersion: \"${{ needs.version.outputs.RELEASE_VERSION }}\"/" "deployment templates/chart/bagetter/Chart.yaml"
+      - name: Generate helm docs
+        uses: losisin/helm-docs-github-action@v1
+        with:
+          chart-search-root: "deployment templates"
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Release helm chart version ${{ needs.version.outputs.RELEASE_VERSION }}"
+          file_pattern: 'deployment\ templates/chart/bagetter/Chart.yaml deployment\ templates/chart/bagetter/README.md'

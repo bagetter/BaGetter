@@ -1,7 +1,8 @@
 ARG Version=1.0.0
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 ARG Version
+ARG TARGETARCH
 WORKDIR /src
 
 ## Create separate layer for `dotnet restore` to allow for caching; useful for local development
@@ -12,7 +13,7 @@ RUN for file in $(ls *.csproj); do mkdir -p ${file%.*}/ && mv $file ${file%.*}/;
 # useful for debugging to display all files
 #RUN echo $(ls)
 # restore packages
-RUN dotnet restore BaGetter/BaGetter.csproj
+RUN dotnet restore BaGetter/BaGetter.csproj --arch $TARGETARCH
 
 ## Publish app (implicitly builds the app)
 FROM build AS publish
@@ -27,7 +28,8 @@ RUN dotnet publish BaGetter \
     -p DebugType=none \
     -p DebugSymbols=false \
     -p GenerateDocumentationFile=false \
-    -p UseAppHost=false
+    -p UseAppHost=false \
+    -a $TARGETARCH
 
 # create default folders
 RUN mkdir -p "/data/packages" \

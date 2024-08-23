@@ -3,7 +3,7 @@
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using Microsoft.Extensions.Options
 
-@inject IOptionsSnapshot<BaGetterOptions> Options
+@inject IOptions<StatisticsOptions> StatisticsOptions
 @inject ApplicationVersion Version
 
 <!DOCTYPE html>
@@ -32,7 +32,7 @@
                         <ul class="nav navbar-nav" role="tablist">
                             <li role="presentation"><a asp-area="" asp-page="/Index" role="tab" nav-link><span>Packages</span></a></li>
                             <li role="presentation"><a asp-area="" asp-page="/Upload" role="tab" nav-link><span>Upload</span></a></li>
-                            @if (Options.Value.Statistics.EnableStatisticsPage)
+                            @if (StatisticsOptions.Value.EnableStatisticsPage)
                             {
                                 <li role="presentation"><a asp-area="" asp-page="/Statistics" role="tab" nav-link><span>Statistics</span></a></li>
                             }
