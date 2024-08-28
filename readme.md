@@ -36,7 +36,7 @@ For more information, please refer to the [documentation].
 
 * **Cross-platform**: runs on Windows, macOS, and Linux!
 * **ARM** (64bit) **support**. You can host your NuGets on a device like Raspberry Pi!
-* **Cloud native**: supports [Docker][Docker doc link], [AWS][AWS doc link], [Google Cloud][GCP doc link], [Alibaba Cloud][Aliyun doc link]， [Tencent Cloud][Tencent doc link]
+* **Cloud native**: supports [Docker][Docker doc link], [AWS][AWS doc link], [Google Cloud][GCP doc link], [Alibaba Cloud][Aliyun doc link]，[Tencent Cloud][Tencent doc link]
 * **Offline support**: [Mirror a NuGet server][Read through caching] to speed up builds and enable offline downloads
 
 ## 🤝 Contributing
