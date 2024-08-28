@@ -20,4 +20,5 @@ These folders contain cloud-specific components of BaGetter:
 * `BaGetter.Aws` - BaGetter's Amazon Web Services provider.
 * `BaGetter.Azure` - BaGetter's Azure provider.
 * `BaGetter.Gcp` - BaGetter's Google Cloud Platform provider.
+* `BaGetter.Tencent` - BaGetter's Tencent Cloud Platform provider.
 
