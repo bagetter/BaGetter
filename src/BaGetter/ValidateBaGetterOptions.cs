@@ -34,7 +34,8 @@ public class ValidateBaGetterOptions
             "AzureBlobStorage",
             "Filesystem",
             "GoogleCloud",
-            "Null",
+            "TencentCos",
+            "Null"
         };
 
     private static readonly HashSet<string> ValidSearchTypes

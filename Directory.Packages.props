@@ -19,11 +19,11 @@
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
-    <PackageVersion Include="NuGet.Frameworks" Version="6.9.1" />
+    <PackageVersion Include="NuGet.Frameworks" Version="6.11.0" />
     <PackageVersion Include="NuGet.Protocol" Version="6.9.1" />
-    <PackageVersion Include="NuGet.Versioning" Version="6.9.1" />
+    <PackageVersion Include="NuGet.Versioning" Version="6.11.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.3" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageVersion Include="Moq" Version="4.20.70" />
@@ -45,5 +45,7 @@
     <PackageVersion Include="Microsoft.Azure.Storage.Blob" Version="11.2.3" />
     <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.9.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.3" />
+   <PackageVersion Include="Tencent.QCloud.Cos.Sdk" Version="5.4.40" />
+
   </ItemGroup>
 </Project>
