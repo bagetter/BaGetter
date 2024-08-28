@@ -1,6 +1,7 @@
 using System;
 using BaGetter.Core;
 using BaGetter.Core.Extensions;
+using BaGetter.Tencent;
 using BaGetter.Web;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -61,6 +62,7 @@ public class Startup
         app.AddAwsS3Storage();
         app.AddAzureBlobStorage();
         app.AddGoogleCloudStorage();
+        app.AddTencentOssStorage();
 
         // Add search providers.
         //app.AddAzureSearch();

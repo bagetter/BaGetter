@@ -55,6 +55,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BaGetterWebApplication", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BaGetter.Web.Tests", "tests\BaGetter.Web.Tests\BaGetter.Web.Tests.csproj", "{BEEAAA73-36CD-4178-9C9F-6D036586E7BF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BaGetter.Tencent", "src\BaGetter.Tencent\BaGetter.Tencent.csproj", "{9C809CE0-8C9A-468A-AF08-F5934B6D28D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -133,6 +135,10 @@ Global
 		{BEEAAA73-36CD-4178-9C9F-6D036586E7BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEEAAA73-36CD-4178-9C9F-6D036586E7BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEEAAA73-36CD-4178-9C9F-6D036586E7BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C809CE0-8C9A-468A-AF08-F5934B6D28D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C809CE0-8C9A-468A-AF08-F5934B6D28D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C809CE0-8C9A-468A-AF08-F5934B6D28D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C809CE0-8C9A-468A-AF08-F5934B6D28D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -156,6 +162,7 @@ Global
 		{9F7C4F38-D598-42D9-A9F8-962490483B18} = {26A0B557-53FB-4B9A-94C4-BCCF1BDCB0CC}
 		{E5AFE55D-0932-46A9-BFA3-C8A034037377} = {DDEC0736-8169-4834-815E-B78E7CE612A4}
 		{BEEAAA73-36CD-4178-9C9F-6D036586E7BF} = {C237857D-AD8E-4C52-974F-6A8155BB0C18}
+		{9C809CE0-8C9A-468A-AF08-F5934B6D28D1} = {26A0B557-53FB-4B9A-94C4-BCCF1BDCB0CC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1423C027-2C90-417F-8629-2A4CF107C055}

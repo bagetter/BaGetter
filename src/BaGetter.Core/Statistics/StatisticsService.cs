@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,7 +50,7 @@ public class StatisticsService : IStatisticsService
         if (configuration.HasStorageType("AwsS3")) servicesNames.Add("AwsS3");
         if (configuration.HasStorageType("AliyunOss")) servicesNames.Add("AliyunOss");
         if (configuration.HasStorageType("GoogleCloud")) servicesNames.Add("GoogleCloud");
-
+        if (configuration.HasStorageType("TencentCos")) servicesNames.Add("TencentCos");
         return servicesNames;
     }
 
