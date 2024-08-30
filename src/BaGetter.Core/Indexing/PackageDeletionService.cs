@@ -94,15 +94,16 @@ public class PackageDeletionService : IPackageDeletionService
     {
         // list all versions of the package
         var versions = await _packages.FindAsync(package.Id, includeUnlisted: true, cancellationToken);
+        if (versions is null || versions.Count <= maxPackages) return 0;
         // sort by version and take everything except the last maxPackages
         var versionsToDelete = versions
             .OrderByDescending(p => p.Version)
             .Skip((int)maxPackages)
             .ToList();
         var deleted = 0;
-        foreach (var version in versions)
+        foreach (var version in versionsToDelete)
         {
-            if (await TryDeletePackageAsync(package.Id, version.Version, cancellationToken)) deleted++;
+            if (await TryHardDeletePackageAsync(package.Id, version.Version, cancellationToken)) deleted++;
         }
         return deleted;
     }

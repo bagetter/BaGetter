@@ -164,11 +164,14 @@ public class PackageIndexingService : IPackageIndexingService
                     package.Id,
                     package.NormalizedVersionString);
                 var deleted = await _packageDeletionService.DeleteOldVersionsAsync(package, _options.Value.MaxVersionsPerPackage.Value, cancellationToken);
-                _logger.LogInformation(
-                    "Deleted {packages} older packages for package {PackageId} {PackageVersion}",
-                    deleted,
-                    package.Id,
-                    package.NormalizedVersionString);
+                if (deleted > 0)
+                {
+                    _logger.LogInformation(
+                        "Deleted {packages} older packages for package {PackageId} {PackageVersion}",
+                        deleted,
+                        package.Id,
+                        package.NormalizedVersionString);
+                }
             }
             catch (Exception e)
             {
