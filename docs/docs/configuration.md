@@ -154,6 +154,20 @@ downloaded if you know the package's id and version. You can override this behav
 }
 ```
 
+## Enable package auto-deletion
+
+If your build server generates many nuget packages, your BaGet server can quickly run out of space. To avoid this issue, `MaxVersionsPerPackage` can be configured to auto-delete packages older packages when a new one is uploaded. This will use the `HardDelete` option detailed above and will unlist and delete the files for the older packages. By default this value is not configured and no packages will be deleted automatically.
+
+```json
+{
+    ...
+
+    "MaxVersionsPerPackage ": 5,
+
+    ...
+}
+```
+
 ## Enable package overwrites
 
 Normally, BaGetter will reject a package upload if the id and version are already taken. This is to maintain the [immutability of semantically versioned packages](https://learn.microsoft.com/azure/devops/artifacts/artifacts-key-concepts?view=azure-devops#immutability).

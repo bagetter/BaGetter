@@ -23,6 +23,7 @@
     <ProjectReference Include="..\BaGetter.Database.Sqlite\BaGetter.Database.Sqlite.csproj" />
     <ProjectReference Include="..\BaGetter.Database.SqlServer\BaGetter.Database.SqlServer.csproj" />
     <ProjectReference Include="..\BaGetter.Gcp\BaGetter.Gcp.csproj" />
+    <ProjectReference Include="..\BaGetter.Tencent\BaGetter.Tencent.csproj" />
     <ProjectReference Include="..\BaGetter.Web\BaGetter.Web.csproj" />
     <ProjectReference Include="..\BaGetter.Protocol\BaGetter.Protocol.csproj" />
   </ItemGroup>
