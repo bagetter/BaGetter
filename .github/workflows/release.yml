@@ -139,6 +139,20 @@ jobs:
         uses: losisin/helm-docs-github-action@v1
         with:
           chart-search-root: "deployment templates"
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@a917fd15b20e8b64b94d9158ad54cd6345335584 # v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_RELEASE_NAME_TEMPLATE: "bagetter-helm-chart-{{ .Version }}"
+          charts_dir: "deployment\ templates/chart"
+
+
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
