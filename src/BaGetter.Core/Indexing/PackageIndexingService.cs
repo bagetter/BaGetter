@@ -156,14 +156,20 @@ public class PackageIndexingService : IPackageIndexingService
 
         await _search.IndexAsync(package, cancellationToken);
 
-        if (_options.Value.MaxVersionsPerPackage.HasValue)
+        if (_options.Value.MaxHistoryPerMajorVersion.HasValue)
         {
             try { 
                 _logger.LogInformation(
                     "Deleting older packages for package {PackageId} {PackageVersion}",
                     package.Id,
                     package.NormalizedVersionString);
-                var deleted = await _packageDeletionService.DeleteOldVersionsAsync(package, _options.Value.MaxVersionsPerPackage.Value, cancellationToken);
+                var deleted = await _packageDeletionService.DeleteOldVersionsAsync(
+                    package,
+                    _options.Value.MaxHistoryPerMajorVersion,
+                    _options.Value.MaxHistoryPerMinorVersion,
+                    _options.Value.MaxHistoryPerPatch,
+                    _options.Value.MaxHistoryPerPrerelease,
+                    cancellationToken);
                 if (deleted > 0)
                 {
                     _logger.LogInformation(

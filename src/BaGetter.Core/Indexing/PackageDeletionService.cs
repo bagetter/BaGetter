@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,16 +91,77 @@ public class PackageDeletionService : IPackageDeletionService
         return found;
     }
 
-    public async Task<int> DeleteOldVersionsAsync(Package package, uint maxPackages, CancellationToken cancellationToken)
+    private List<NuGetVersion> GetValidVersions<S, T>(IEnumerable<NuGetVersion> versions, Func<NuGetVersion, S> getParent, Func<NuGetVersion,T> getSelector, int versionsToKeep)
+            where S : IComparable<S>, IEquatable<S>
+            where T : IComparable<T>, IEquatable<T>
+    {
+        var validVersions = versions
+            // for each parent group
+            .GroupBy(v => getParent(v))
+            // get all versions by selector
+            .SelectMany(g => g.Select(k => (parent: g.Key, selector: getSelector(k)))
+                .Distinct()
+                .OrderByDescending(k => k.selector)
+                .Take(versionsToKeep))            
+            .ToList();
+        return versions.Where(k => validVersions.Any(v => getParent(k).Equals(v.parent) && getSelector(k).Equals(v.selector))).ToList();
+    }
+
+    public async Task<int> DeleteOldVersionsAsync(Package package, uint? maxMajor, uint? maxMinor, uint? maxPatch, uint? maxPrerelease, CancellationToken cancellationToken)
     {
         // list all versions of the package
-        var versions = await _packages.FindAsync(package.Id, includeUnlisted: true, cancellationToken);
-        if (versions is null || versions.Count <= maxPackages) return 0;
+        var packages = await _packages.FindAsync(package.Id, includeUnlisted: true, cancellationToken);
+        if (packages is null || packages.Count <= maxMajor) return 0;
+
+        var goodVersions = new HashSet<NuGetVersion>();
+
+        if (maxMajor.HasValue)
+        {
+            goodVersions = GetValidVersions(packages.Select(t => t.Version), v => 0, v => v.Major, (int)maxMajor).ToHashSet();
+        }
+        else
+        {
+            goodVersions = packages.Select(p => p.Version).ToHashSet();
+        }
+        
+        if (maxMinor.HasValue)
+        {
+            goodVersions.IntersectWith(GetValidVersions(goodVersions, v => (v.Major), v => v.Minor, (int)maxMinor));
+        }
+        
+        if (maxPatch.HasValue)
+        {
+            goodVersions.IntersectWith(GetValidVersions(goodVersions, v => (v.Major, v.Minor), v => v.Patch, (int)maxPatch));
+        }
+
+        if (maxPrerelease.HasValue)
+        {
+            // this assume we have something like 1.1.1-alpha.1 - alpha is the release type
+            var preReleases = packages.Select(p => p.Version).Where(p => p.IsPrerelease).ToList();
+            // this will give us 'alpha' or 'beta' etc
+            var prereleaseTypes = preReleases
+                .Select(v => v.ReleaseLabels?.FirstOrDefault())
+                .Where(lb => lb is not null)
+                .Distinct();
+
+            var allPreReleaseValidVersions = new HashSet<NuGetVersion>();
+            foreach (var preReleaseType in prereleaseTypes)
+            {
+                var preReleaseVersions = preReleases.Where(p => p.ReleaseLabels!.FirstOrDefault() == preReleaseType
+                        && GetPreReleaseBuild(p) is not null).ToList();
+
+                
+                allPreReleaseValidVersions.UnionWith
+                    (GetValidVersions(preReleaseVersions,
+                        v => (v.Major, v.Minor, v.Patch), v => GetPreReleaseBuild(v).Value, (int)maxPrerelease));
+
+            }
+            goodVersions.IntersectWith(allPreReleaseValidVersions);
+        }
+
         // sort by version and take everything except the last maxPackages
-        var versionsToDelete = versions
-            .OrderByDescending(p => p.Version)
-            .Skip((int)maxPackages)
-            .ToList();
+        var versionsToDelete = packages.Where(p => !goodVersions.Contains(p.Version)).ToList();
+
         var deleted = 0;
         foreach (var version in versionsToDelete)
         {
@@ -107,4 +169,28 @@ public class PackageDeletionService : IPackageDeletionService
         }
         return deleted;
     }
+
+    /// <summary>
+    /// If we have 1.1.1-alpha.1 , this will return 1
+    /// or null if not valid
+    /// </summary>
+    /// <returns></returns>
+    private int? GetPreReleaseBuild(NuGetVersion nuGetVersion)
+    {
+        if (nuGetVersion.IsPrerelease && nuGetVersion.ReleaseLabels != null)
+        {
+            // Assuming the last part of the release label is the build number
+            var lastLabel = nuGetVersion.ReleaseLabels.LastOrDefault();
+            if (int.TryParse(lastLabel, out var buildNumber))
+            {
+                return buildNumber;
+            }
+            else
+            {
+                _logger.LogWarning("Could not parse build number from prerelease label {PrereleaseLabel} - prerelease number is expected to be like 2.3.4-alpha.1 where 1 is prerelease", nuGetVersion);
+            }
+        }
+        return null;
+    }
+
 }

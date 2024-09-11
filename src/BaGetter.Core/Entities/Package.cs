@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using NuGet.Versioning;
 
 namespace BaGetter.Core;
 
 // See NuGetGallery's: https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/Entities/Package.cs
+[DebuggerDisplay("{Id} {Version}")]
 public class Package
 {
     public int Key { get; set; }
