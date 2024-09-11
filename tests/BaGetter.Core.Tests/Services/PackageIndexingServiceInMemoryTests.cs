@@ -80,7 +80,6 @@ public class PackageIndexingServiceInMemoryTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
         // Act
@@ -121,9 +120,6 @@ public class PackageIndexingServiceInMemoryTests
         var stream = new MemoryStream();
         builder.Save(stream);
 
-        _storage.Setup(s => s.DeleteAsync(builder.Id, builder.Version, default)).Returns(Task.CompletedTask);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
-
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
         // Act
@@ -155,9 +151,6 @@ public class PackageIndexingServiceInMemoryTests
         var stream = new MemoryStream();
         builder.Save(stream);
 
-        _storage.Setup(s => s.DeleteAsync(builder.Id, builder.Version, default)).Returns(Task.CompletedTask);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
-
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
         // Act
@@ -188,9 +181,6 @@ public class PackageIndexingServiceInMemoryTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-
-        _storage.Setup(s => s.DeleteAsync(builder.Id, builder.Version, default)).Returns(Task.CompletedTask);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
 
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
@@ -229,8 +219,6 @@ public class PackageIndexingServiceInMemoryTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
 
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
@@ -314,8 +302,6 @@ public class PackageIndexingServiceInMemoryTests
             builder.Save(stream);
             //_packages.Setup(p => p.ExistsAsync(builder.Id, builder.Version, default)).ReturnsAsync(false);
             //_packages.Setup(p => p.AddAsync(It.Is<Package>(p1 => p1.Id == builder.Id && p1.Version.ToString() == builder.Version.ToString()), default)).ReturnsAsync(PackageAddResult.Success);
-
-            _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
 
             _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
