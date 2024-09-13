@@ -17,6 +17,27 @@ To do so, you can insert the desired API key in the `ApiKey` field.
 }
 ```
 
+You can also use the `ApiKeys` array in order to manage multiple API keys for multiple teams/developers.
+
+```json
+{
+    "Authentication": {
+        "ApiKeys": [
+            {
+                "Key" : "NUGET-SERVER-API-KEY-1"
+            },
+            {
+                "Key" : "NUGET-SERVER-API-KEY-2"
+            }
+        ]
+        ...
+    }
+    ...
+}
+```
+
+Both `ApiKey` and `ApiKeys` work in conjunction additively eg.: `or` `||` logical operator.
+
 Users will now have to provide the API key to push packages:
 
 ```shell
@@ -200,11 +221,54 @@ Pushing a package with a pre-release version like "3.1.0-SNAPSHOT" will overwrit
 
 A private feed requires users to authenticate before accessing packages.
 
-:::warning
+You can require that users provide a username and password to access the nuget feed.
+To do so, you can insert the credentials in the `Authentication` section.
 
-Private feeds are not supported at this time! See [this pull request](https://github.com/loic-sharma/BaGet/pull/69) for more information.
+```json
+{
+    "Authentication": {
+        "Credentials": [
+            {
+                "Username": "username",
+                "Password": "password"
+            }
+        ]
+        ...
+    }
+    ...
+}
+```
 
-:::
+Users will now have to provide the username and password to fetch and download packages.
+
+How to add private nuget feed:
+
+1. Download the latest NuGet executable.
+2. Open a Command Prompt and change the path to the nuget.exe location.
+3. The command from the example below stores a token in the %AppData%\NuGet\NuGet.config file. Your original credentials cannot be obtained from this token.
+
+
+```shell
+NuGet Sources Add -Name "localhost" -Source "http://localhost:5000/v3/index.json" -UserName "username" -Password "password"
+```
+
+If you are unable to connect to the feed by using encrypted credentials, store your credentials in clear text:
+
+```shell
+NuGet Sources Add -Name "localhost" -Source "http://localhost:5000/v3/index.json" -UserName "username" -Password "password" -StorePasswordInClearText
+```
+
+If you have already stored a token instead of storing the credentials as clear text, update the definition in the %AppData%\NuGet\NuGet.config file by using the following command:
+
+```shell
+NuGet Sources Update -Name "localhost" -Source "http://localhost:5000/v3/index.json" -UserName "username" -Password "password" -StorePasswordInClearText
+```
+
+The commands are slightly different when using the Package Manager console in Visual Studio:
+
+```shell
+dotnet nuget add source "http://localhost:5000/v3/index.json" --name "bagetter" --username "username" --password "password"
+```
 
 ## Database configuration
 

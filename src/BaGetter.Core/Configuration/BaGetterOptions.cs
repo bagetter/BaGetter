@@ -1,10 +1,12 @@
+using BaGetter.Core.Configuration;
+
 namespace BaGetter.Core;
 
 public class BaGetterOptions
 {
     /// <summary>
     /// The API Key required to authenticate package
-    /// operations. If empty, package operations do not require authentication.
+    /// operations. If <see cref="ApiKeys"/> and  <see cref="ApiKey"/> are not set, package operations do not require authentication.
     /// </summary>
     public string ApiKey { get; set; }
 
@@ -64,4 +66,6 @@ public class BaGetterOptions
     public HealthCheckOptions HealthCheck { get; set; }
 
     public StatisticsOptions Statistics { get; set; }
+
+    public NugetAuthenticationOptions Authentication { get; set; }
 }
