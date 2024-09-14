@@ -23,7 +23,6 @@ public class BucketClient
         _region = region;
     }
 
-
     public bool UploadStream(string key, Stream stream)
     {
         var result = false;
@@ -69,7 +68,7 @@ public class BucketClient
             throw new Exception(serverEx.Message);
         }
         return Array.Empty<byte>();
-    }   
+    }
 
     public void DeleteDir(string dir)
     {

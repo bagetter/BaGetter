@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -87,5 +88,23 @@ public class PackageDeletionService : IPackageDeletionService
             version);
 
         return found;
+    }
+
+    public async Task<int> DeleteOldVersionsAsync(Package package, uint maxPackages, CancellationToken cancellationToken)
+    {
+        // list all versions of the package
+        var versions = await _packages.FindAsync(package.Id, includeUnlisted: true, cancellationToken);
+        if (versions is null || versions.Count <= maxPackages) return 0;
+        // sort by version and take everything except the last maxPackages
+        var versionsToDelete = versions
+            .OrderByDescending(p => p.Version)
+            .Skip((int)maxPackages)
+            .ToList();
+        var deleted = 0;
+        foreach (var version in versionsToDelete)
+        {
+            if (await TryHardDeletePackageAsync(package.Id, version.Version, cancellationToken)) deleted++;
+        }
+        return deleted;
     }
 }

@@ -129,6 +129,10 @@ jobs:
     needs: [version, verify]
     name: Release Helm chart to GitHub
     runs-on: ubuntu-latest
+    env:
+      CHART_DIR: deployment templates/chart
+      CHART_REPO: bagetter/helm-chart-repo
+      CHART_REPO_BRANCH: master
     steps:
       - uses: actions/checkout@v4.1.1
       - name: Update version in helm chart
@@ -139,8 +143,76 @@ jobs:
         uses: losisin/helm-docs-github-action@v1
         with:
           chart-search-root: "deployment templates"
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Release helm chart version ${{ needs.version.outputs.RELEASE_VERSION }}"
-          file_pattern: 'deployment\ templates/chart/bagetter/Chart.yaml deployment\ templates/chart/bagetter/README.md'
+
+      - name: Install yq - portable yaml processor
+        uses: mikefarah/yq@v4.44.3
+
+      - name: Collect charts
+        id: charts
+        run: |
+          set -e
+          find -L '${{ env.CHART_DIR }}' -mindepth 2 -maxdepth 2 -type f \( -name 'Chart.yaml' -o -name 'Chart.yml' \) -exec dirname "{}" \; \
+          | sort -u \
+          | sed -E 's/^/- /' \
+          | yq --no-colors --indent 0 --output-format json '.' \
+          | sed -E 's/^/charts=/' >> $GITHUB_OUTPUT
+
+      - name: Install chart releaser
+        run: |
+          set -e
+          arch="$(dpkg --print-architecture)"
+          curl -s https://api.github.com/repos/helm/chart-releaser/releases/latest \
+          | yq --indent 0 --no-colors --input-format json --unwrapScalar \
+            ".assets[] | select(.name | test("\""^chart-releaser_.+_linux_${arch}\.tar\.gz$"\"")) | .browser_download_url" \
+          | xargs curl -SsL \
+          | tar zxf - -C /usr/local/bin
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Helm Deps
+        run: |
+          set -ex
+          echo '${{ steps.charts.outputs.charts }}' \
+          | yq --indent 0 --no-colors --input-format json --unwrapScalar '.[]' \
+          | while read -r dir; do
+              helm dependency update $dir;
+              if [ -f "$dir/Chart.lock" ]; then
+                yq --indent 0 \
+                  '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' \
+                  "$dir/Chart.lock" \
+                | sh --;
+              fi
+            done
+
+      - name: Package charts
+        id: package
+        run: |
+          set -ex
+          PACKAGES=.cr-release-packages
+          echo '${{ steps.charts.outputs.charts }}' \
+          | yq --indent 0 --no-colors --input-format json --unwrapScalar '.[]' \
+          | xargs -d$'\n' cr package --package-path "$PACKAGES"
+          echo "dir=${PACKAGES}" >> $GITHUB_OUTPUT
+
+      - name: Upload packages
+        run: |
+          set -ex
+          git config --list
+          owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
+          repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
+          cr upload --commit '${{ github.sha }}' --git-repo "$repo" --owner "$owner" --token '${{ github.token }}' \
+            --package-path '${{ steps.package.outputs.dir }}' --skip-existing
+
+      - name: Update charts index
+        working-directory: .helm-chart-repo
+        run: |
+          set -ex
+          git config --local user.name "$GITHUB_ACTOR"
+          git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          mkdir -p .cr-index
+          owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
+          repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
+          cr index --git-repo "$repo" --owner "$owner" --pages-branch '${{ env.CHART_REPO_BRANCH }}' \
+            --package-path '../${{ steps.package.outputs.dir }}' \
+            --index-path .cr-index --push

@@ -16,10 +16,12 @@ public class PackageIndexingService : IPackageIndexingService
     private readonly SystemTime _time;
     private readonly IOptionsSnapshot<BaGetterOptions> _options;
     private readonly ILogger<PackageIndexingService> _logger;
+    private readonly IPackageDeletionService _packageDeletionService;
 
     public PackageIndexingService(
         IPackageDatabase packages,
         IPackageStorageService storage,
+        IPackageDeletionService packageDeletionService,
         ISearchIndexer search,
         SystemTime time,
         IOptionsSnapshot<BaGetterOptions> options,
@@ -31,6 +33,7 @@ public class PackageIndexingService : IPackageIndexingService
         _time = time ?? throw new ArgumentNullException(nameof(time));
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _packageDeletionService = packageDeletionService ?? throw new ArgumentNullException(nameof(packageDeletionService));
     }
 
     public async Task<PackageIndexingResult> IndexAsync(Stream packageStream, CancellationToken cancellationToken)
@@ -152,6 +155,33 @@ public class PackageIndexingService : IPackageIndexingService
             package.NormalizedVersionString);
 
         await _search.IndexAsync(package, cancellationToken);
+
+        if (_options.Value.MaxVersionsPerPackage.HasValue)
+        {
+            try { 
+                _logger.LogInformation(
+                    "Deleting older packages for package {PackageId} {PackageVersion}",
+                    package.Id,
+                    package.NormalizedVersionString);
+                var deleted = await _packageDeletionService.DeleteOldVersionsAsync(package, _options.Value.MaxVersionsPerPackage.Value, cancellationToken);
+                if (deleted > 0)
+                {
+                    _logger.LogInformation(
+                        "Deleted {packages} older packages for package {PackageId} {PackageVersion}",
+                        deleted,
+                        package.Id,
+                        package.NormalizedVersionString);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(
+                    e,
+                    "Failed to cleanup older versions of package {PackageId} {PackageVersion}",
+                    package.Id,
+                    package.NormalizedVersionString);
+            }
+        }
 
         _logger.LogInformation(
             "Successfully indexed package {Id} {Version} in search",

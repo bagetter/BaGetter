@@ -18,7 +18,6 @@ public class TencentStorageService : IStorageService
     public async Task DeleteAsync(string path, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
-
         var found = _cosClient.BucketClient.DoesObjectExist(PrepareKey(path)) ? PrepareKey(path) : string.Empty;
         if (string.IsNullOrEmpty(found))
         {
@@ -30,7 +29,9 @@ public class TencentStorageService : IStorageService
     public async Task<Stream> GetAsync(string path, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
+
         var fileStorageUrl = _cosClient.BucketClient.DoesObjectExist(PrepareKey(path)) ? PrepareKey(path) : string.Empty;
+
         if (string.IsNullOrEmpty(fileStorageUrl))
         {
             throw new KeyNotFoundException($"The file {path} was not found.");
@@ -42,7 +43,9 @@ public class TencentStorageService : IStorageService
     public async Task<Uri> GetDownloadUriAsync(string path, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
+
         var fileStorageUrl = _cosClient.BucketClient.DoesObjectExist(PrepareKey(path)) ? PrepareKey(path) : string.Empty;
+
         if (string.IsNullOrEmpty(fileStorageUrl))
         {
             throw new KeyNotFoundException($"The file {path} was not found.");
@@ -60,7 +63,8 @@ public class TencentStorageService : IStorageService
         seekableContent.Seek(0, SeekOrigin.Begin);
 
         var fileRet = _cosClient.BucketClient.UploadStream(PrepareKey(path), seekableContent);
-        if (!fileRet)
+
+        if(!fileRet)
         {
             return StoragePutResult.AlreadyExists;
         }
