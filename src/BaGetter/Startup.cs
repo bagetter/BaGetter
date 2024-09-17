@@ -5,6 +5,7 @@ using BaGetter.Tencent;
 using BaGetter.Web;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,18 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        // configure logging of HTTP requests
+        services.AddHttpLogging(logging =>
+        {
+            logging.LoggingFields = HttpLoggingFields.RequestPath |
+                                    HttpLoggingFields.RequestQuery |
+                                    HttpLoggingFields.RequestMethod |
+                                    HttpLoggingFields.ResponseStatusCode;
+            logging.CombineLogs = true;
+            logging.RequestHeaders.Clear();
+            logging.ResponseHeaders.Clear();
+        });
+
         services.ConfigureOptions<ValidateBaGetterOptions>();
         services.ConfigureOptions<ConfigureBaGetterServer>();
 
@@ -78,6 +91,11 @@ public class Startup
             app.UseDeveloperExceptionPage();
             app.UseStatusCodePages();
         }
+
+        // activate HTTP logging option
+        // The default severity on the Console is currently "Warning".
+        // So, the logging is not visible by default but can be easily activated using environment variable.
+        app.UseHttpLogging();
 
         app.UseForwardedHeaders();
         app.UsePathBase(options.PathBase);
