@@ -25,6 +25,7 @@ public class PackageIndexingServiceInMemoryTests
     private readonly Mock<SystemTime> _time;
     private readonly PackageIndexingService _target;
     private readonly BaGetterOptions _options;
+    private readonly RetentionOptions _retentionOptions;
 
     public PackageIndexingServiceInMemoryTests()
     {
@@ -34,6 +35,7 @@ public class PackageIndexingServiceInMemoryTests
 
         _search = new Mock<ISearchIndexer>(MockBehavior.Strict);
         _options = new();
+        _retentionOptions = new();
 
         var optionsSnapshot = new Mock<IOptionsSnapshot<BaGetterOptions>>();
         optionsSnapshot.Setup(o => o.Value).Returns(_options);
@@ -46,6 +48,8 @@ public class PackageIndexingServiceInMemoryTests
         _time = new Mock<SystemTime>(MockBehavior.Loose);
         var options = new Mock<IOptionsSnapshot<BaGetterOptions>>(MockBehavior.Strict);
         options.Setup(o => o.Value).Returns(_options);
+        var retentionOptions = new Mock<IOptionsSnapshot<RetentionOptions>>(MockBehavior.Strict);
+        retentionOptions.Setup(o => o.Value).Returns(_retentionOptions);
 
         _target = new PackageIndexingService(
             _packages,
@@ -54,6 +58,7 @@ public class PackageIndexingServiceInMemoryTests
             _search.Object,
             _time.Object,
             options.Object,
+            retentionOptions.Object,
             Mock.Of<ILogger<PackageIndexingService>>());
     }
 
@@ -234,10 +239,11 @@ public class PackageIndexingServiceInMemoryTests
     {
         // Arrange
         _options.AllowPackageOverwrites = PackageOverwriteAllowed.False;
-        _options.MaxHistoryPerMajorVersion = 2;
-        _options.MaxHistoryPerMinorVersion = 2;
-        _options.MaxHistoryPerPatch = 5;
-        _options.MaxHistoryPerPrerelease = 5;
+
+        _retentionOptions.MaxHistoryPerMajorVersion = 2;
+        _retentionOptions.MaxHistoryPerMinorVersion = 2;
+        _retentionOptions.MaxHistoryPerPatch = 5;
+        _retentionOptions.MaxHistoryPerPrerelease = 5;
         // Add 10 packages
         for (var major = 1; major < 4; major++)
         {
@@ -256,24 +262,24 @@ public class PackageIndexingServiceInMemoryTests
 
                         var packageVersions = await _packages.FindAsync(builder.Id, true, default);
                         var majorCount = packageVersions.Select(p => p.Version.Major).Distinct().Count();
-                        Assert.Equal(majorCount, Math.Min(major, (int)_options.MaxHistoryPerMajorVersion));
-                        Assert.True(majorCount <= _options.MaxHistoryPerMajorVersion, $"Major version {major} has {majorCount} packages");
+                        Assert.Equal(majorCount, Math.Min(major, (int)_retentionOptions.MaxHistoryPerMajorVersion));
+                        Assert.True(majorCount <= _retentionOptions.MaxHistoryPerMajorVersion, $"Major version {major} has {majorCount} packages");
 
                         // validate maximum number of minor versions for each major version.
                         var minorVersions = packageVersions.GroupBy(m => m.Version.Major)
                             .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor).Distinct().Count())).ToList();
-                        Assert.All(minorVersions, g => Assert.True(g.versionCount <= _options.MaxHistoryPerMinorVersion, $"Minor version {g.version} has {g.versionCount} packages"));
+                        Assert.All(minorVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerMinorVersion, $"Minor version {g.version} has {g.versionCount} packages"));
 
                         // validate maximum number of minor versions for each major version.
                         var patches = packageVersions.GroupBy(m => (m.Version.Major, m.Version.Minor))
                             .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor + "." + p.Version.Patch).Distinct().Count())).ToList();
-                        Assert.All(patches, g => Assert.True(g.versionCount <= _options.MaxHistoryPerPatch, $"Patch version {g.version} has {g.versionCount} packages"));
+                        Assert.All(patches, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerPatch, $"Patch version {g.version} has {g.versionCount} packages"));
 
                         // validate maximum number of beta versions for each major,minor,patch version.
                         var betaVersions = packageVersions.Where(p => p.IsPrerelease && p.Version.ReleaseLabels.First() == "beta")
                             .GroupBy(m => (m.Version.Major, m.Version.Minor, m.Version.Patch))
                             .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor + "." + p.Version.Patch).Distinct().Count())).ToList();
-                        Assert.All(betaVersions, g => Assert.True(g.versionCount <= _options.MaxHistoryPerPatch, $"Pre-Release version {g.version} has {g.versionCount} packages"));
+                        Assert.All(betaVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerPatch, $"Pre-Release version {g.version} has {g.versionCount} packages"));
 
 
                     }

@@ -15,6 +15,7 @@ public class PackageIndexingService : IPackageIndexingService
     private readonly ISearchIndexer _search;
     private readonly SystemTime _time;
     private readonly IOptionsSnapshot<BaGetterOptions> _options;
+    private readonly IOptionsSnapshot<RetentionOptions> _retentionOptions;
     private readonly ILogger<PackageIndexingService> _logger;
     private readonly IPackageDeletionService _packageDeletionService;
 
@@ -25,6 +26,7 @@ public class PackageIndexingService : IPackageIndexingService
         ISearchIndexer search,
         SystemTime time,
         IOptionsSnapshot<BaGetterOptions> options,
+        IOptionsSnapshot<RetentionOptions> retentionOptions,
         ILogger<PackageIndexingService> logger)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
@@ -32,6 +34,7 @@ public class PackageIndexingService : IPackageIndexingService
         _search = search ?? throw new ArgumentNullException(nameof(search));
         _time = time ?? throw new ArgumentNullException(nameof(time));
         _options = options ?? throw new ArgumentNullException(nameof(options));
+        _retentionOptions = retentionOptions ?? throw new ArgumentNullException(nameof(retentionOptions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _packageDeletionService = packageDeletionService ?? throw new ArgumentNullException(nameof(packageDeletionService));
     }
@@ -156,7 +159,7 @@ public class PackageIndexingService : IPackageIndexingService
 
         await _search.IndexAsync(package, cancellationToken);
 
-        if (_options.Value.MaxHistoryPerMajorVersion.HasValue)
+        if (_retentionOptions.Value.MaxHistoryPerMajorVersion.HasValue)
         {
             try { 
                 _logger.LogInformation(
@@ -165,10 +168,10 @@ public class PackageIndexingService : IPackageIndexingService
                     package.NormalizedVersionString);
                 var deleted = await _packageDeletionService.DeleteOldVersionsAsync(
                     package,
-                    _options.Value.MaxHistoryPerMajorVersion,
-                    _options.Value.MaxHistoryPerMinorVersion,
-                    _options.Value.MaxHistoryPerPatch,
-                    _options.Value.MaxHistoryPerPrerelease,
+                    _retentionOptions.Value.MaxHistoryPerMajorVersion,
+                    _retentionOptions.Value.MaxHistoryPerMinorVersion,
+                    _retentionOptions.Value.MaxHistoryPerPatch,
+                    _retentionOptions.Value.MaxHistoryPerPrerelease,
                     cancellationToken);
                 if (deleted > 0)
                 {

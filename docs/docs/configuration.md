@@ -158,7 +158,7 @@ downloaded if you know the package's id and version. You can override this behav
 
 If your build server generates many nuget packages, your BaGet server can quickly run out of space. Bagetter leverages [SemVer 2](https://semver.org/) and has logic to keep a history of packages based on the version numbering such as `<major>.<minor>.<patch>-<prerelease tag>.<prerelease build number>`.
 
-The following parameters can be enabled to limit history for each level of the version. If none of these are set, there are no cleaning rules enforced. Each parameter is optional, e.g. if you specify only a `MaxHistoryPerPatch`, the package limit will only enforced for each major and minor version combination.
+There is an optional section for `Retention` and the following parameters can be enabled to limit history for each level of the version. If none of these are set, there are no cleaning rules enforced. Each parameter is optional, e.g. if you specify only a `MaxHistoryPerPatch`, the package limit will only enforced for each major and minor version combination.
 Packages deleted are always the oldest based on version numbers.
 
 - MaxHistoryPerMajorVersion: Maximum number of major versions
@@ -169,11 +169,12 @@ Packages deleted are always the oldest based on version numbers.
 ```json
 {
     ...
-
-    "MaxHistoryPerMajorVersion": 5,
-    "MaxHistoryPerMinorVersion": 5,
-    "MaxHistoryPerPatch": 5,
-    "MaxHistoryPerPrerelease": 5,
+    "Retention": {
+        "MaxHistoryPerMajorVersion": 5,
+        "MaxHistoryPerMinorVersion": 5,
+        "MaxHistoryPerPatch": 5,
+        "MaxHistoryPerPrerelease": 5,
+    }
     ...
 }
 ```

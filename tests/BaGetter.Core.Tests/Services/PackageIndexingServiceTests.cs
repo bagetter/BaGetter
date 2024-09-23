@@ -19,6 +19,7 @@ public class PackageIndexingServiceTests
     private readonly Mock<IPackageDeletionService> _deleter;
     private readonly PackageIndexingService _target;
     private readonly BaGetterOptions _mockOptions;
+    private RetentionOptions _retentionOptions;
 
     public PackageIndexingServiceTests()
     {
@@ -28,8 +29,11 @@ public class PackageIndexingServiceTests
         _time = new Mock<SystemTime>(MockBehavior.Loose);
         _deleter = new Mock<IPackageDeletionService>(MockBehavior.Strict);
         _mockOptions = new();
+        _retentionOptions = new();
         var options = new Mock<IOptionsSnapshot<BaGetterOptions>>(MockBehavior.Strict);
         options.Setup(o => o.Value).Returns(_mockOptions);
+        var retentionOptions = new Mock<IOptionsSnapshot<RetentionOptions>>(MockBehavior.Strict);
+        retentionOptions.Setup(o => o.Value).Returns(_retentionOptions);
 
         _target = new PackageIndexingService(
             _packages.Object,
@@ -38,6 +42,7 @@ public class PackageIndexingServiceTests
             _search.Object,
             _time.Object,
             options.Object,
+            retentionOptions.Object,
             Mock.Of<ILogger<PackageIndexingService>>());
     }
 
