@@ -176,7 +176,7 @@ jobs:
           echo '${{ steps.charts.outputs.charts }}' \
           | yq --indent 0 --no-colors --input-format json --unwrapScalar '.[]' \
           | while read -r dir; do
-              helm dependency update $dir;
+              helm dependency update "$dir";
               if [ -f "$dir/Chart.lock" ]; then
                 yq --indent 0 \
                   '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' \
