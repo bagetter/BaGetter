@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using BaGetter.Core.Tests.Support;
 using Microsoft.Extensions.Logging;
@@ -17,39 +19,46 @@ namespace BaGetter.Core.Tests.Services;
 public class PackageIndexingServiceInMemoryTests
 {
     private readonly IPackageDatabase _packages;
-    private readonly Mock<IPackageStorageService> _storage;
+    private readonly IPackageStorageService _storage;
     private readonly Mock<ISearchIndexer> _search;
     private readonly IPackageDeletionService _deleter;
     private readonly Mock<SystemTime> _time;
     private readonly PackageIndexingService _target;
     private readonly BaGetterOptions _options;
+    private readonly RetentionOptions _retentionOptions;
 
     public PackageIndexingServiceInMemoryTests()
     {
         _packages = new InMemoryPackageDatabase();
-        _storage = new Mock<IPackageStorageService>(MockBehavior.Strict);
+        var storageService = new NullStorageService();
+        _storage = new PackageStorageService(storageService, Mock.Of<ILogger<PackageStorageService>>());
+
         _search = new Mock<ISearchIndexer>(MockBehavior.Strict);
         _options = new();
+        _retentionOptions = new();
 
         var optionsSnapshot = new Mock<IOptionsSnapshot<BaGetterOptions>>();
         optionsSnapshot.Setup(o => o.Value).Returns(_options);
 
         _deleter = new PackageDeletionService(
             _packages,
-            _storage.Object,
+            _storage,
             optionsSnapshot.Object,
             Mock.Of<ILogger<PackageDeletionService>>());
         _time = new Mock<SystemTime>(MockBehavior.Loose);
         var options = new Mock<IOptionsSnapshot<BaGetterOptions>>(MockBehavior.Strict);
         options.Setup(o => o.Value).Returns(_options);
+        var retentionOptions = new Mock<IOptionsSnapshot<RetentionOptions>>(MockBehavior.Strict);
+        retentionOptions.Setup(o => o.Value).Returns(_retentionOptions);
 
         _target = new PackageIndexingService(
             _packages,
-            _storage.Object,
+            _storage,
             _deleter,
             _search.Object,
             _time.Object,
             options.Object,
+            retentionOptions.Object,
             Mock.Of<ILogger<PackageIndexingService>>());
     }
 
@@ -76,7 +85,6 @@ public class PackageIndexingServiceInMemoryTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
         // Act
@@ -117,9 +125,6 @@ public class PackageIndexingServiceInMemoryTests
         var stream = new MemoryStream();
         builder.Save(stream);
 
-        _storage.Setup(s => s.DeleteAsync(builder.Id, builder.Version, default)).Returns(Task.CompletedTask);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
-
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
         // Act
@@ -151,9 +156,6 @@ public class PackageIndexingServiceInMemoryTests
         var stream = new MemoryStream();
         builder.Save(stream);
 
-        _storage.Setup(s => s.DeleteAsync(builder.Id, builder.Version, default)).Returns(Task.CompletedTask);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
-
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
         // Act
@@ -184,9 +186,6 @@ public class PackageIndexingServiceInMemoryTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-
-        _storage.Setup(s => s.DeleteAsync(builder.Id, builder.Version, default)).Returns(Task.CompletedTask);
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
 
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
@@ -226,8 +225,6 @@ public class PackageIndexingServiceInMemoryTests
         var stream = new MemoryStream();
         builder.Save(stream);
 
-        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
-
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
         // Act
@@ -242,14 +239,62 @@ public class PackageIndexingServiceInMemoryTests
     {
         // Arrange
         _options.AllowPackageOverwrites = PackageOverwriteAllowed.False;
-        _options.MaxVersionsPerPackage = 5;
+
+        _retentionOptions.MaxHistoryPerMajorVersion = 2;
+        _retentionOptions.MaxHistoryPerMinorVersion = 2;
+        _retentionOptions.MaxHistoryPerPatch = 5;
+        _retentionOptions.MaxHistoryPerPrerelease = 5;
         // Add 10 packages
-        for (var i = 0; i < 10; i++)
+        for (var major = 1; major < 4; major++)
+        {
+            for (var minor = 1; minor < 4; minor++)
+            {
+                for (var patch = 1; patch < 7; patch++)
+                {
+                    await StoreVersion(NuGetVersion.Parse($"{major}.{minor}.{patch}"));
+                    for (var prerelease = 1; prerelease < 7; prerelease++)
+                    {
+                        await StoreVersion(NuGetVersion.Parse($"{major}.{minor}.{patch}-staging.{prerelease}"));
+
+                        var version = NuGetVersion.Parse($"{major}.{minor}.{patch}-beta.{prerelease}");
+
+                        var builder = await StoreVersion(version);
+
+                        var packageVersions = await _packages.FindAsync(builder.Id, true, default);
+                        var majorCount = packageVersions.Select(p => p.Version.Major).Distinct().Count();
+                        Assert.Equal(majorCount, Math.Min(major, (int)_retentionOptions.MaxHistoryPerMajorVersion));
+                        Assert.True(majorCount <= _retentionOptions.MaxHistoryPerMajorVersion, $"Major version {major} has {majorCount} packages");
+
+                        // validate maximum number of minor versions for each major version.
+                        var minorVersions = packageVersions.GroupBy(m => m.Version.Major)
+                            .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor).Distinct().Count())).ToList();
+                        Assert.All(minorVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerMinorVersion, $"Minor version {g.version} has {g.versionCount} packages"));
+
+                        // validate maximum number of minor versions for each major version.
+                        var patches = packageVersions.GroupBy(m => (m.Version.Major, m.Version.Minor))
+                            .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor + "." + p.Version.Patch).Distinct().Count())).ToList();
+                        Assert.All(patches, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerPatch, $"Patch version {g.version} has {g.versionCount} packages"));
+
+                        // validate maximum number of beta versions for each major,minor,patch version.
+                        var betaVersions = packageVersions.Where(p => p.IsPrerelease && p.Version.ReleaseLabels.First() == "beta")
+                            .GroupBy(m => (m.Version.Major, m.Version.Minor, m.Version.Patch))
+                            .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor + "." + p.Version.Patch).Distinct().Count())).ToList();
+                        Assert.All(betaVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerPatch, $"Pre-Release version {g.version} has {g.versionCount} packages"));
+
+
+                    }
+                }
+            }
+
+        }
+    }
+
+    private async Task<PackageBuilder> StoreVersion(NuGetVersion version)
         {
             var builder = new PackageBuilder
             {
                 Id = "bagetter-test",
-                Version = NuGetVersion.Parse($"1.0.{i}"),
+            Version = version,
                 Description = "Test Description",
             };
             builder.Authors.Add("Test Author");
@@ -264,8 +309,6 @@ public class PackageIndexingServiceInMemoryTests
             //_packages.Setup(p => p.ExistsAsync(builder.Id, builder.Version, default)).ReturnsAsync(false);
             //_packages.Setup(p => p.AddAsync(It.Is<Package>(p1 => p1.Id == builder.Id && p1.Version.ToString() == builder.Version.ToString()), default)).ReturnsAsync(PackageAddResult.Success);
 
-            _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
-
             _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
 
             // Act
@@ -273,17 +316,7 @@ public class PackageIndexingServiceInMemoryTests
 
             // Assert
             Assert.Equal(PackageIndexingResult.Success, result);
-
-            var packageCount = await _packages.FindAsync(builder.Id, true, default);
-            if (i < 5)
-            {
-                Assert.Equal(i + 1, packageCount.Count);
-            }
-            else
-            {
-                Assert.Equal(5, packageCount.Count);
-            }
-        }
+        return builder;
     }
 
 }

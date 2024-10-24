@@ -175,16 +175,27 @@ downloaded if you know the package's id and version. You can override this behav
 }
 ```
 
-## Enable package auto-deletion
+## Package auto-deletion
 
-If your build server generates many nuget packages, your BaGet server can quickly run out of space. To avoid this issue, `MaxVersionsPerPackage` can be configured to auto-delete packages older packages when a new one is uploaded. This will use the `HardDelete` option detailed above and will unlist and delete the files for the older packages. By default this value is not configured and no packages will be deleted automatically.
+If your build server generates many nuget packages, your BaGet server can quickly run out of space. Bagetter leverages [SemVer 2](https://semver.org/) and has logic to keep a history of packages based on the version numbering such as `<major>.<minor>.<patch>-<prerelease tag>.<prerelease build number>`.
+
+There is an optional section for `Retention` and the following parameters can be enabled to limit history for each level of the version. If none of these are set, there are no cleaning rules enforced. Each parameter is optional, e.g. if you specify only a `MaxHistoryPerPatch`, the package limit will only enforced for each major and minor version combination.
+Packages deleted are always the oldest based on version numbers.
+
+- MaxHistoryPerMajorVersion: Maximum number of major versions
+- MaxHistoryPerMinorVersion: Maximum number of minor versions for each major version
+- MaxHistoryPerPatch: Maximum number of patch versions for each major + minor version
+- MaxHistoryPerPrerelease: Maximum number of prerelease versions for each major + minor + patch version and prerelease type. if you have `beta` and `alpha` this will keep `MaxHistoryPerPrerelease` versions for both `beta` and `alpha`.
 
 ```json
 {
     ...
-
-    "MaxVersionsPerPackage ": 5,
-
+    "Retention": {
+        "MaxHistoryPerMajorVersion": 5,
+        "MaxHistoryPerMinorVersion": 5,
+        "MaxHistoryPerPatch": 5,
+        "MaxHistoryPerPrerelease": 5,
+    }
     ...
 }
 ```
