@@ -170,10 +170,10 @@ public class PackageDeletionService : IPackageDeletionService
     }
 
     /// <summary>
-    /// If we have 1.1.1-alpha.1 , this will return 1
-    /// or null if not valid
+    /// Tries to get the version number of a pre-release build.<br/>
+    /// If we have 1.1.1-alpha.1 , this will return 1 or <c>null</c> if not valid.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The version as <c>int</c> or <c>null</c> if not found.</returns>
     private int? GetPreReleaseBuild(NuGetVersion nuGetVersion)
     {
         if (nuGetVersion.IsPrerelease && nuGetVersion.ReleaseLabels != null)
