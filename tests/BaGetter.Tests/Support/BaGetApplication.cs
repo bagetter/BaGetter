@@ -4,7 +4,9 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Authentication;
 using BaGetter.Core;
+using BaGetter.Web.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -23,11 +25,13 @@ public class BaGetterApplication : WebApplicationFactory<Startup>
 {
     private readonly ITestOutputHelper _output;
     private readonly HttpClient _upstreamClient;
+    private readonly Action<Dictionary<string, string>> _inMemoryConfiguration;
 
-    public BaGetterApplication(ITestOutputHelper output, HttpClient upstreamClient = null)
+    public BaGetterApplication(ITestOutputHelper output, HttpClient upstreamClient = null, Action<Dictionary<string, string>> inMemoryConfiguration = null)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _upstreamClient = upstreamClient;
+        this._inMemoryConfiguration = inMemoryConfiguration;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -58,7 +62,7 @@ public class BaGetterApplication : WebApplicationFactory<Startup>
             .ConfigureAppConfiguration(config =>
             {
                 // Setup the integration test configuration.
-                config.AddInMemoryCollection(new Dictionary<string, string>
+                var dict = new Dictionary<string, string>
                 {
                     { "Database:Type", "Sqlite" },
                     { "Database:ConnectionString", $"Data Source={sqlitePath}" },
@@ -67,7 +71,11 @@ public class BaGetterApplication : WebApplicationFactory<Startup>
                     { "Search:Type", "Database" },
                     { "Mirror:Enabled", _upstreamClient != null ? "true": "false" },
                     { "Mirror:PackageSource", "http://localhost/v3/index.json" },
-                });
+                };
+                _inMemoryConfiguration?.Invoke(dict);
+
+                config.AddInMemoryCollection(dict);
+
             })
             .ConfigureServices((context, services) =>
             {

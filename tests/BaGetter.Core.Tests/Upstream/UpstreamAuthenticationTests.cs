@@ -121,12 +121,16 @@ public class UpstreamAuthenticationTests
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IConfiguration>(new ConfigurationBuilder().Build())
             .AddSingleton(new HttpClient(mockHandler.Object))
-            .AddBaGetterApplication(app => { })
-            .Configure<MirrorOptions>(opt =>
+            .AddBaGetterApplication(app =>
             {
-                opt.PackageSource = new Uri("http://localhost/v3/index.json");
-                setupOptions(opt);
+                app.Services
+               .Configure<MirrorOptions>(opt =>
+               {
+                   opt.PackageSource = new Uri("http://localhost/v3/index.json");
+                   setupOptions(opt);
+               });
             })
+            .Services
             .BuildServiceProvider();
         serviceProvider.GetRequiredService<NuGetClientFactory>();
 
