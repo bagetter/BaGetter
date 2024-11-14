@@ -150,7 +150,6 @@ public class PackageDeletionService : IPackageDeletionService
                 var preReleaseVersions = preReleases.Where(p => p.ReleaseLabels!.FirstOrDefault() == preReleaseType
                         && GetPreReleaseBuild(p) is not null).ToList();
 
-                
                 allPreReleaseValidVersions.UnionWith
                     (GetValidVersions(preReleaseVersions,
                         v => (v.Major, v.Minor, v.Patch), v => GetPreReleaseBuild(v).Value, (int)maxPrerelease));
