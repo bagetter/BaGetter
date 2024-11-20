@@ -37,6 +37,12 @@ public class PackageIndexingService : IPackageIndexingService
         _retentionOptions = retentionOptions ?? throw new ArgumentNullException(nameof(retentionOptions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _packageDeletionService = packageDeletionService ?? throw new ArgumentNullException(nameof(packageDeletionService));
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (_options.Value.MaxVersionsPerPackage > 0)
+        {
+            _logger.LogError("MaxVersionsPerPackage is deprecated and is not used. Please use MaxHistoryPerMajorVersion, MaxHistoryPerMinorVersion, MaxHistoryPerPatch, and MaxHistoryPerPrerelease instead.");
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public async Task<PackageIndexingResult> IndexAsync(Stream packageStream, CancellationToken cancellationToken)
