@@ -177,24 +177,24 @@ downloaded if you know the package's id and version. You can override this behav
 
 ## Package auto-deletion
 
-If your build server generates many nuget packages, your BaGet server can quickly run out of space. Bagetter leverages [SemVer 2](https://semver.org/) and has logic to keep a history of packages based on the version numbering such as `<major>.<minor>.<patch>-<prerelease tag>.<prerelease build number>`.
+If your build server generates many nuget packages, your BaGetter server can quickly run out of space. Bagetter leverages [SemVer 2](https://semver.org/) and has logic to keep a history of packages based on the version numbering such as `<major>.<minor>.<patch>-<prerelease tag>.<prerelease build number>`.
 
-There is an optional section for `Retention` and the following parameters can be enabled to limit history for each level of the version. If none of these are set, there are no cleaning rules enforced. Each parameter is optional, e.g. if you specify only a `MaxHistoryPerPatch`, the package limit will only enforced for each major and minor version combination.
+There is an optional config section for `Retention` and the following parameters can be enabled to limit history for each level of the version. If none of these are set, there are no cleaning rules enforced. Each parameter is optional, e.g. if you specify only a `MaxPatchVersions`, the package limit will only enforced within each major and minor version combination.
 Packages deleted are always the oldest based on version numbers.
 
-- MaxHistoryPerMajorVersion: Maximum number of major versions
-- MaxHistoryPerMinorVersion: Maximum number of minor versions for each major version
-- MaxHistoryPerPatch: Maximum number of patch versions for each major + minor version
-- MaxHistoryPerPrerelease: Maximum number of prerelease versions for each major + minor + patch version and prerelease type. if you have `beta` and `alpha` this will keep `MaxHistoryPerPrerelease` versions for both `beta` and `alpha`.
+- MaxMajorVersions: Maximum number of major versions for each package
+- MaxMinorVersions: Maximum number of minor versions for each major version
+- MaxPatchVersions: Maximum number of patch versions for each major + minor version
+- MaxPrereleaseVersions: Maximum number of prerelease builds for each major + minor + patch version and prerelease type. If you have `beta` and `alpha` this will keep `MaxPrereleaseVersions` versions for both `beta` and `alpha`.
 
 ```json
 {
     ...
     "Retention": {
-        "MaxHistoryPerMajorVersion": 5,
-        "MaxHistoryPerMinorVersion": 5,
-        "MaxHistoryPerPatch": 5,
-        "MaxHistoryPerPrerelease": 5,
+        "MaxMajorVersions": 5,
+        "MaxMinorVersions": 5,
+        "MaxPatchVersions": 5,
+        "MaxPrereleaseVersions": 5,
     }
     ...
 }

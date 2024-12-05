@@ -40,7 +40,7 @@ public class PackageIndexingService : IPackageIndexingService
 #pragma warning disable CS0618 // Type or member is obsolete
         if (_options.Value.MaxVersionsPerPackage > 0)
         {
-            _logger.LogError("MaxVersionsPerPackage is deprecated and is not used. Please use MaxHistoryPerMajorVersion, MaxHistoryPerMinorVersion, MaxHistoryPerPatch, and MaxHistoryPerPrerelease instead.");
+            _logger.LogError("MaxVersionsPerPackage is deprecated and is not used. Please use MaxMajorVersions, MaxMinorVersions, MaxPatchVersions, and MaxPrereleaseVersions instead.");
         }
 #pragma warning restore CS0618 // Type or member is obsolete
     }
@@ -165,19 +165,20 @@ public class PackageIndexingService : IPackageIndexingService
 
         await _search.IndexAsync(package, cancellationToken);
 
-        if (_retentionOptions.Value.MaxHistoryPerMajorVersion.HasValue)
+        if (_retentionOptions.Value.MaxMajorVersions.HasValue)
         {
             try { 
                 _logger.LogInformation(
                     "Deleting older packages for package {PackageId} {PackageVersion}",
                     package.Id,
                     package.NormalizedVersionString);
+
                 var deleted = await _packageDeletionService.DeleteOldVersionsAsync(
                     package,
-                    _retentionOptions.Value.MaxHistoryPerMajorVersion,
-                    _retentionOptions.Value.MaxHistoryPerMinorVersion,
-                    _retentionOptions.Value.MaxHistoryPerPatch,
-                    _retentionOptions.Value.MaxHistoryPerPrerelease,
+                    _retentionOptions.Value.MaxMajorVersions,
+                    _retentionOptions.Value.MaxMinorVersions,
+                    _retentionOptions.Value.MaxPatchVersions,
+                    _retentionOptions.Value.MaxPrereleaseVersions,
                     cancellationToken);
                 if (deleted > 0)
                 {
