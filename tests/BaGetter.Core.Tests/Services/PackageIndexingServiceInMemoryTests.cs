@@ -240,10 +240,10 @@ public class PackageIndexingServiceInMemoryTests
         // Arrange
         _options.AllowPackageOverwrites = PackageOverwriteAllowed.False;
 
-        _retentionOptions.MaxHistoryPerMajorVersion = 2;
-        _retentionOptions.MaxHistoryPerMinorVersion = 2;
-        _retentionOptions.MaxHistoryPerPatch = 5;
-        _retentionOptions.MaxHistoryPerPrerelease = 5;
+        _retentionOptions.MaxMajorVersions = 2;
+        _retentionOptions.MaxMinorVersions = 2;
+        _retentionOptions.MaxPatchVersions = 5;
+        _retentionOptions.MaxPrereleaseVersions = 5;
         // Add 10 packages
         for (var major = 1; major < 4; major++)
         {
@@ -262,24 +262,24 @@ public class PackageIndexingServiceInMemoryTests
 
                         var packageVersions = await _packages.FindAsync(builder.Id, true, default);
                         var majorCount = packageVersions.Select(p => p.Version.Major).Distinct().Count();
-                        Assert.Equal(majorCount, Math.Min(major, (int)_retentionOptions.MaxHistoryPerMajorVersion));
-                        Assert.True(majorCount <= _retentionOptions.MaxHistoryPerMajorVersion, $"Major version {major} has {majorCount} packages");
+                        Assert.Equal(majorCount, Math.Min(major, (int)_retentionOptions.MaxMajorVersions));
+                        Assert.True(majorCount <= _retentionOptions.MaxMajorVersions, $"Major version {major} has {majorCount} packages");
 
                         // validate maximum number of minor versions for each major version.
                         var minorVersions = packageVersions.GroupBy(m => m.Version.Major)
                             .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor).Distinct().Count())).ToList();
-                        Assert.All(minorVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerMinorVersion, $"Minor version {g.version} has {g.versionCount} packages"));
+                        Assert.All(minorVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxMinorVersions, $"Minor version {g.version} has {g.versionCount} packages"));
 
                         // validate maximum number of minor versions for each major version.
                         var patches = packageVersions.GroupBy(m => (m.Version.Major, m.Version.Minor))
                             .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor + "." + p.Version.Patch).Distinct().Count())).ToList();
-                        Assert.All(patches, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerPatch, $"Patch version {g.version} has {g.versionCount} packages"));
+                        Assert.All(patches, g => Assert.True(g.versionCount <= _retentionOptions.MaxPatchVersions, $"Patch version {g.version} has {g.versionCount} packages"));
 
                         // validate maximum number of beta versions for each major,minor,patch version.
                         var betaVersions = packageVersions.Where(p => p.IsPrerelease && p.Version.ReleaseLabels.First() == "beta")
                             .GroupBy(m => (m.Version.Major, m.Version.Minor, m.Version.Patch))
                             .Select(gp => (version: gp.Key, versionCount: gp.Select(p => p.Version.Major + "." + p.Version.Minor + "." + p.Version.Patch).Distinct().Count())).ToList();
-                        Assert.All(betaVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxHistoryPerPatch, $"Pre-Release version {g.version} has {g.versionCount} packages"));
+                        Assert.All(betaVersions, g => Assert.True(g.versionCount <= _retentionOptions.MaxPatchVersions, $"Pre-Release version {g.version} has {g.versionCount} packages"));
 
 
                     }
