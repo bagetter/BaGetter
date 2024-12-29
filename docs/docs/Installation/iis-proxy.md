@@ -4,7 +4,7 @@ With a few extra steps you can run BaGetter behind a Windows IIS proxy. This has
 
 ## IIS setup
 
-1. Install the [.NET Core Runtime](https://dotnet.microsoft.com/download) on the web server.
+1. Install the [.NET 8 Runtime](https://dotnet.microsoft.com/download) on the web server.
 2. Copy the BaGetter directory over to your hosting area such as `C:\Inetpub\wwwroot\BaGetter`
 3. Using IIS Manager, create a new Application Pool:
     - Name = `BaGetterAppPool` (can be whatever you want)
