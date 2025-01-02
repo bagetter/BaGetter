@@ -28,12 +28,12 @@ public class BaGetterUrlGenerator : IUrlGenerator
 
     public string GetPackageContentResourceUrl()
     {
-        return AbsoluteUrl("v3/package");
+        return AbsoluteUrl("v3/package/");
     }
 
     public string GetPackageMetadataResourceUrl()
     {
-        return AbsoluteUrl("v3/registration");
+        return AbsoluteUrl("v3/registration/");
     }
 
     public string GetPackagePublishResourceUrl()

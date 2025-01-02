@@ -51,7 +51,7 @@ public class ApiIntegrationTests : IDisposable
         Assert.Equal(@"{
   ""@context"": {
     ""@vocab"": ""http://schema.nuget.org/schema#"",
-    ""@base"": ""http://localhost/v3/registration""
+    ""@base"": ""http://localhost/v3/registration/""
   },
   ""totalHits"": 1,
   ""data"": [
@@ -93,7 +93,7 @@ public class ApiIntegrationTests : IDisposable
         Assert.Equal(@"{
   ""@context"": {
     ""@vocab"": ""http://schema.nuget.org/schema#"",
-    ""@base"": ""http://localhost/v3/registration""
+    ""@base"": ""http://localhost/v3/registration/""
   },
   ""totalHits"": 0,
   ""data"": []

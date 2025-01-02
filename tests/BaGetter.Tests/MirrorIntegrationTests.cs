@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -38,7 +38,7 @@ public class MirrorIntegrationTests : IDisposable
         Assert.Equal(@"{
   ""@context"": {
     ""@vocab"": ""http://schema.nuget.org/schema#"",
-    ""@base"": ""http://localhost/v3/registration""
+    ""@base"": ""http://localhost/v3/registration/""
   },
   ""totalHits"": 0,
   ""data"": []
