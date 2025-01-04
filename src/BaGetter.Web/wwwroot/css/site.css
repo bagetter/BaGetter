@@ -1,5 +1,90 @@
-/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
+:root {
+  /* Layout */
+  --body-bg-color: #fff;
+  --footer-bg-color: #d3d3d3;
+  --footer-text-color: rgb(51, 51, 51);
+  --text-color: #333;
+  /* Navigation */
+  --navbar-bg-color: #004880;
+  --navbar-border-color: #002b4d;
+  --navbar-text-color: #e3ebf1;
+  --navbar-active-text-color: #fff;
+  /* Search */
+  --search-button-bg-color: #d87e00;
+  --search-button-border-color: #bf6f00;
+  --search-button-hover-bg-color: #a56000;
+  --search-button-hover-border-color: #814b00;
+  /* Alerts */
+  --alert-warning-bg-color: #fff4ce;
+  --alert-warning-border-color: #fff4ce;
+  --alert-warning-text-color: #000;
+  /* Tabbed Instructions */
+  --tabbed-info-bg-color: #eaeaea;
+  --tabbed-info-active-bg-color: #002440;
+  --tabbed-info-active-text-color: #fff;
+  --tabbed-info-inactive-text-color: #000;
+  --tabbed-info-script-bg-color: #002440;
+  --tabbed-info-script-text-color: #fff;
+  --copy-button-bg-color: #d87e00;
+  --copy-button-border-color: #bf6f00;
+  --copy-button-hover-bg-color: #a56000;
+  --copy-button-hover-border-color: #814b00;
+  /* Package Page */
+  --link-button-color: #337ab7;
+  --package-details-tag-bg-color: #eff9ff;
+  --package-used-by-border-color: #d3d3d3;
+  --versions-table-bg-color-current: #d9edf7;
+  --versions-table-bg-color: --body-bg-color;
+  /* Upload page */
+  --code-bg-color: #f9f2f4;
+  --code-text-color: #c7254e;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Layout */
+    --body-bg-color: #121212;
+    --footer-bg-color: #333;
+    --footer-text-color: #fff;
+    --text-color: #ccc;
+    /* Navigation */
+    --navbar-bg-color: #1a1a1a;
+    --navbar-border-color: #333;
+    --navbar-text-color: #bbb;
+    --navbar-active-text-color: #fff;
+    /* Search */
+    --search-button-bg-color: #ff9800;
+    --search-button-border-color: #e68900;
+    --search-button-hover-bg-color: #cc7a00;
+    --search-button-hover-border-color: #b36b00;
+    /* Alerts */
+    --alert-warning-bg-color: #333;
+    --alert-warning-border-color: #333;
+    --alert-warning-text-color: #fff;
+    /* Tabbed Instructions */
+    --tabbed-info-bg-color: #444;
+    --tabbed-info-active-bg-color: #1a1a1a;
+    --tabbed-info-active-text-color: #fff;
+    --tabbed-info-inactive-text-color: #999;
+    --tabbed-info-script-bg-color: #1a1a1a;
+    --tabbed-info-script-text-color: #fff;
+    --copy-button-bg-color: #ff9800;
+    --copy-button-border-color: #e68900;
+    --copy-button-hover-bg-color: #cc7a00;
+    --copy-button-hover-border-color: #b36b00;
+    /* Package Page */
+    --link-button-color: #337ab7;
+    --package-details-tag-bg-color: #444;
+    --package-used-by-border-color: #555;
+    --versions-table-bg-color-current: #333;
+    --versions-table-bg-color: --body-bg-color;
+    /* Upload page */
+    --code-bg-color: #2d2d2d;
+    --code-text-color: #e06c75;
+  }
+}
+
 
 /* Layout
 -------------------------------------------------- */
@@ -16,6 +101,8 @@ body {
   font-size: 16px;
   display: flex;
   flex-direction: column;
+  background-color: var(--body-bg-color);
+  color: var(--text-color);
 }
 
 main {
@@ -24,7 +111,8 @@ main {
 
 .footer {
   flex-shrink: 0;
-  background-color: #d3d3d3;  
+  background-color: var(--footer-bg-color);
+  color: var(--footer-text-color)
 }
 
 .footer p {
@@ -92,9 +180,9 @@ h4 {
 }
 
 .alert-warning {
-  color: #000;
-  background-color: #fff4ce;
-  border-color: #fff4ce;
+  color: var(--alert-warning-text-color);
+  background-color: var(--alert-warning-bg-color);
+  border-color: var(--alert-warning-border-color);
 }
 
 /* Navigation
@@ -104,8 +192,8 @@ h4 {
 }
 
 .navbar-inverse {
-  background-color: #004880;
-  border-color: #002b4d;
+  background-color: var(--navbar-bg-color);
+  border-color: var(--navbar-border-color);
 }
 
 .navbar {
@@ -114,7 +202,7 @@ h4 {
 
 .navbar-inverse .navbar-nav > li > a {
   font-weight: 100;
-  color: #e3ebf1;
+  color: var(--navbar-text-color);
 }
 
 .navbar-nav > li > a {
@@ -122,7 +210,7 @@ h4 {
 }
 
 .navbar-inverse .navbar-nav a.active {
-  color: #e3ebf1;
+  color: var(--navbar-active-text-color);
 }
 
 .navbar-inverse .navbar-nav a.active,
@@ -160,42 +248,24 @@ h4 {
   border-radius: 0;
 }
 
-.search-container button {
-  height: 34px;
-  color: #fff;
-  background-color: #d87e00;
-  border-color: #bf6f00;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
+  .search-container button {
+    height: 34px;
+    color: #fff;
+    background-color: var(--search-button-bg-color);
+    border-color: var(--search-button-border-color);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 
-.search-container button:active,
-.search-container button:active:focus,
-.search-container button:active:hover,
-.search-container button:focus,
-.search-container button:hover {
-  background-color: #a56000;
-  border-color: #814b00;
-  color: #fff;
-}
-
-.link-button {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline;
-  margin: 0;
-  padding: 0;
-  color: #337ab7;
-}
-
-.link-button:hover,
-.link-button:focus {
-  outline: none;
-  text-decoration: underline;
-  color: #23527c;
-}
+  .search-container button:active,
+  .search-container button:active:focus,
+  .search-container button:active:hover,
+  .search-container button:focus,
+  .search-container button:hover {
+    background-color: var(--search-button-hover-bg-color);
+    border-color: var(--search-button-hover-border-color);
+    color: #fff;
+  }
 
 /* Index page
 -------------------------------------------------- */
@@ -301,42 +371,43 @@ h4 {
   display: block;
 }
 
-.tabbed-info li a {
-  padding: 5px 10px;
-  margin: 0;
-  color: #000;
-  background-color: #eaeaea;
-  border: 0;
-  position: relative;
-  display: block;
-  text-decoration: none;
-}
+  .tabbed-info li a {
+    padding: 5px 10px;
+    margin: 0;
+    color: #000;
+    background-color: var(--tabbed-info-bg-color);
+    color: var(--tabbed-info-inactive);
+    border: 0;
+    position: relative;
+    display: block;
+    text-decoration: none;
+  }
 
-.tabbed-info li.active a {
-  font-weight: 600;
-  color: #fff;
-  text-decoration: underline;
-  background-color: #002440;
-}
+  .tabbed-info li.active a {
+    font-weight: 600;
+    color: var(--tabbed-info-active-text-color);
+    text-decoration: underline;
+    background-color: var(--tabbed-info-active-bg-color);
+  }
 
 .tabbed-info .content {
   display: table;
   height: 1px;
 }
 
-.tabbed-info .content .script {
-  display: table-cell;
-  width: 100%;
-  max-width: 1px;
-  padding: 0 10px 8px 10px;
-  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
-  line-height: 1.5;
-  color: #fff;
-  background-color: #002440;
-  border-color: #002440;
-  border-style: solid;
-  border-width: 1px 0 1px 1px;
-}
+  .tabbed-info .content .script {
+    display: table-cell;
+    width: 100%;
+    max-width: 1px;
+    padding: 0 10px 8px 10px;
+    font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+    line-height: 1.5;
+    color: var(--tabbed-info-script-text-color);
+    background-color: var(--tabbed-info-script-bg-color);
+    border-color: #002440;
+    border-style: solid;
+    border-width: 1px 0 1px 1px;
+  }
 
 .tabbed-info .content .script .script-line:before {
   content: "> ";
@@ -355,23 +426,23 @@ h4 {
 
 .copy-button button {
   color: #fff;
-  background-color: #d87e00;
-  border-color: #bf6f00;
+  background-color: var(--copy-button-bg-color);
+  border-color: var(--copy-button-border-color);
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.copy-button button:active,
-.copy-button button:active:focus,
-.copy-button button:active:hover,
-.copy-button button:focus,
-.copy-button button:hover {
-  background-color: #a56000;
-  border-color: #814b00;
-  color: #fff;
-}
+  .copy-button button:active,
+  .copy-button button:active:focus,
+  .copy-button button:active:hover,
+  .copy-button button:focus,
+  .copy-button button:hover {
+    background-color: var(--copy-button-hover-bg-color);
+    border-color: var(--copy-button-hover-border-color);
+    color: #fff;
+  }
 
-    /* Package page
+/* Package page
 -------------------------------------------------- */
 .display-package .package-icon {
   margin-top: 15px;
@@ -428,15 +499,15 @@ h4 {
   margin-top: 3px;
 }
 
-.package-details-info .tag {  
-  background-color: #eff9ff;
-  padding: 2px 10px;
-  line-height: 2em;
-  margin: 0 2px;
-}
+  .package-details-info .tag {
+    background-color: var(--package-details-tag-bg-color);
+    padding: 2px 10px;
+    line-height: 2em;
+    margin: 0 2px;
+  }
 
 .display-package .expandable-section h2 button {
-  color: #000;
+  color: var(--text-color);
   text-decoration: none;
 }
 
@@ -454,10 +525,12 @@ h4 {
 
 .display-package .package-used-by thead tr {
   border-bottom: 2px solid #d3d3d3;
+  border-color: var(--package-used-by-border-color);
 }
 
 .display-package .package-used-by tbody tr {
   border-bottom: 1px solid #d3d3d3;
+  border-color: var(--package-used-by-border-color);
 }
 
 .display-package .package-used-by td div {
@@ -485,4 +558,37 @@ h4 {
   position: relative;
   top: 2px;
   margin-right: 5px;
+}
+
+.display-package .version-list tbody {
+  background-color: var(--versions-table-bg-color);
+}
+
+  .display-package .version-list tbody .bg-info {
+    background-color: var(--versions-table-bg-color-current);
+  }
+
+.link-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  color: var(--link-button-color);
+}
+
+  .link-button:hover,
+  .link-button:focus {
+    outline: none;
+    text-decoration: underline;
+    color: #23527c;
+  }
+
+/* Upload page
+-------------------------------------------------- */
+code {
+  background-color: var(--code-bg-color);
+  color: var(--code-text-color);
 }
