@@ -41,7 +41,10 @@ public class PostgreSqlContext : AbstractContext<PostgreSqlContext>
         // See: https://github.com/npgsql/efcore.pg/issues/170#issuecomment-303417225
         if (Database.GetDbConnection() is NpgsqlConnection connection)
         {
-            await connection.OpenAsync(cancellationToken);
+            // The connection may be open if migrations were applied.
+            // See: https://github.com/bagetter/BaGetter/issues/196
+            if (connection.State == System.Data.ConnectionState.Closed)
+                await connection.OpenAsync(cancellationToken);
             connection.ReloadTypes();
         }
     }
