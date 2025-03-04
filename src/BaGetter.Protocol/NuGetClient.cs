@@ -21,6 +21,8 @@ public class NuGetClient
     private readonly ISearchClient _searchClient;
     private readonly IAutocompleteClient _autocompleteClient;
 
+    public string ServiceIndexUrl { get; }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="NuGetClient"/> class
     /// for mocking.
@@ -50,6 +52,7 @@ public class NuGetClient
         _metadataClient = clientFactory.CreatePackageMetadataClient();
         _searchClient = clientFactory.CreateSearchClient();
         _autocompleteClient = clientFactory.CreateAutocompleteClient();
+        ServiceIndexUrl = serviceIndexUrl;
     }
 
     /// <summary>
@@ -335,7 +338,7 @@ public class NuGetClient
         int take,
         CancellationToken cancellationToken = default)
     {
-        var response =  await _searchClient.SearchAsync(
+        var response = await _searchClient.SearchAsync(
             query,
             skip,
             take,
