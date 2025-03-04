@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BaGetter.Protocol;
 using BaGetter.Protocol.Models;
 using Microsoft.Extensions.Logging;
+using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
 namespace BaGetter.Core;
@@ -29,6 +30,7 @@ public class V3UpstreamClient : IUpstreamClient
         _client = client;
         _logger = logger;
     }
+    public string GetServiceIndexUrl() => _client.ServiceIndexUrl;
 
     public async Task<Stream> DownloadPackageOrNullAsync(
         string id,
