@@ -71,6 +71,10 @@ namespace BaGetter.Database.PostgreSql.Migrations
                         .HasColumnType("character varying(44)")
                         .HasMaxLength(44);
 
+                    b.Property<string>("MirroredFrom")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<string>("NormalizedVersionString")
                         .IsRequired()
                         .HasColumnName("Version")

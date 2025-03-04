@@ -70,6 +70,10 @@ namespace BaGetter.Database.SqlServer.Migrations
                         .HasColumnType("nvarchar(44)")
                         .HasMaxLength(44);
 
+                    b.Property<string>("MirroredFrom")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
                     b.Property<string>("NormalizedVersionString")
                         .IsRequired()
                         .HasColumnName("Version")

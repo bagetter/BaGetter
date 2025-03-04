@@ -283,7 +283,7 @@ public class PackageServiceTests
             await TargetAsync();
 
             _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _cancellationToken),
+                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
                 Times.Never);
         }
 
@@ -301,7 +301,7 @@ public class PackageServiceTests
             await TargetAsync();
 
             _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _cancellationToken),
+                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
                 Times.Never);
         }
 
@@ -319,7 +319,7 @@ public class PackageServiceTests
             await TargetAsync();
 
             _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _cancellationToken),
+                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
                 Times.Never);
         }
 
@@ -338,7 +338,7 @@ public class PackageServiceTests
             await TargetAsync();
 
             _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _cancellationToken),
+                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
                 Times.Once);
         }
     }
