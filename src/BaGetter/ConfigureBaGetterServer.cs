@@ -40,7 +40,7 @@ public class ConfigureBaGetterServer
 
     public void Configure(ForwardedHeadersOptions options)
     {
-        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
 
         // Do not restrict to local network/proxy
         options.KnownNetworks.Clear();
