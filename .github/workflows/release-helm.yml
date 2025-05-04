@@ -1,4 +1,4 @@
-name: Release
+name: Release-Helm
 
 on:
   workflow_dispatch:
