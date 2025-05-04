@@ -33,7 +33,7 @@ jobs:
       RELEASE_MAJOR_VERSION: ${{ steps.get-version-tag.outputs.RELEASE_MAJOR_VERSION }}
   
   release_helm_chart:
-    if: ${{ github.ref_type == 'tag' }}
+    # if: ${{ github.ref_type == 'tag' }}
     needs: [version]
     name: Release Helm chart to GitHub
     runs-on: ubuntu-latest
