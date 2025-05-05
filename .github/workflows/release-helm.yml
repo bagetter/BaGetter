@@ -138,9 +138,10 @@ jobs:
           set -ex
           git config --local user.name "$GITHUB_ACTOR"
           git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          cd ${{ github.workspace }}/helm-chart-repo
           mkdir -p .cr-index
           owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
           repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
           cr index --git-repo "$repo" --owner "$owner" --pages-branch '${{ env.CHART_REPO_BRANCH }}' \
-            --package-path '../${{ steps.package.outputs.dir }}' \
+            --package-path '${{ github.workspace }}/helm-chart-repo' \
             --index-path .cr-index --push
