@@ -111,8 +111,8 @@ jobs:
           ref: gh-pages
           path: '${{ steps.package.outputs.dir }}'
           fetch-depth: 0
-      - name: Fetch history
-        run: git checkout origin/gh-pages index.yaml
+      # - name: Fetch history
+      #   run: git checkout origin/gh-pages index.yaml
 
       - name: Upload packages
         run: |
