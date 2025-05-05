@@ -121,6 +121,7 @@ jobs:
           owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
           repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
           cd ${{ github.workspace }}/helm-chart-repo
+          cp -r ../${{ steps.package.outputs.dir }}/* .
           cr upload --commit '${{ github.sha }}' --git-repo "$repo" --owner "$owner" --token '${{ github.token }}' \
             --package-path '${{ steps.package.outputs.dir }}' --skip-existing
 
