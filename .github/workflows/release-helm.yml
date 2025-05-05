@@ -93,16 +93,26 @@ jobs:
                 | sh --;
               fi
             done
-
-      - name: Package charts
-        id: package
-        run: |
-          set -ex
-          PACKAGES=.cr-release-packages
-          echo '${{ steps.charts.outputs.charts }}' \
-          | yq --indent 0 --no-colors --input-format json --unwrapScalar '.[]' \
-          | xargs -d$'\n' cr package --package-path "$PACKAGES"
-          echo "dir=${PACKAGES}" >> $GITHUB_OUTPUT
+            - name: Package charts
+            id: package
+            run: |
+              set -ex
+              PACKAGES=.cr-release-packages
+              echo '${{ steps.charts.outputs.charts }}' \
+              | yq --indent 0 --no-colors --input-format json --unwrapScalar '.[]' \
+              | xargs -d$'\n' cr package --package-path "$PACKAGES"
+              echo "dir=${PACKAGES}" >> $GITHUB_OUTPUT
+    
+      - name: Checkout chart repo
+        uses: actions/checkout@v4
+        with:
+          repository: bagetter/helm-chart-repo
+          token: ${{ secrets.GH_PAGES_DEPLOY }}
+          ref: gh-pages
+          path: '${{ steps.package.outputs.dir }}'
+          fetch-depth: 0
+      - name: Fetch history
+        run: git checkout origin/gh-pages index.yaml
 
       - name: Upload packages
         run: |
