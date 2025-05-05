@@ -7,131 +7,58 @@ on:
         description: 'Tags'
         required: true
         type: string
-# on:
-#   push:
-#     tags:
-#       - 'v*.*.*'
-
-jobs:
-  version:
-    runs-on: ubuntu-latest
-    steps:
-      - id: get-version-tag
-        run: |
-          export GITHUB_REF_NAME="${{ github.ref_name }}"
-          export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
-          export RELEASE_MAJOR_VERSION="${RELEASE_VERSION%%.*}"
-          export remaining_version="${RELEASE_VERSION#*.}"
-          export RELEASE_MINOR_VERSION="${RELEASE_MAJOR_VERSION}.${remaining_version%%.*}"
-
-          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-          echo "RELEASE_MINOR_VERSION=$RELEASE_MINOR_VERSION" >> $GITHUB_OUTPUT
-          echo "RELEASE_MAJOR_VERSION=$RELEASE_MAJOR_VERSION" >> $GITHUB_OUTPUT
-    outputs:
-      RELEASE_VERSION: ${{ steps.get-version-tag.outputs.RELEASE_VERSION }}
-      RELEASE_MINOR_VERSION: ${{ steps.get-version-tag.outputs.RELEASE_MINOR_VERSION }}
-      RELEASE_MAJOR_VERSION: ${{ steps.get-version-tag.outputs.RELEASE_MAJOR_VERSION }}
   
-  release_helm_chart:
-    # if: ${{ github.ref_type == 'tag' }}
-    needs: [version]
-    name: Release Helm chart to GitHub
+jobs:
+  release:
+    name: Release Helm Chart
     runs-on: ubuntu-latest
+
     env:
       CHART_DIR: deployment templates/chart
       CHART_REPO: bagetter/helm-chart-repo
       CHART_REPO_BRANCH: gh-pages
-      CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-      - uses: actions/checkout@v4.1.1
-      - name: Update version in helm chart
-        run: |
-          sed -i "s/version: \".*\"/version: \"${{ needs.version.outputs.RELEASE_VERSION }}\"/" "deployment templates/chart/bagetter/Chart.yaml"
-          sed -i "s/appVersion: \".*\"/appVersion: \"${{ needs.version.outputs.RELEASE_VERSION }}\"/" "deployment templates/chart/bagetter/Chart.yaml"
-      - name: Generate helm docs
-        uses: losisin/helm-docs-github-action@v1
-        with:
-          chart-search-root: "deployment templates"
+      # Checkout the current repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Install yq - portable yaml processor
-        uses: mikefarah/yq@v4.44.3
-
-      - name: Collect charts
-        id: charts
-        run: |
-          set -e
-          find -L '${{ env.CHART_DIR }}' -mindepth 2 -maxdepth 2 -type f \( -name 'Chart.yaml' -o -name 'Chart.yml' \) -exec dirname "{}" \; \
-          | sort -u \
-          | sed -E 's/^/- /' \
-          | yq --no-colors --indent 0 --output-format json '.' \
-          | sed -E 's/^/charts=/' >> $GITHUB_OUTPUT
-
-      - name: Install chart releaser
-        run: |
-          set -e
-          arch="$(dpkg --print-architecture)"
-          curl -s https://api.github.com/repos/helm/chart-releaser/releases/latest \
-          | yq --indent 0 --no-colors --input-format json --unwrapScalar \
-            ".assets[] | select(.name | test("\""^chart-releaser_.+_linux_${arch}\.tar\.gz$"\"")) | .browser_download_url" \
-          | xargs curl -SsL \
-          | tar zxf - -C /usr/local/bin
-
-      - name: Install Helm
-        uses: azure/setup-helm@v4.2.0
-
-      - name: Helm Deps
-        run: |
-          set -ex
-          echo '${{ steps.charts.outputs.charts }}' \
-          | yq --indent 0 --no-colors --input-format json --unwrapScalar '.[]' \
-          | while read -r dir; do
-              helm dependency update "$dir";
-              if [ -f "$dir/Chart.lock" ]; then
-                yq --indent 0 \
-                  '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' \
-                  "$dir/Chart.lock" \
-                | sh --;
-              fi
-            done
-      - name: Package charts
-        id: package
-        run: |
-              set -ex
-              PACKAGES=.cr-release-packages
-              echo '${{ steps.charts.outputs.charts }}' \
-              | yq --indent 0 --no-colors --input-format json --unwrapScalar '.[]' \
-              | xargs -d$'\n' cr package --package-path "$PACKAGES"
-              echo "dir=${PACKAGES}" >> $GITHUB_OUTPUT
-    
-      - name: Checkout chart repo
+      # Checkout the Helm chart repository
+      - name: Checkout Helm Chart Repo
         uses: actions/checkout@v4
         with:
-          repository: bagetter/helm-chart-repo
+          repository: ${{ env.CHART_REPO }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: gh-pages
-          path: '${{ steps.package.outputs.dir }}'
-          fetch-depth: 0
-      # - name: Fetch history
-      #   run: git checkout origin/gh-pages index.yaml
+          ref: ${{ env.CHART_REPO_BRANCH }}
 
-      - name: Upload packages
+      # Update the Helm chart version
+      - name: Update Helm Chart Version
         run: |
-          set -ex
-          git config --list
-          owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
-          repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
-          cr upload --commit '${{ github.sha }}' --git-repo "$repo" --owner "$owner" --token '${{ github.token }}' \
-            --package-path '${{ steps.package.outputs.dir }}' --skip-existing
+          sed -i "s/^version:.*/version: '${{ github.ref_name#v }}'/" ${{ env.CHART_DIR }}/bagetter/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: '${{ github.ref_name#v }}'/" ${{ env.CHART_DIR }}/bagetter/Chart.yaml
 
-      - name: Update charts index
-        working-directory: .helm-chart-repo
+      # Install Helm
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      # Package the Helm chart
+      - name: Package Helm Chart
         run: |
-          set -ex
-          git config --local user.name "$GITHUB_ACTOR"
-          git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          mkdir -p .cr-index
-          owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
-          repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
-          cr index --git-repo "$repo" --owner "$owner" --pages-branch '${{ env.CHART_REPO_BRANCH }}' \
-            --package-path '../${{ steps.package.outputs.dir }}' \
-            --index-path .cr-index --push
+          mkdir -p .cr-release-packages
+          helm package ${{ env.CHART_DIR }}/bagetter --destination .cr-release-packages
+
+      # Install Chart Releaser
+      - name: Install Chart Releaser
+        run: |
+          curl -sSL https://github.com/helm/chart-releaser/releases/latest/download/chart-releaser-linux-amd64.tar.gz | tar xz -C /usr/local/bin
+
+      # Upload the packaged chart
+      - name: Upload Helm Chart
+        run: |
+          cr upload --owner bagetter --git-repo helm-chart-repo --token ${{ secrets.GITHUB_TOKEN }} --package-path .cr-release-packages
+
+      # Update the Helm chart index
+      - name: Update Helm Chart Index
+        run: |
+          cr index --owner bagetter --git-repo helm-chart-repo --token ${{ secrets.GITHUB_TOKEN }} --charts-repo https://bagetter.github.io/helm-chart-repo --package-path .cr-release-packages
