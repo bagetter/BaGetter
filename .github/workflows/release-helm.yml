@@ -109,7 +109,7 @@ jobs:
           repository: bagetter/helm-chart-repo
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: gh-pages
-          path: '${{ steps.package.outputs.dir }}'
+          path: 'helm-chart-repo'
           fetch-depth: 0
       # - name: Fetch history
       #   run: git checkout origin/gh-pages index.yaml
@@ -120,6 +120,7 @@ jobs:
           git config --list
           owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
           repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
+          cd ${{ github.workspace }}/helm-chart-repo
           cr upload --commit '${{ github.sha }}' --git-repo "$repo" --owner "$owner" --token '${{ github.token }}' \
             --package-path '${{ steps.package.outputs.dir }}' --skip-existing
 
