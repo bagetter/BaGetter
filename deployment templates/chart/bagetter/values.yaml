@@ -1,97 +1,170 @@
----
-# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s/helm-charts/app-template-3.0.1/charts/other/app-template/values.schema.json
+# Default values for bagetter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
-#
-# IMPORTANT NOTE
-#
-# This chart inherits from the common library chart. You can check the default values/options here:
-# https://github.com/bjw-s/helm-charts/tree/main/charts/library/common/values.yaml
-#
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
 
-# -- environment variables. See more environment variables in the [BaGetter documentation](https://www.bagetter.com/docs/Installation/docker).
-# @default -- See below
-configMaps:
-  bagetter-env:
-    data:
-      # -- Set the Nuget API key
-      ApiKey: "ChangeMe"
-      # -- Set database and storage settings
-      Storage__Type: "FileSystem"
-      Storage__Path: "/data"
-      Database__Type: "Sqlite"
-      Database__ConnectionString: "Data Source=/data/bagetter.db"
-      # -- Additional settings. See [BaGetter configuration](https://www.bagetter.com/docs/configuration)
-      #Mirror__Enabled: "true"
-      #Mirror__PackageSource: "https://api.nuget.org/v3/index.json"
-      #PackageDeletionBehavior: "HardDelete"
+# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
 
-# -- Configures containers for the chart.
-# @default -- See values.yaml
-controllers:
-  bagetter:
-    containers:
-      bagetter:
-        image:
-          # -- image repository
-          repository: bagetter/bagetter
-          # -- image tag
-          tag: latest
-          # -- image pull policy
-          pullPolicy: IfNotPresent
-        envFrom:
-          - configMapRef:
-              name: bagetter-bagetter-env
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          privileged: false
-          readOnlyRootFilesystem: false
-        # probes: # comming with v1.0.5
-        #   liveness:
-        #     enabled: true
-        #     type: HTTP
-        #     path: /health
-        #   readiness:
-        #     enabled: true
+#This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
 
-# -- Configures service settings for the chart.
-# @default -- See values.yaml
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ 
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+apiKey: "ChangeMe"
+
+bagetter:
+  image:
+    repository: bagetter/bagetter
+    pullPolicy: IfNotPresent
+    tag: ""    
+  env:
+    # -- Set database and storage settings
+    - name: Storage__Type
+      value: "FileSystem"
+    - name: Storage__Path
+      value: "/data"
+    - name: Database__Type
+      value: "Sqlite"
+    - name: Database__ConnectionString
+      value: "Data Source=/data/bagetter.db"
+    # -- Additional settings. See [BaGetter configuration](https://www.bagetter.com/docs/configuration)
+    # - name: Mirror__Enabled
+    #   value: "true"
+    # - name: Mirror__PackageSource
+    #   value: "https://api.nuget.org/v3/index.json"
+    # - name: PackageDeletionBehavior
+    #   value: "HardDelete"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi  
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
-  bagetter-srv:
-    controller: bagetter
-    ports:
-      http:
-        port: 8080
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 80  
+  targetPort: 8080
 
-# -- Enable and configure ingress settings for the chart under this key.
-# @default -- See values.yaml
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  bagetter-ingress:
-    enabled: false
-    # className: "ingress-nginx"
-    hosts: []
-      # - host: bagetter.mydomain.com
-      #   paths:
-      #     - path: /
-      #       service:
-      #         identifier: bagetter
-      #         port: 8080
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: bagetter.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: bagetter-tls
+  #    hosts:
+  #      - bagetter.local
 
-# -- Configure persistence settings for the chart under this key.
-# @default -- See values.yaml
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:  
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 30
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 30
+
+#This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
 persistence:
-  bagetter-data:
-    enabled: true
-    accessMode: "ReadWriteOnce"
-    size: "10Gi"
-    globalMounts:
-      - path: "/data"
+  enabled: true
+  size: 10Gi
+  storageClassName: 
+  accessModes:
+    - ReadWriteOnce

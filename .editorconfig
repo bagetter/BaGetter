@@ -34,6 +34,10 @@ end_of_line = lf
 [*.cs]
 indent_size = 4
 
+[*.yaml]
+indent_size = 2
+end_of_line = lf
+
 # .NET Coding Conventions
 
 # .NET source code analysis
