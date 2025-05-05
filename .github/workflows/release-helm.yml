@@ -133,7 +133,7 @@ jobs:
             --package-path '${{ github.workspace }}/helm-chart-repo' --skip-existing
 
       - name: Update charts index
-        working-directory: .helm-chart-repo
+        working-directory: '${{ github.workspace }}/helm-chart-repo'
         run: |
           set -ex
           git config --local user.name "$GITHUB_ACTOR"
