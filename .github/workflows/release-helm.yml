@@ -107,7 +107,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: bagetter/helm-chart-repo
-          token: ${{ secrets.GH_PAGES_DEPLOY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           ref: gh-pages
           path: '${{ steps.package.outputs.dir }}'
           fetch-depth: 0
