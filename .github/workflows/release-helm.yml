@@ -118,6 +118,8 @@ jobs:
         run: |
           set -ex
           git config --list
+          git tag ${{ inputs.tags }}
+          git push --tags --porcelain
           owner=$(cut -d '/' -f 1 <<< '${{ env.CHART_REPO }}')
           repo=$(cut -d '/' -f 2 <<< '${{ env.CHART_REPO }}')
           cd ${{ github.workspace }}/helm-chart-repo
