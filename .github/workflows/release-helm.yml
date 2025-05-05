@@ -35,8 +35,8 @@ jobs:
       # Update the Helm chart version
       - name: Update Helm Chart Version
         run: |
-          sed -i "s/^version:.*/version: '${{ github.ref_name#v }}'/" ${{ env.CHART_DIR }}/bagetter/Chart.yaml
-          sed -i "s/^appVersion:.*/appVersion: '${{ github.ref_name#v }}'/" ${{ env.CHART_DIR }}/bagetter/Chart.yaml
+          sed -i "s/^version:.*/version: '${{ github.ref_name }}'/" ${{ env.CHART_DIR }}/bagetter/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: '${{ github.ref_name }}'/" ${{ env.CHART_DIR }}/bagetter/Chart.yaml
 
       # Install Helm
       - name: Install Helm
