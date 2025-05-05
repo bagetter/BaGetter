@@ -93,9 +93,9 @@ jobs:
                 | sh --;
               fi
             done
-            - name: Package charts
-            id: package
-            run: |
+      - name: Package charts
+        id: package
+        run: |
               set -ex
               PACKAGES=.cr-release-packages
               echo '${{ steps.charts.outputs.charts }}' \
