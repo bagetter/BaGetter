@@ -45,7 +45,7 @@ public class PackageIndexingService : IPackageIndexingService
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
-    public async Task<PackageIndexingResult> IndexAsync(Stream packageStream, CancellationToken cancellationToken)
+    public async Task<PackageIndexingResult> IndexAsync(Stream packageStream, string mirrorFeedUrl = null, CancellationToken cancellationToken = default)
     {
         // Try to extract all the necessary information from the package.
         Package package;
@@ -57,6 +57,7 @@ public class PackageIndexingService : IPackageIndexingService
         {
             using var packageReader = new PackageArchiveReader(packageStream, leaveStreamOpen: true);
             package = packageReader.GetPackageMetadata();
+            package.MirroredFrom = mirrorFeedUrl;
             package.Published = _time.UtcNow;
 
             nuspecStream = await packageReader.GetNuspecAsync(cancellationToken);
