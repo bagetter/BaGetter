@@ -5,6 +5,7 @@
 
     <PackageTags>NuGet;Protocol</PackageTags>
     <Description>Libraries to interact with NuGet server APIs.</Description>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
