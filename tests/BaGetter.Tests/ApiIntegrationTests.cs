@@ -16,6 +16,9 @@ public class ApiIntegrationTests : IDisposable
     private readonly Stream _packageStream;
     private readonly Stream _symbolPackageStream;
 
+    private readonly Stream _packageFullDebugStream;
+    private readonly Stream _symbolPackageFullDebugStream;
+
     private readonly ITestOutputHelper _output;
 
     public ApiIntegrationTests(ITestOutputHelper output)
@@ -26,6 +29,9 @@ public class ApiIntegrationTests : IDisposable
 
         _packageStream = TestResources.GetResourceStream(TestResources.Package);
         _symbolPackageStream = TestResources.GetResourceStream(TestResources.SymbolPackage);
+
+        _packageFullDebugStream = TestResources.GetResourceStream(TestResources.FullPackage);
+        _symbolPackageFullDebugStream = TestResources.GetResourceStream(TestResources.FullSymbolPackage);
     }
 
     [Fact]
@@ -384,6 +390,30 @@ public class ApiIntegrationTests : IDisposable
 
         using var response = await _client.GetAsync(
             "api/download/symbols/testdata.pdb/16F71ED8DD574AA2AD4A22D29E9C981Bffffffff/testdata.pdb");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FullSymbolDownloadReturnsOk()
+    {
+        await _app.AddPackageAsync(_packageFullDebugStream);
+        await _app.AddSymbolPackageAsync(_symbolPackageFullDebugStream);
+
+        using var response = await _client.GetAsync(
+            "api/download/symbols/testdatafulldebug.pdb/6B7F98718ECF459B9F0CB85FAF35F0C7ffffffff/testdatafulldebug.pdb");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task BaGetterSymbolsWithoutNugets()
+    {
+        await _app.AddPackageAsync(_symbolPackageFullDebugStream);
+        await _app.AddSymbolPackageAsync(_symbolPackageFullDebugStream);
+
+        using var response = await _client.GetAsync(
+            "api/download/symbols/testdatafulldebug.pdb/6B7F98718ECF459B9F0CB85FAF35F0C7ffffffff/testdatafulldebug.pdb");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }

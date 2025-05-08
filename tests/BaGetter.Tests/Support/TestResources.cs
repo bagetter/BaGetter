@@ -17,6 +17,8 @@ public static class TestResources
     /// </summary>
     public const string Package = "TestData.1.2.3.nupkg";
     public const string SymbolPackage = "TestData.1.2.3.snupkg";
+    public const string FullPackage = "TestDataFullDebug.1.2.3.nupkg";
+    public const string FullSymbolPackage = "TestDataFullDebug.1.2.3.snupkg";
 
     /// <summary>
     /// Buffer the resource stream into memory so the caller doesn't have to dispose.
