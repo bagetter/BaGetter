@@ -1,4 +1,4 @@
-﻿using NuGet.Versioning;
+using NuGet.Versioning;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -46,4 +46,10 @@ public interface IUpstreamClient
     /// The stream is guaranteed to be seekable if not not null.
     /// </returns>
     Task<Stream> DownloadPackageOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Get the service index url from the upstream package source.
+    /// </summary>
+    /// <returns>The service index url as a string</returns>
+    string GetServiceIndexUrl();
 }

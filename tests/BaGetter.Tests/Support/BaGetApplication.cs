@@ -125,7 +125,7 @@ internal static class BaGetWebApplicationFactoryExtensions
         using var scope = scopeFactory.CreateScope();
         var indexer = scope.ServiceProvider.GetRequiredService<IPackageIndexingService>();
 
-        var result = await indexer.IndexAsync(package, cancellationToken);
+        var result = await indexer.IndexAsync(package, cancellationToken: cancellationToken);
         if (result != PackageIndexingResult.Success)
         {
             throw new InvalidOperationException($"Unexpected indexing result {result}");
