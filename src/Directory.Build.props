@@ -43,4 +43,8 @@
     <None Include="../packageIcon.png" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(PackageReadmeFile)' != '' ">
+    <None Include="$(DefiningProjectDirectory)$(PackageReadmeFile)" Pack="True" PackagePath="" />
+  </ItemGroup>
+
 </Project>
