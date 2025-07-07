@@ -22,6 +22,7 @@
     <PackageVersion Include="NuGet.Frameworks" Version="6.11.0" />
     <PackageVersion Include="NuGet.Protocol" Version="6.11.0" />
     <PackageVersion Include="NuGet.Versioning" Version="6.11.0" />
+    <PackageVersion Include="SharpPdb" Version="1.0.4" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
