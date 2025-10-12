@@ -1,0 +1,126 @@
+name: Publish Helm Chart to helm-chart-repo
+
+on:
+  push:
+    branches: [ "main" ]
+    # Only run when chart content changes
+    paths:
+      - "charts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-helm-chart
+  cancel-in-progress: false
+
+env:
+  CHART_NAME: bagetter
+  CHART_DIR: charts/bagetter
+  CHART_REPO_OWNER: bagetter
+  CHART_REPO_NAME: helm-chart-repo
+  PAGES_URL: https://bagetter.github.io/helm-chart-repo
+  GIT_USER_NAME: github-actions[bot]
+  GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout BaGetter
+        uses: actions/checkout@v4
+
+      - name: Verify chart directory exists
+        run: |
+          if [ ! -f "${CHART_DIR}/Chart.yaml" ]; then
+            echo "Chart.yaml not found at ${CHART_DIR}. Please update CHART_DIR or add the chart."
+            exit 1
+          fi
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.2
+
+      - name: Helm lint
+        run: helm lint "${CHART_DIR}"
+
+      - name: Build chart dependencies (if any)
+        run: helm dependency build "${CHART_DIR}"
+
+      - name: Get chart version
+        id: chart_meta
+        shell: bash
+        run: |
+          VERSION="$(grep -E '^version:' "${CHART_DIR}/Chart.yaml" | awk '{print $2}')"
+          NAME="$(grep -E '^name:' "${CHART_DIR}/Chart.yaml" | awk '{print $2}')"
+          if [ -z "$VERSION" ] || [ -z "$NAME" ]; then
+            echo "Failed to parse name or version from Chart.yaml"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Package chart
+        run: |
+          mkdir -p dist
+          helm package "${CHART_DIR}" --destination dist
+          ls -l dist
+
+      - name: Clone helm-chart-repo gh-pages
+        env:
+          TOKEN: ${{ secrets.CHARTS_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "${GIT_USER_NAME}"
+          git config --global user.email "${GIT_USER_EMAIL}"
+          if git ls-remote --exit-code https://github.com/${CHART_REPO_OWNER}/${CHART_REPO_NAME}.git gh-pages >/dev/null 2>&1; then
+            git clone --depth 1 --branch gh-pages "https://x-access-token:${TOKEN}@github.com/${CHART_REPO_OWNER}/${CHART_REPO_NAME}.git" repo
+          else
+            # Create gh-pages if missing
+            git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${CHART_REPO_OWNER}/${CHART_REPO_NAME}.git" repo
+            cd repo
+            git checkout --orphan gh-pages
+            rm -rf .
+            touch .nojekyll
+            echo "" > index.yaml
+            git add .nojekyll index.yaml
+            git commit -m "Initialize gh-pages"
+            git push -u origin gh-pages
+            cd ..
+          fi
+
+      - name: Copy package and update index
+        run: |
+          set -euo pipefail
+          cd repo
+          mkdir -p ./
+          cp -v ../dist/${{ steps.chart_meta.outputs.name }}-${{ steps.chart_meta.outputs.version }}.tgz ./ || true
+
+          # Ensure .nojekyll
+          touch .nojekyll
+
+          # Merge/Update index.yaml
+          if [ -f index.yaml ] && [ -s index.yaml ]; then
+            helm repo index . --url "${PAGES_URL}" --merge index.yaml
+          else
+            helm repo index . --url "${PAGES_URL}"
+          fi
+
+          # Avoid re-adding the same version if it already exists
+          # (If the .tgz already existed, helm repo index --merge will keep one entry)
+
+          git add .nojekyll index.yaml *.tgz || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish ${{ steps.chart_meta.outputs.name }}-${{ steps.chart_meta.outputs.version }}"
+            git push origin gh-pages
+          else
+            echo "No changes to commit (version may already be published)."
+
+      - name: Summary
+        run: |
+          echo "Published chart:"
+          echo "  Name:     ${{ steps.chart_meta.outputs.name }}"
+          echo "  Version:  ${{ steps.chart_meta.outputs.version }}"
+          echo "Repository URL: ${PAGES_URL}"
