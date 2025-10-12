@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-helm-chart
+  group: release-helm
   cancel-in-progress: false
 
 env:
@@ -124,3 +124,4 @@ jobs:
           echo "  Name:     ${{ steps.chart_meta.outputs.name }}"
           echo "  Version:  ${{ steps.chart_meta.outputs.version }}"
           echo "Repository URL: ${PAGES_URL}"
+
