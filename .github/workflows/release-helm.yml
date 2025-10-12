@@ -117,7 +117,7 @@ jobs:
             git push origin gh-pages
           else
             echo "No changes to commit (version may already be published)."
-
+          fi
       - name: Summary
         run: |
           echo "Published chart:"
