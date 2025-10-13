@@ -1,0 +1,39 @@
+suite: default configuration
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: renders default env vars for filesystem sqlite
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Storage__Type
+            value: FileSystem
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Storage__Path
+            value: /data
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Database__Type
+            value: Sqlite
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Database__ConnectionString
+            value: Data Source=/data/bagetter.db
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Statistics__EnableStatisticsPage
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: RELEASE-NAME-bagetter-api-key
+                key: api-key

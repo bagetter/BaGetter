@@ -1,0 +1,15 @@
+bagetter:
+  authentication:
+    apiKeys:
+      - existingSecret:
+          name: extra-api-key
+          key: api-key
+      - key: inline-key
+    credentials:
+      - existingSecret:
+          name: feed-creds
+          keys:
+            username: feed-user
+            password: feed-password
+      - username: reader
+        password: read-password

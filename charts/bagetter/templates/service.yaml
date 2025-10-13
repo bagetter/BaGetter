@@ -1,3 +1,6 @@
+{{- $networking := default (dict) .Values.networking -}}
+{{- $service := default (dict) (default .Values.service $networking.service) -}}
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,10 +8,10 @@ metadata:
   labels:
     {{- include "bagetter.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ default "ClusterIP" $service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
+    - port: {{ default 80 $service.port }}
+      targetPort: {{ default 8080 $service.targetPort }}
       protocol: TCP
       name: http
   selector:

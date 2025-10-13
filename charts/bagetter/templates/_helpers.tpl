@@ -2,7 +2,9 @@
 Expand the name of the chart.
 */}}
 {{- define "bagetter.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- $metadata := default (dict) .Values.metadata -}}
+{{- $nameOverride := default .Values.nameOverride $metadata.nameOverride -}}
+{{- default .Chart.Name $nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -11,10 +13,13 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "bagetter.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- $metadata := default (dict) .Values.metadata -}}
+{{- $fullnameOverride := default .Values.fullnameOverride $metadata.fullnameOverride -}}
+{{- $nameOverride := default .Values.nameOverride $metadata.nameOverride -}}
+{{- if $fullnameOverride }}
+{{- $fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- $name := default .Chart.Name $nameOverride }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
