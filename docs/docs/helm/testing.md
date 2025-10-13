@@ -1,4 +1,10 @@
-# Testing & Validation
+---
+id: testing
+slug: /helm/testing
+title: Testing & Validation
+sidebar_label: Testing
+sidebar_position: 5
+---
 
 ## Helm Lint
 
@@ -24,4 +30,4 @@ The suites cover:
 - Mirror authentication with headers and secrets
 - Multiple API keys and feed credentials
 
-Run these checks in CI alongside `helm lint` to catch template regressions early.
+Run these checks in CI alongside `helm lint` to catch template regressions early. Follow up with [`helm diff upgrade`](https://github.com/databus23/helm-diff) for production changes.

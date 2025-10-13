@@ -1,4 +1,10 @@
-# Additional Configuration Patterns
+---
+id: configuration
+slug: /helm/configuration
+title: Additional Configuration Patterns
+sidebar_label: Configuration
+sidebar_position: 4
+---
 
 ## Mirroring & Search
 
@@ -79,4 +85,4 @@ bagetter:
     statusPropertyName: Status
 ```
 
-Combine these with `bagetter.extraEnv` for advanced, chart-agnostic tweaks when needed.
+Combine these with `bagetter.extraEnv` for advanced, chart-agnostic tweaks when needed. After configuring behavior, validate changes with the [testing checklist](./testing.md).

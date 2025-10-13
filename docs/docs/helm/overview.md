@@ -1,4 +1,10 @@
-# BaGetter Helm Chart Overview
+---
+id: overview
+slug: /helm/overview
+title: BaGetter Helm Chart Overview
+sidebar_label: Overview
+sidebar_position: 1
+---
 
 The BaGetter chart packages an opinionated Kubernetes deployment for the open-source BaGetter NuGet server. Values are organized by concern to make customization predictable and compatible with schema validation.
 
@@ -30,8 +36,8 @@ The chart also maintains legacy top-level keys (`replicaCount`, `service`, `pers
 
 ## Getting Started
 
-1. Add the repository: `helm repo add bagetter https://bagetter.github.io/helm-charts`
+1. Add the repository: `helm repo add bagetter https://helm.bagetter.com`
 2. Install with defaults: `helm install my-bagetter bagetter/bagetter`
 3. Copy `values.yaml` and tailor sections described above for your environment.
 
-Refer to the topic-specific documents in this directory for detailed examples and guidance.
+Continue with the [storage configuration](./storage.md), [database providers](./database.md), and [advanced configuration patterns](./configuration.md) guides for deep dives into specific areas.

@@ -9,7 +9,7 @@ Deploy [BaGetter](https://www.bagetter.com/) — an open source NuGet server —
 ## Quick Start
 
 ```bash
-helm repo add bagetter https://bagetter.github.io/helm-charts
+helm repo add bagetter https://helm.bagetter.com
 helm install my-bagetter bagetter/bagetter
 ```
 
@@ -21,14 +21,14 @@ helm upgrade my-bagetter bagetter/bagetter -f custom-values.yaml
 
 ## Documentation
 
-Detailed guides live in the [`docs/`](./docs) folder and are published to <https://bagetter.github.io/helm-chart-repo/docs/index.html>.
+Detailed guides live on the BaGetter documentation site: <https://www.bagetter.com/docs/helm/overview>.
 
-- [Overview](./docs/overview.md)
-- [Storage configuration](./docs/storage.md)
-- [Database providers](./docs/database.md)
-- [Additional configuration patterns](./docs/configuration.md)
-- [Testing & validation](./docs/testing.md)
-- [Upgrade guidance](./docs/upgrading.md)
+- [Overview](https://www.bagetter.com/docs/helm/overview)
+- [Storage configuration](https://www.bagetter.com/docs/helm/storage)
+- [Database providers](https://www.bagetter.com/docs/helm/database)
+- [Additional configuration patterns](https://www.bagetter.com/docs/helm/configuration)
+- [Testing & validation](https://www.bagetter.com/docs/helm/testing)
+- [Upgrade guidance](https://www.bagetter.com/docs/helm/upgrading)
 
 ## Testing
 

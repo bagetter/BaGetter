@@ -1,4 +1,10 @@
-# Database Configuration
+---
+id: database
+slug: /helm/database
+title: Database Configuration
+sidebar_label: Database
+sidebar_position: 3
+---
 
 BaGetter stores metadata in a configurable database. Set `bagetter.database.type` to `Sqlite`, `MySql`, `PostgreSql`, `SqlServer`, or `AzureTable`, and supply the relevant connection details.
 
@@ -78,3 +84,5 @@ bagetter:
 - Use Kubernetes secrets to hold sensitive connection details whenever possible.
 - Leave `runMigrationsAtStartup` enabled in development. In production, consider running migrations separately before scaling application replicas.
 - For managed database services, ensure network connectivity (service endpoints, VPC peering, etc.) before deploying the chart.
+
+Move on to [additional configuration patterns](./configuration.md) to tune the application.

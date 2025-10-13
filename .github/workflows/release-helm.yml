@@ -20,7 +20,8 @@ env:
   CHART_DIR: charts/bagetter
   CHART_REPO_OWNER: bagetter
   CHART_REPO_NAME: helm-chart-repo
-  PAGES_URL: https://bagetter.github.io/helm-chart-repo
+  PAGES_URL: https://helm.bagetter.com
+  HELM_DOCS_URL: https://www.bagetter.com/docs/helm/overview
   GIT_USER_NAME: github-actions[bot]
   GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
 
@@ -42,11 +43,6 @@ jobs:
         uses: azure/setup-helm@v4
         with:
           version: v3.15.2
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
       - name: Helm lint
         run: helm lint "${CHART_DIR}"
@@ -103,7 +99,6 @@ jobs:
           SRC_DOCS_DIR="${CHART_DIR}/docs"
           mkdir -p "${DOCS_DIR}"
 
-          npx -y marked "${CHART_DIR}/README.md" --gfm --output "${DOCS_DIR}/index.html"
           cp "${CHART_DIR}/README.md" "${DOCS_DIR}/README.md"
           cp "${CHART_DIR}/values.yaml" "${DOCS_DIR}/values.yaml"
           if [ -f "${CHART_DIR}/values.schema.json" ]; then
@@ -111,20 +106,42 @@ jobs:
           fi
 
           if [ -d "${SRC_DOCS_DIR}" ]; then
-            while IFS= read -r -d '' file; do
-              rel="${file#"${SRC_DOCS_DIR}/"}"
-              dest_dir="${DOCS_DIR}/$(dirname "${rel}")"
-              mkdir -p "${dest_dir}"
-              cp "${file}" "${dest_dir}/$(basename "${rel}")"
-
-              html_target="${DOCS_DIR}/${rel%.md}.html"
-              mkdir -p "$(dirname "${html_target}")"
-              title_name="$(basename "${rel%.md}")"
-              title_name="${title_name//-/ }"
-              title_name="${title_name//_/ }"
-              npx -y marked "${file}" --gfm --output "${html_target}"
-            done < <(find "${SRC_DOCS_DIR}" -type f -name "*.md" -print0 | sort -z)
+            rm -rf "${DOCS_DIR}/reference"
+            mkdir -p "${DOCS_DIR}/reference"
+            cp -R "${SRC_DOCS_DIR}/." "${DOCS_DIR}/reference/"
           fi
+
+          cat <<EOF > "${DOCS_DIR}/index.html"
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>BaGetter Helm Chart Documentation</title>
+            <style>
+              body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 2.5rem auto; max-width: 780px; line-height: 1.6; padding: 0 1.5rem; color: #0f172a; }
+              h1 { font-size: 2.1rem; margin-bottom: 0.5rem; }
+              p { margin-bottom: 1rem; }
+              ul { padding-left: 1.25rem; }
+              li { margin-bottom: 0.5rem; }
+              a.button { display: inline-block; margin-top: 1rem; padding: 0.65rem 1.25rem; border-radius: 0.5rem; background: #2563eb; color: #fff; text-decoration: none; font-weight: 600; }
+            </style>
+          </head>
+          <body>
+            <h1>BaGetter Helm Chart</h1>
+            <p>The full, continuously updated documentation now lives on the BaGetter Docusaurus site. Use the links below for quick access to raw chart assets or jump straight to the hosted guides.</p>
+            <a class="button" href="${HELM_DOCS_URL}">Open Hosted Documentation</a>
+            <section>
+              <h2>Local References</h2>
+              <ul>
+                <li><a href="README.md">Chart README (Markdown)</a></li>
+                <li><a href="values.yaml">Default values.yaml</a></li>
+                <li><a href="values.schema.json">JSON schema</a></li>
+              </ul>
+            </section>
+          </body>
+          </html>
+          EOF
 
           cat <<EOF > repo/index.html
           <!doctype html>
@@ -134,10 +151,10 @@ jobs:
             <meta name="viewport" content="width=device-width, initial-scale=1" />
             <title>BaGetter Helm Chart</title>
             <style>
-              body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 2rem auto; max-width: 800px; line-height: 1.6; padding: 0 1.5rem; }
-              h1 { font-size: 2.25rem; margin-bottom: 0.25rem; }
+              body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 2rem auto; max-width: 820px; line-height: 1.6; padding: 0 1.5rem; }
+              h1 { font-size: 2.4rem; margin-bottom: 0.35rem; }
               section { margin-top: 2rem; }
-              a.button { display: inline-block; margin-top: 0.75rem; padding: 0.65rem 1.1rem; border-radius: 0.5rem; background: #2563eb; color: #fff; text-decoration: none; font-weight: 600; }
+              a.button { display: inline-block; margin-top: 0.75rem; padding: 0.65rem 1.15rem; border-radius: 0.5rem; background: #2563eb; color: #fff; text-decoration: none; font-weight: 600; }
               a.button.secondary { background: #64748b; }
               ul { padding-left: 1.2rem; }
             </style>
@@ -145,23 +162,17 @@ jobs:
           <body>
             <header>
               <h1>BaGetter Helm Chart</h1>
-              <p>Browse the documentation, configuration reference, and published chart packages for BaGetter deployments.</p>
+              <p>Find the packaged chart, reference assets, and published guides for deploying BaGetter to Kubernetes.</p>
             </header>
             <section>
               <h2>Documentation</h2>
               <ul>
-                <li><a href="docs/index.html">Chart Overview</a></li>
-                <li><a href="docs/overview.html">Configuration Overview</a></li>
-                <li><a href="docs/storage.html">Storage Providers</a></li>
-                <li><a href="docs/database.html">Database Providers</a></li>
-                <li><a href="docs/configuration.html">Advanced Configuration</a></li>
-                <li><a href="docs/testing.html">Testing Guidance</a></li>
-                <li><a href="docs/upgrading.html">Upgrade Notes</a></li>
-                <li><a href="docs/values.yaml">Default Values (YAML)</a></li>
-                <li><a href="docs/values.schema.json">Values JSON Schema</a></li>
-                <li><a href="docs/README.md">Source README (Markdown)</a></li>
+                <li><a href="${HELM_DOCS_URL}">Hosted Docusaurus documentation</a></li>
+                <li><a href="docs/README.md">Chart README (Markdown)</a></li>
+                <li><a href="docs/values.yaml">Default values.yaml</a></li>
+                <li><a href="docs/values.schema.json">JSON schema</a></li>
               </ul>
-              <a class="button" href="${PAGES_URL}/docs/index.html">Open Documentation</a>
+              <a class="button" href="${HELM_DOCS_URL}">Open Hosted Docs</a>
             </section>
             <section>
               <h2>Helm Repository</h2>
@@ -180,6 +191,8 @@ jobs:
           mkdir -p ./
           cp -v ../dist/${{ steps.chart_meta.outputs.name }}-${{ steps.chart_meta.outputs.version }}.tgz ./ || true
 
+          echo "helm.bagetter.com" > CNAME
+
           # Ensure .nojekyll
           touch .nojekyll
 
@@ -193,7 +206,7 @@ jobs:
           # Avoid re-adding the same version if it already exists
           # (If the .tgz already existed, helm repo index --merge will keep one entry)
 
-          git add .nojekyll index.yaml *.tgz docs index.html || true
+          git add .nojekyll CNAME index.yaml *.tgz docs index.html || true
           if ! git diff --cached --quiet; then
             git commit -m "Publish ${{ steps.chart_meta.outputs.name }}-${{ steps.chart_meta.outputs.version }}"
             git push origin gh-pages

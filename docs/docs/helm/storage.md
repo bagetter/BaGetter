@@ -1,10 +1,16 @@
-# Storage Configuration
+---
+id: storage
+slug: /helm/storage
+title: Storage Configuration
+sidebar_label: Storage
+sidebar_position: 2
+---
 
 BaGetter can persist packages to several backends. Set `bagetter.storage.type` to select the implementation and populate the corresponding nested block (`bagetter.storage.<provider>`).
 
 ## FileSystem (Default)
 
-Stores packages on the cluster’s persistent volume. A PVC is created automatically when `storage.persistence.enabled` is true.
+Stores packages on the cluster's persistent volume. A PVC is created automatically when `storage.persistence.enabled` is true.
 
 ```yaml
 bagetter:
@@ -106,3 +112,5 @@ Both Chinese cloud providers follow the same pattern: define credentials inline 
 ## Null Storage
 
 Use `type: Null` to disable package persistence entirely—useful for API-only or read-through cache setups where storage is handled externally.
+
+Continue with [database configuration](./database.md) once storage is set.
