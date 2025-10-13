@@ -103,7 +103,7 @@ jobs:
           SRC_DOCS_DIR="${CHART_DIR}/docs"
           mkdir -p "${DOCS_DIR}"
 
-          npx -y marked "${CHART_DIR}/README.md" --gfm --output "${DOCS_DIR}/index.html" --title "BaGetter Helm Chart"
+          npx -y marked "${CHART_DIR}/README.md" --gfm --output "${DOCS_DIR}/index.html"
           cp "${CHART_DIR}/README.md" "${DOCS_DIR}/README.md"
           cp "${CHART_DIR}/values.yaml" "${DOCS_DIR}/values.yaml"
           if [ -f "${CHART_DIR}/values.schema.json" ]; then
@@ -122,7 +122,7 @@ jobs:
               title_name="$(basename "${rel%.md}")"
               title_name="${title_name//-/ }"
               title_name="${title_name//_/ }"
-              npx -y marked "${file}" --gfm --output "${html_target}" --title "BaGetter Helm Chart - ${title_name}"
+              npx -y marked "${file}" --gfm --output "${html_target}"
             done < <(find "${SRC_DOCS_DIR}" -type f -name "*.md" -print0 | sort -z)
           fi
 
