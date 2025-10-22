@@ -136,7 +136,7 @@ public class PackageDeletionService : IPackageDeletionService
 
         if (maxPrerelease.HasValue)
         {
-            var allPreReleaseValidVersions = GetValidPrereleaseVersions(packages, maxPrerelease.Value);
+            var allPreReleaseValidVersions = GetValidPrereleaseVersions(packages.Where(p => goodVersions.Contains(p.Version)).ToList(), maxPrerelease.Value);
 
             goodVersions.RemoveWhere(v => v.IsPrerelease);
             goodVersions.UnionWith(allPreReleaseValidVersions);
