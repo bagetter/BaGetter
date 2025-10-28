@@ -59,7 +59,7 @@ jobs:
           echo ${{ github.sha }} > artifacts/ReleaseSha.txt
           7z a -tzip bagetter-${{ needs.version.outputs.RELEASE_VERSION }}.zip ./artifacts/*
       - name: Generate changelog with git-cliff
-        uses: tj-actions/git-cliff@v1.4.2
+        uses: tj-actions/git-cliff@v2.2.0
         with:
           args: --latest --strip all
           output: "CHANGELOG.md"
