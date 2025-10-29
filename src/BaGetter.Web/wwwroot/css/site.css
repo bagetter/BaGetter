@@ -112,12 +112,14 @@ main {
 .footer {
   flex-shrink: 0;
   background-color: var(--footer-bg-color);
-  color: var(--footer-text-color)
+  color: var(--footer-text-color);
+  padding-block:1rem;
 }
 
 .footer p {
   text-align: center;    
-  vertical-align: middle;    
+  vertical-align: middle;
+  margin:0
 }
 
 h1,
