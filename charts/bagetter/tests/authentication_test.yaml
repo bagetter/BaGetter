@@ -1,0 +1,47 @@
+suite: authentication configuration
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: renders extra api keys and feed credentials from secrets and inline values
+    values:
+      - ../testdata/authentication-values.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Authentication__ApiKeys__0__Key
+            valueFrom:
+              secretKeyRef:
+                name: extra-api-key
+                key: api-key
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Authentication__ApiKeys__1__Key
+            value: inline-key
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Authentication__Credentials__0__Username
+            valueFrom:
+              secretKeyRef:
+                name: feed-creds
+                key: feed-user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Authentication__Credentials__0__Password
+            valueFrom:
+              secretKeyRef:
+                name: feed-creds
+                key: feed-password
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Authentication__Credentials__1__Username
+            value: reader
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Authentication__Credentials__1__Password
+            value: read-password

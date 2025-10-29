@@ -274,7 +274,3 @@ __pycache__/
 **/bagetter.db-wal
 
 .vscode/
-
-# Chart dependencies
-charts/
-Chart.lock

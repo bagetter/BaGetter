@@ -1,0 +1,22 @@
+{{- $storage := default (dict) .Values.storage -}}
+{{- $persistence := default (dict) (default .Values.persistence $storage.persistence) -}}
+{{- $bagetter := default (dict) .Values.bagetter -}}
+{{- $storageConfig := default (dict) $bagetter.storage -}}
+{{- $storageType := default "FileSystem" $storageConfig.type -}}
+{{- if and $persistence.enabled (eq $storageType "FileSystem") -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "bagetter.fullname" . }}-data
+  labels:
+    {{- include "bagetter.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml $persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ $persistence.size }}
+  {{- if $persistence.storageClassName }}
+  storageClassName: {{ $persistence.storageClassName }}
+  {{- end }}
+{{- end }}

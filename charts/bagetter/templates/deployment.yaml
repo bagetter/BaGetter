@@ -1,0 +1,475 @@
+{{- $general := default (dict) .Values.general -}}
+{{- $scaling := default (dict) .Values.scaling -}}
+{{- $autoscaling := default (dict) (default .Values.autoscaling $scaling.autoscaling) -}}
+{{- $replicaCount := default .Values.replicaCount $general.replicaCount -}}
+{{- $workload := default (dict) .Values.workload -}}
+{{- $podAnnotations := default .Values.podAnnotations $workload.podAnnotations -}}
+{{- $podLabels := default .Values.podLabels $workload.podLabels -}}
+{{- $podSecurityContext := default .Values.podSecurityContext $workload.podSecurityContext -}}
+{{- $containerSecurityContext := default .Values.securityContext $workload.containerSecurityContext -}}
+{{- $imagePullSecrets := default .Values.imagePullSecrets $general.imagePullSecrets -}}
+{{- $bagetter := default (dict) .Values.bagetter -}}
+{{- $bagetterImage := default (dict) $bagetter.image -}}
+{{- $imageRepository := default "bagetter/bagetter" $bagetterImage.repository -}}
+{{- $imageTag := default .Chart.AppVersion $bagetterImage.tag -}}
+{{- $imagePullPolicy := default "IfNotPresent" $bagetterImage.pullPolicy -}}
+{{- $networking := default (dict) .Values.networking -}}
+{{- $service := default (dict) (default .Values.service $networking.service) -}}
+{{- $containerPort := default 80 $service.port -}}
+{{- if and $service.targetPort (kindIs "float64" $service.targetPort) -}}
+{{- $containerPort = $service.targetPort -}}
+{{- end -}}
+{{- $health := default (dict) .Values.health -}}
+{{- $livenessProbe := default .Values.livenessProbe $health.livenessProbe -}}
+{{- $readinessProbe := default .Values.readinessProbe $health.readinessProbe -}}
+{{- $resources := default .Values.resources $bagetter.resources -}}
+{{- $storage := default (dict) .Values.storage -}}
+{{- $persistence := default (dict) (default .Values.persistence $storage.persistence) -}}
+{{- $persistenceMountPath := default "/data" $persistence.mountPath -}}
+{{- $volumes := default (list) (default .Values.volumes $storage.volumes) -}}
+{{- $volumeMounts := default (list) (default .Values.volumeMounts $storage.volumeMounts) -}}
+{{- $scheduling := default (dict) .Values.scheduling -}}
+{{- $nodeSelector := default .Values.nodeSelector $scheduling.nodeSelector -}}
+{{- $tolerations := default .Values.tolerations $scheduling.tolerations -}}
+{{- $affinity := default .Values.affinity $scheduling.affinity -}}
+{{- $storageConfig := default (dict) $bagetter.storage -}}
+{{- $storageType := default "FileSystem" $storageConfig.type -}}
+{{- $bagetterEnv := default (list) $bagetter.env -}}
+{{- $bagetterExtraEnv := default (list) $bagetter.extraEnv -}}
+{{- $apiKeySecretName := printf "%s-api-key" (include "bagetter.fullname" .) -}}
+{{- $computedEnv := list -}}
+{{- $computedEnv = append $computedEnv (dict "name" "Storage__Type" "value" $storageType) -}}
+
+{{- if eq $storageType "FileSystem" -}}
+  {{- $fileSystem := default (dict) $storageConfig.fileSystem -}}
+  {{- $fsPath := default $persistenceMountPath $fileSystem.path -}}
+  {{- if $fsPath -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Path" "value" $fsPath) -}}
+  {{- end -}}
+{{- else if eq $storageType "AzureBlobStorage" -}}
+  {{- $azure := default (dict) $storageConfig.azureBlobStorage -}}
+  {{- $azureSecret := default (dict) $azure.existingSecret -}}
+  {{- $azureSecretName := default "" $azureSecret.name -}}
+  {{- $azureSecretKeys := default (dict) $azureSecret.keys -}}
+  {{- if $azure.container -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Container" "value" $azure.container) -}}
+  {{- end -}}
+  {{- $connKey := index $azureSecretKeys "connectionString" -}}
+  {{- if and $azureSecretName $connKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__ConnectionString" "valueFrom" (dict "secretKeyRef" (dict "name" $azureSecretName "key" $connKey))) -}}
+  {{- else if $azure.connectionString -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__ConnectionString" "value" $azure.connectionString) -}}
+  {{- end -}}
+  {{- $accountKey := index $azureSecretKeys "accountName" -}}
+  {{- if and $azureSecretName $accountKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccountName" "valueFrom" (dict "secretKeyRef" (dict "name" $azureSecretName "key" $accountKey))) -}}
+  {{- else if $azure.accountName -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccountName" "value" $azure.accountName) -}}
+  {{- end -}}
+  {{- $accessKeyKey := index $azureSecretKeys "accessKey" -}}
+  {{- if and $azureSecretName $accessKeyKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKey" "valueFrom" (dict "secretKeyRef" (dict "name" $azureSecretName "key" $accessKeyKey))) -}}
+  {{- else if $azure.accessKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKey" "value" $azure.accessKey) -}}
+  {{- end -}}
+{{- else if eq $storageType "AwsS3" -}}
+  {{- $aws := default (dict) $storageConfig.awsS3 -}}
+  {{- $awsSecret := default (dict) $aws.existingSecret -}}
+  {{- $awsSecretName := default "" $awsSecret.name -}}
+  {{- $awsSecretKeys := default (dict) $awsSecret.keys -}}
+  {{- if $aws.bucket -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Bucket" "value" $aws.bucket) -}}
+  {{- end -}}
+  {{- if $aws.region -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Region" "value" $aws.region) -}}
+  {{- end -}}
+  {{- if $aws.endpoint -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Endpoint" "value" $aws.endpoint) -}}
+  {{- end -}}
+  {{- if $aws.prefix -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Prefix" "value" $aws.prefix) -}}
+  {{- end -}}
+  {{- if hasKey $aws "useInstanceProfile" -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__UseInstanceProfile" "value" (printf "%t" (default false $aws.useInstanceProfile))) -}}
+  {{- end -}}
+  {{- if $aws.assumeRoleArn -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AssumeRoleArn" "value" $aws.assumeRoleArn) -}}
+  {{- end -}}
+  {{- $awsAccessKey := index $awsSecretKeys "accessKey" -}}
+  {{- if and $awsSecretName $awsAccessKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKey" "valueFrom" (dict "secretKeyRef" (dict "name" $awsSecretName "key" $awsAccessKey))) -}}
+  {{- else if $aws.accessKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKey" "value" $aws.accessKey) -}}
+  {{- end -}}
+  {{- $awsSecretKey := index $awsSecretKeys "secretKey" -}}
+  {{- if and $awsSecretName $awsSecretKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__SecretKey" "valueFrom" (dict "secretKeyRef" (dict "name" $awsSecretName "key" $awsSecretKey))) -}}
+  {{- else if $aws.secretKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__SecretKey" "value" $aws.secretKey) -}}
+  {{- end -}}
+{{- else if eq $storageType "GoogleCloud" -}}
+  {{- $gcp := default (dict) $storageConfig.googleCloud -}}
+  {{- if $gcp.bucketName -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__BucketName" "value" $gcp.bucketName) -}}
+  {{- end -}}
+  {{- if $gcp.projectId -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__ProjectId" "value" $gcp.projectId) -}}
+  {{- end -}}
+  {{- $gcpSecret := default (dict) $gcp.serviceAccountSecret -}}
+  {{- $gcpSecretName := default "" $gcpSecret.name -}}
+  {{- $gcpSecretKey := default "" $gcpSecret.key -}}
+  {{- $gcpMountPath := default "/var/secrets/gcp" $gcpSecret.mountPath -}}
+  {{- $gcpFileName := default "credentials.json" $gcpSecret.fileName -}}
+  {{- if and $gcpSecretName $gcpSecretKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "GOOGLE_APPLICATION_CREDENTIALS" "value" (printf "%s/%s" $gcpMountPath $gcpFileName)) -}}
+    {{- $gcpSecretSpec := dict "secretName" $gcpSecretName -}}
+    {{- $_ := set $gcpSecretSpec "items" (list (dict "key" $gcpSecretKey "path" $gcpFileName)) -}}
+    {{- $volumes = append $volumes (dict "name" "bagetter-gcp-credentials" "secret" $gcpSecretSpec) -}}
+    {{- $volumeMounts = append $volumeMounts (dict "name" "bagetter-gcp-credentials" "mountPath" $gcpMountPath "readOnly" true) -}}
+  {{- end -}}
+{{- else if eq $storageType "AliyunOss" -}}
+  {{- $aliyun := default (dict) $storageConfig.aliyunOss -}}
+  {{- $aliyunSecret := default (dict) $aliyun.existingSecret -}}
+  {{- $aliyunSecretName := default "" $aliyunSecret.name -}}
+  {{- $aliyunSecretKeys := default (dict) $aliyunSecret.keys -}}
+  {{- if $aliyun.endpoint -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Endpoint" "value" $aliyun.endpoint) -}}
+  {{- end -}}
+  {{- if $aliyun.bucket -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Bucket" "value" $aliyun.bucket) -}}
+  {{- end -}}
+  {{- if $aliyun.prefix -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Prefix" "value" $aliyun.prefix) -}}
+  {{- end -}}
+  {{- $aliyunAccessKey := index $aliyunSecretKeys "accessKey" -}}
+  {{- if and $aliyunSecretName $aliyunAccessKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKey" "valueFrom" (dict "secretKeyRef" (dict "name" $aliyunSecretName "key" $aliyunAccessKey))) -}}
+  {{- else if $aliyun.accessKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKey" "value" $aliyun.accessKey) -}}
+  {{- end -}}
+  {{- $aliyunAccessKeySecret := index $aliyunSecretKeys "accessKeySecret" -}}
+  {{- if and $aliyunSecretName $aliyunAccessKeySecret -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKeySecret" "valueFrom" (dict "secretKeyRef" (dict "name" $aliyunSecretName "key" $aliyunAccessKeySecret))) -}}
+  {{- else if $aliyun.accessKeySecret -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AccessKeySecret" "value" $aliyun.accessKeySecret) -}}
+  {{- end -}}
+{{- else if eq $storageType "TencentCos" -}}
+  {{- $tencent := default (dict) $storageConfig.tencentCos -}}
+  {{- $tencentSecret := default (dict) $tencent.existingSecret -}}
+  {{- $tencentSecretName := default "" $tencentSecret.name -}}
+  {{- $tencentSecretKeys := default (dict) $tencentSecret.keys -}}
+  {{- if $tencent.appId -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__AppId" "value" $tencent.appId) -}}
+  {{- end -}}
+  {{- if $tencent.region -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__Region" "value" $tencent.region) -}}
+  {{- end -}}
+  {{- if $tencent.bucketName -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__BucketName" "value" $tencent.bucketName) -}}
+  {{- end -}}
+  {{- if $tencent.keyDurationSecond -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__KeyDurationSecond" "value" (printf "%d" $tencent.keyDurationSecond)) -}}
+  {{- end -}}
+  {{- $tencentSecretId := index $tencentSecretKeys "secretId" -}}
+  {{- if and $tencentSecretName $tencentSecretId -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__SecretId" "valueFrom" (dict "secretKeyRef" (dict "name" $tencentSecretName "key" $tencentSecretId))) -}}
+  {{- else if $tencent.secretId -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__SecretId" "value" $tencent.secretId) -}}
+  {{- end -}}
+  {{- $tencentSecretKey := index $tencentSecretKeys "secretKey" -}}
+  {{- if and $tencentSecretName $tencentSecretKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__SecretKey" "valueFrom" (dict "secretKeyRef" (dict "name" $tencentSecretName "key" $tencentSecretKey))) -}}
+  {{- else if $tencent.secretKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Storage__SecretKey" "value" $tencent.secretKey) -}}
+  {{- end -}}
+{{- else if eq $storageType "Null" -}}
+  {{- /* No additional env vars required */ -}}
+{{- end -}}
+
+{{- $databaseConfig := default (dict) $bagetter.database -}}
+{{- $databaseType := default "Sqlite" $databaseConfig.type -}}
+{{- $computedEnv = append $computedEnv (dict "name" "Database__Type" "value" $databaseType) -}}
+
+{{- $dbConnectionString := "" -}}
+{{- $dbSecretName := "" -}}
+{{- $dbSecretKey := "" -}}
+
+{{- if eq $databaseType "Sqlite" -}}
+  {{- $sqlite := default (dict) $databaseConfig.sqlite -}}
+  {{- $sqliteSecret := default (dict) $sqlite.existingSecret -}}
+  {{- $dbSecretName = default "" $sqliteSecret.name -}}
+  {{- $dbSecretKey = default "" $sqliteSecret.key -}}
+  {{- $dbConnectionString = default (printf "Data Source=%s/bagetter.db" $persistenceMountPath) $sqlite.connectionString -}}
+{{- else if eq $databaseType "MySql" -}}
+  {{- $mysql := default (dict) $databaseConfig.mysql -}}
+  {{- $mysqlSecret := default (dict) $mysql.existingSecret -}}
+  {{- $dbSecretName = default "" $mysqlSecret.name -}}
+  {{- $dbSecretKey = default "" $mysqlSecret.key -}}
+  {{- $dbConnectionString = default "" $mysql.connectionString -}}
+{{- else if eq $databaseType "PostgreSql" -}}
+  {{- $postgres := default (dict) $databaseConfig.postgresql -}}
+  {{- $postgresSecret := default (dict) $postgres.existingSecret -}}
+  {{- $dbSecretName = default "" $postgresSecret.name -}}
+  {{- $dbSecretKey = default "" $postgresSecret.key -}}
+  {{- $dbConnectionString = default "" $postgres.connectionString -}}
+{{- else if eq $databaseType "SqlServer" -}}
+  {{- $sqlServer := default (dict) $databaseConfig.sqlServer -}}
+  {{- $sqlServerSecret := default (dict) $sqlServer.existingSecret -}}
+  {{- $dbSecretName = default "" $sqlServerSecret.name -}}
+  {{- $dbSecretKey = default "" $sqlServerSecret.key -}}
+  {{- $dbConnectionString = default "" $sqlServer.connectionString -}}
+{{- else if eq $databaseType "AzureTable" -}}
+  {{- $azureTable := default (dict) $databaseConfig.azureTable -}}
+  {{- $azureSecret := default (dict) $azureTable.existingSecret -}}
+  {{- $dbSecretName = default "" $azureSecret.name -}}
+  {{- $dbSecretKey = default "" $azureSecret.key -}}
+  {{- $dbConnectionString = default "" $azureTable.connectionString -}}
+  {{- $tableName := default "Packages" $azureTable.tableName -}}
+  {{- if $tableName -}}
+    {{- $computedEnv = append $computedEnv (dict "name" "Database__TableName" "value" $tableName) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if and $dbSecretName $dbSecretKey -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Database__ConnectionString" "valueFrom" (dict "secretKeyRef" (dict "name" $dbSecretName "key" $dbSecretKey))) -}}
+{{- else if $dbConnectionString -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Database__ConnectionString" "value" $dbConnectionString) -}}
+{{- end -}}
+
+{{- if $bagetter.pathBase -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "PathBase" "value" $bagetter.pathBase) -}}
+{{- end -}}
+{{- if $bagetter.urls -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Urls" "value" $bagetter.urls) -}}
+{{- end -}}
+{{- if hasKey $bagetter "runMigrationsAtStartup" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "RunMigrationsAtStartup" "value" (printf "%t" (default true $bagetter.runMigrationsAtStartup))) -}}
+{{- end -}}
+{{- if hasKey $bagetter "isReadOnlyMode" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "IsReadOnlyMode" "value" (printf "%t" (default false $bagetter.isReadOnlyMode))) -}}
+{{- end -}}
+{{- if $bagetter.packageDeletionBehavior -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "PackageDeletionBehavior" "value" $bagetter.packageDeletionBehavior) -}}
+{{- end -}}
+{{- if $bagetter.allowPackageOverwrites -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "AllowPackageOverwrites" "value" $bagetter.allowPackageOverwrites) -}}
+{{- end -}}
+{{- if hasKey $bagetter "maxPackageSizeGiB" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "MaxPackageSizeGiB" "value" (printf "%v" (default 8 $bagetter.maxPackageSizeGiB))) -}}
+{{- end -}}
+
+{{- $retention := default (dict) $bagetter.retention -}}
+{{- if $retention.maxMajorVersions -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Retention__MaxMajorVersions" "value" (printf "%v" $retention.maxMajorVersions)) -}}
+{{- end -}}
+{{- if $retention.maxMinorVersions -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Retention__MaxMinorVersions" "value" (printf "%v" $retention.maxMinorVersions)) -}}
+{{- end -}}
+{{- if $retention.maxPatchVersions -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Retention__MaxPatchVersions" "value" (printf "%v" $retention.maxPatchVersions)) -}}
+{{- end -}}
+{{- if $retention.maxPrereleaseVersions -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Retention__MaxPrereleaseVersions" "value" (printf "%v" $retention.maxPrereleaseVersions)) -}}
+{{- end -}}
+
+{{- $search := default (dict) $bagetter.search -}}
+{{- if $search.type -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Search__Type" "value" $search.type) -}}
+{{- end -}}
+
+{{- $mirror := default (dict) $bagetter.mirror -}}
+{{- if hasKey $mirror "enabled" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Enabled" "value" (printf "%t" (default false $mirror.enabled))) -}}
+{{- end -}}
+{{- if $mirror.packageSource -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__PackageSource" "value" $mirror.packageSource) -}}
+{{- end -}}
+{{- if hasKey $mirror "legacy" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Legacy" "value" (printf "%t" (default false $mirror.legacy))) -}}
+{{- end -}}
+{{- if hasKey $mirror "packageDownloadTimeoutSeconds" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__PackageDownloadTimeoutSeconds" "value" (printf "%d" (default 0 $mirror.packageDownloadTimeoutSeconds))) -}}
+{{- end -}}
+{{- $mirrorAuth := default (dict) $mirror.authentication -}}
+{{- if $mirrorAuth.type -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Authentication__Type" "value" $mirrorAuth.type) -}}
+{{- end -}}
+{{- $mirrorSecret := default (dict) $mirrorAuth.existingSecret -}}
+{{- $mirrorSecretName := default "" $mirrorSecret.name -}}
+{{- $mirrorSecretKeys := default (dict) $mirrorSecret.keys -}}
+{{- $mirrorUsernameKey := index $mirrorSecretKeys "username" -}}
+{{- if and $mirrorSecretName $mirrorUsernameKey -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Authentication__Username" "valueFrom" (dict "secretKeyRef" (dict "name" $mirrorSecretName "key" $mirrorUsernameKey))) -}}
+{{- else if $mirrorAuth.username -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Authentication__Username" "value" $mirrorAuth.username) -}}
+{{- end -}}
+{{- $mirrorPasswordKey := index $mirrorSecretKeys "password" -}}
+{{- if and $mirrorSecretName $mirrorPasswordKey -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Authentication__Password" "valueFrom" (dict "secretKeyRef" (dict "name" $mirrorSecretName "key" $mirrorPasswordKey))) -}}
+{{- else if $mirrorAuth.password -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Authentication__Password" "value" $mirrorAuth.password) -}}
+{{- end -}}
+{{- $mirrorTokenKey := index $mirrorSecretKeys "token" -}}
+{{- if and $mirrorSecretName $mirrorTokenKey -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Authentication__Token" "valueFrom" (dict "secretKeyRef" (dict "name" $mirrorSecretName "key" $mirrorTokenKey))) -}}
+{{- else if $mirrorAuth.token -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Mirror__Authentication__Token" "value" $mirrorAuth.token) -}}
+{{- end -}}
+{{- range $headerKey, $headerValue := $mirrorAuth.customHeaders }}
+  {{- if $headerValue -}}
+    {{- $computedEnv = append $computedEnv (dict "name" (printf "Mirror__Authentication__CustomHeaders__%s" $headerKey) "value" $headerValue) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $statistics := default (dict) $bagetter.statistics -}}
+{{- if hasKey $statistics "enableStatisticsPage" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Statistics__EnableStatisticsPage" "value" (printf "%t" (default true $statistics.enableStatisticsPage))) -}}
+{{- end -}}
+{{- if hasKey $statistics "listConfiguredServices" -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "Statistics__ListConfiguredServices" "value" (printf "%t" (default true $statistics.listConfiguredServices))) -}}
+{{- end -}}
+
+{{- $healthCheck := default (dict) $bagetter.healthCheck -}}
+{{- if $healthCheck.path -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "HealthCheck__Path" "value" $healthCheck.path) -}}
+{{- end -}}
+{{- if $healthCheck.statusPropertyName -}}
+  {{- $computedEnv = append $computedEnv (dict "name" "HealthCheck__StatusPropertyName" "value" $healthCheck.statusPropertyName) -}}
+{{- end -}}
+
+{{- $bagetterAuth := default (dict) $bagetter.authentication -}}
+{{- $bagetterApiKeys := default (list) $bagetterAuth.apiKeys -}}
+{{- range $idx, $api := $bagetterApiKeys }}
+  {{- $envName := printf "Authentication__ApiKeys__%d__Key" $idx -}}
+  {{- $apiSecret := default (dict) $api.existingSecret -}}
+  {{- $apiSecretName := default "" $apiSecret.name -}}
+  {{- $apiSecretKey := default "" $apiSecret.key -}}
+  {{- if and $apiSecretName $apiSecretKey -}}
+    {{- $computedEnv = append $computedEnv (dict "name" $envName "valueFrom" (dict "secretKeyRef" (dict "name" $apiSecretName "key" $apiSecretKey))) -}}
+  {{- else if $api.key -}}
+    {{- $computedEnv = append $computedEnv (dict "name" $envName "value" $api.key) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $bagetterCredentials := default (list) $bagetterAuth.credentials -}}
+{{- range $idx, $cred := $bagetterCredentials }}
+  {{- $usernameEnv := printf "Authentication__Credentials__%d__Username" $idx -}}
+  {{- $passwordEnv := printf "Authentication__Credentials__%d__Password" $idx -}}
+  {{- $credSecret := default (dict) $cred.existingSecret -}}
+  {{- $credSecretName := default "" $credSecret.name -}}
+  {{- $credSecretKeys := default (dict) $credSecret.keys -}}
+  {{- $credSecretUsername := index $credSecretKeys "username" -}}
+  {{- if and $credSecretName $credSecretUsername -}}
+    {{- $computedEnv = append $computedEnv (dict "name" $usernameEnv "valueFrom" (dict "secretKeyRef" (dict "name" $credSecretName "key" $credSecretUsername))) -}}
+  {{- else if $cred.username -}}
+    {{- $computedEnv = append $computedEnv (dict "name" $usernameEnv "value" $cred.username) -}}
+  {{- end -}}
+  {{- $credSecretPassword := index $credSecretKeys "password" -}}
+  {{- if and $credSecretName $credSecretPassword -}}
+    {{- $computedEnv = append $computedEnv (dict "name" $passwordEnv "valueFrom" (dict "secretKeyRef" (dict "name" $credSecretName "key" $credSecretPassword))) -}}
+  {{- else if $cred.password -}}
+    {{- $computedEnv = append $computedEnv (dict "name" $passwordEnv "value" $cred.password) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- range $bagetterEnv }}
+  {{- $computedEnv = append $computedEnv . -}}
+{{- end -}}
+{{- range $bagetterExtraEnv }}
+  {{- $computedEnv = append $computedEnv . -}}
+{{- end -}}
+{{- $computedEnv = append $computedEnv (dict "name" "API_KEY" "valueFrom" (dict "secretKeyRef" (dict "name" $apiKeySecretName "key" "api-key"))) -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bagetter.fullname" . }}
+  labels:
+    {{- include "bagetter.labels" . | nindent 4 }}
+spec:
+  {{- if not $autoscaling.enabled }}
+  replicas: {{ $replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "bagetter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with $podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "bagetter.labels" . | nindent 8 }}
+        {{- with $podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with $imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "bagetter.serviceAccountName" . }}
+      {{- with $podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with $containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ $imageRepository }}:{{ $imageTag }}"
+          imagePullPolicy: {{ $imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $containerPort }}
+              protocol: TCP
+          env:
+            {{- toYaml $computedEnv | nindent 12 }}
+          {{- with $livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or $volumeMounts (and (eq $storageType "FileSystem") $persistence.enabled $persistenceMountPath) }}
+          volumeMounts:
+            {{- with $volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if and (eq $storageType "FileSystem") $persistence.enabled $persistenceMountPath }}
+            - name: {{ include "bagetter.fullname" . }}-data
+              mountPath: {{ $persistenceMountPath }}
+            {{- end }}
+          {{- end }}
+      {{- if or $volumes (and (eq $storageType "FileSystem") $persistence.enabled) }}
+      volumes:
+        {{- with $volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if and (eq $storageType "FileSystem") $persistence.enabled }}
+        - name: {{ include "bagetter.fullname" . }}-data
+          persistentVolumeClaim:
+            claimName: {{ include "bagetter.fullname" . }}-data
+        {{- end }}
+      {{- end }}
+      {{- with $nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

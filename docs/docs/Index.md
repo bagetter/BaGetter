@@ -28,6 +28,7 @@ You can run BaGetter on your preferred platform:
 - [AWS](Installation/aws.md)
 - [Google Cloud](Installation/gcp.md)
 - [Alibaba Cloud (Aliyun)](Installation/aliyun.md)
+- [Kubernetes via Helm](helm/overview.md)
 
 ## BaGetter SDK
 
