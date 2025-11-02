@@ -4,6 +4,7 @@
 
     <PackageTags>NuGet</PackageTags>
     <Description>The core libraries that power BaGetter.</Description>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>

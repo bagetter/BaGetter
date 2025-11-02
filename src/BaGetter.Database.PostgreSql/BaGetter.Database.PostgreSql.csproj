@@ -5,6 +5,7 @@
 
     <PackageTags>NuGet</PackageTags>
     <Description>The libraries to host BaGetter on PostgreSQL.</Description>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
