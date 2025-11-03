@@ -102,7 +102,7 @@ public class PackageDeletionService : IPackageDeletionService
             .SelectMany(g => g.Select(k => (parent: g.Key, selector: getSelector(k)))
                 .Distinct()
                 .OrderByDescending(k => k.selector)
-                .Take(versionsToKeep))            
+                .Take(versionsToKeep))
             .ToList();
         return versions.Where(k => validVersions.Any(v => getParent(k).Equals(v.parent) && getSelector(k).Equals(v.selector))).ToList();
     }
@@ -123,12 +123,12 @@ public class PackageDeletionService : IPackageDeletionService
         {
             goodVersions = packages.Select(p => p.Version).ToHashSet();
         }
-        
+
         if (maxMinor.HasValue)
         {
             goodVersions.IntersectWith(GetValidVersions(goodVersions, v => (v.Major), v => v.Minor, (int)maxMinor));
         }
-        
+
         if (maxPatch.HasValue)
         {
             goodVersions.IntersectWith(GetValidVersions(goodVersions, v => (v.Major, v.Minor), v => v.Patch, (int)maxPatch));
@@ -136,26 +136,10 @@ public class PackageDeletionService : IPackageDeletionService
 
         if (maxPrerelease.HasValue)
         {
-            // this assume we have something like 1.1.1-alpha.1 - alpha is the release type
-            var preReleases = packages.Select(p => p.Version).Where(p => p.IsPrerelease).ToList();
-            // this will give us 'alpha' or 'beta' etc
-            var prereleaseTypes = preReleases
-                .Select(v => v.ReleaseLabels?.FirstOrDefault())
-                .Where(lb => lb is not null)
-                .Distinct();
+            var allPreReleaseValidVersions = GetValidPrereleaseVersions(packages.Where(p => goodVersions.Contains(p.Version)).ToList(), maxPrerelease.Value);
 
-            var allPreReleaseValidVersions = new HashSet<NuGetVersion>();
-            foreach (var preReleaseType in prereleaseTypes)
-            {
-                var preReleaseVersions = preReleases.Where(p => p.ReleaseLabels!.FirstOrDefault() == preReleaseType
-                        && GetPreReleaseBuild(p) is not null).ToList();
-
-                allPreReleaseValidVersions.UnionWith
-                    (GetValidVersions(preReleaseVersions,
-                        v => (v.Major, v.Minor, v.Patch), v => GetPreReleaseBuild(v).Value, (int)maxPrerelease));
-
-            }
-            goodVersions.IntersectWith(allPreReleaseValidVersions);
+            goodVersions.RemoveWhere(v => v.IsPrerelease);
+            goodVersions.UnionWith(allPreReleaseValidVersions);
         }
 
         // sort by version and take everything except the last maxPackages
@@ -167,6 +151,56 @@ public class PackageDeletionService : IPackageDeletionService
             if (await TryHardDeletePackageAsync(package.Id, version.Version, cancellationToken)) deleted++;
         }
         return deleted;
+    }
+
+    /// <summary>
+    /// Filters out prereleases that should be removed
+    /// </summary>
+    /// <param name="packages">All packages versions</param>
+    /// <param name="maxPrereleaseVersions">Max numbers of prereleases</param>
+    /// <returns>All prereleases that should be kept</returns>
+    private HashSet<NuGetVersion> GetValidPrereleaseVersions
+        (IReadOnlyList<Package> packages, uint maxPrereleaseVersions)
+    {
+        var preReleasesParentGroups = packages
+            .Where(p => p.Version.IsPrerelease)
+            .GroupBy(v => new { v.Version.Major, v.Version.Minor, v.Version.Patch });
+
+        var preReleaseValidVersions = new HashSet<NuGetVersion>();
+
+        foreach (var versions in preReleasesParentGroups)
+        {
+            var preReleasesSemVersions = versions
+                .Select(p => p.Version)
+                .Where(preRelease => preRelease.IsSemVer2)
+                .ToHashSet();
+
+            if (preReleasesSemVersions.Count > 0)
+            {
+                // this will give us 'alpha' or 'beta' etc
+                var prereleaseTypes = preReleasesSemVersions
+                    .Select(v => v.ReleaseLabels?.FirstOrDefault())
+                    .Where(lb => lb is not null)
+                    .Distinct();
+
+                foreach (var preReleaseType in prereleaseTypes)
+                {
+                    var preReleaseVersions = preReleasesSemVersions
+                        .Where(p =>
+                            p.ReleaseLabels!.FirstOrDefault() == preReleaseType
+                            && GetPreReleaseBuild(p) is not null).ToList();
+
+                    preReleaseValidVersions.UnionWith(
+                        GetValidVersions(preReleaseVersions,
+                            v => (v.Major, v.Minor, v.Patch), v => GetPreReleaseBuild(v).Value, (int)maxPrereleaseVersions));
+                }
+            }
+
+            preReleaseValidVersions.UnionWith(
+                versions.Where(pr => !pr.Version.IsSemVer2).OrderByDescending(pr => pr.Published).Take((int)maxPrereleaseVersions).Select(x => x.Version).ToHashSet());
+        }
+
+        return preReleaseValidVersions;
     }
 
     /// <summary>
