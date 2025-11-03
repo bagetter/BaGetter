@@ -37,7 +37,7 @@ RUN mkdir -p "/data/packages" \
     mkdir -p "/data/db"
 
 ## Create final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine-composite AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS base
 # install cultures (same approach as Alpine SDK image)
 RUN apk add --no-cache icu-libs icu-data-full tzdata
 # disable the invariant mode (set in base image)
