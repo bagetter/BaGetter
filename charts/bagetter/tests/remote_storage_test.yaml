@@ -1,0 +1,18 @@
+suite: remote storage behaviour
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: skips pvc when using aws s3 backend
+    set:
+      bagetter.storage.type: AwsS3
+      bagetter.storage.awsS3.bucket: example-bucket
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Storage__Type
+            value: AwsS3
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts

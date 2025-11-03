@@ -1,0 +1,45 @@
+suite: mirror configuration
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: renders mirror authentication secrets and headers
+    set:
+      bagetter.mirror.enabled: true
+      bagetter.mirror.packageSource: https://example.org/v3/index.json
+      bagetter.mirror.authentication.type: Basic
+      bagetter.mirror.authentication.existingSecret.name: mirror-auth
+      bagetter.mirror.authentication.existingSecret.keys.username: mirror-user
+      bagetter.mirror.authentication.existingSecret.keys.password: mirror-pass
+      bagetter.mirror.authentication.customHeaders.X-Api-Key: secret-token
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Mirror__Enabled
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Mirror__Authentication__Type
+            value: Basic
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Mirror__Authentication__Username
+            valueFrom:
+              secretKeyRef:
+                name: mirror-auth
+                key: mirror-user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Mirror__Authentication__Password
+            valueFrom:
+              secretKeyRef:
+                name: mirror-auth
+                key: mirror-pass
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: Mirror__Authentication__CustomHeaders__X-Api-Key
+            value: secret-token

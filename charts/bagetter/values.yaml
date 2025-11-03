@@ -1,0 +1,277 @@
+# Default values for bagetter.
+# This is a YAML-formatted file that now groups settings by concern while
+# keeping legacy keys (below) in place for compatibility with existing templates.
+
+general:
+  # This will set the ReplicaSet count. https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: &replicaCount 1
+  # Secrets for pulling an image from a private registry.
+  imagePullSecrets: &imagePullSecrets []
+
+metadata:
+  # Overrides for generated resource names.
+  nameOverride: &nameOverride ""
+  fullnameOverride: &fullnameOverride ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Automatically mount a ServiceAccount's API credentials.
+  automount: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # Custom service account name (defaults to chart fullname when empty).
+  name: ""
+
+workload:
+  podAnnotations: &podAnnotations {}
+  podLabels: &podLabels {}
+  podSecurityContext: &workloadPodSecurityContext {}
+    # fsGroup: 2000
+  containerSecurityContext: &containerSecurityContext {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+bagetter:
+  apiKey: &bagetterApiKey "ChangeMe"
+  image:
+    repository: bagetter/bagetter
+    pullPolicy: IfNotPresent
+    tag: ""
+  env: []
+  extraEnv: []
+  storage:
+    type: FileSystem
+    fileSystem:
+      path: /data
+    azureBlobStorage:
+      container: ""
+      connectionString: ""
+      accountName: ""
+      accessKey: ""
+      existingSecret:
+        name: ""
+        keys:
+          connectionString: connection-string
+          accountName: account-name
+          accessKey: access-key
+    awsS3:
+      bucket: ""
+      region: ""
+      endpoint: ""
+      prefix: ""
+      useInstanceProfile: false
+      assumeRoleArn: ""
+      accessKey: ""
+      secretKey: ""
+      existingSecret:
+        name: ""
+        keys:
+          accessKey: access-key
+          secretKey: secret-key
+    googleCloud:
+      bucketName: ""
+      projectId: ""
+      serviceAccountSecret:
+        name: ""
+        key: credentials.json
+        mountPath: /var/secrets/gcp
+        fileName: credentials.json
+    aliyunOss:
+      accessKey: ""
+      accessKeySecret: ""
+      endpoint: ""
+      bucket: ""
+      prefix: ""
+      existingSecret:
+        name: ""
+        keys:
+          accessKey: access-key
+          accessKeySecret: access-key-secret
+    tencentCos:
+      appId: ""
+      secretId: ""
+      secretKey: ""
+      region: ""
+      bucketName: ""
+      keyDurationSecond: 600
+      existingSecret:
+        name: ""
+        keys:
+          secretId: secret-id
+          secretKey: secret-key
+  database:
+    type: Sqlite
+    sqlite:
+      connectionString: "Data Source=/data/bagetter.db"
+      existingSecret:
+        name: ""
+        key: connection-string
+    mysql:
+      connectionString: ""
+      existingSecret:
+        name: ""
+        key: connection-string
+    postgresql:
+      connectionString: ""
+      existingSecret:
+        name: ""
+        key: connection-string
+    sqlServer:
+      connectionString: ""
+      existingSecret:
+        name: ""
+        key: connection-string
+    azureTable:
+      connectionString: ""
+      tableName: Packages
+      existingSecret:
+        name: ""
+        key: connection-string
+  pathBase: ""
+  urls: ""
+  runMigrationsAtStartup: true
+  isReadOnlyMode: false
+  packageDeletionBehavior: Unlist
+  allowPackageOverwrites: "False"
+  maxPackageSizeGiB: 8
+  retention:
+    maxMajorVersions:
+    maxMinorVersions:
+    maxPatchVersions:
+    maxPrereleaseVersions:
+  search:
+    type: Database
+  mirror:
+    enabled: false
+    packageSource: https://api.nuget.org/v3/index.json
+    legacy: false
+    packageDownloadTimeoutSeconds: 600
+    authentication:
+      type: None
+      username: ""
+      password: ""
+      token: ""
+      customHeaders: {}
+      existingSecret:
+        name: ""
+        keys:
+          username: username
+          password: password
+          token: token
+  statistics:
+    enableStatisticsPage: true
+    listConfiguredServices: true
+  healthCheck:
+    path: /health
+    statusPropertyName: Status
+  authentication:
+    apiKeys: []
+      # - key: "extra-api-key"
+      #   existingSecret:
+      #     name: bagetter-extra-keys
+      #     key: api-key
+    credentials: []
+      # - username: reader
+      #   password: ""
+      #   existingSecret:
+      #     name: bagetter-private-feed
+      #     keys:
+      #       username: username
+      #       password: password
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+networking:
+  service:
+    type: &serviceType ClusterIP
+    port: &servicePort 80
+    targetPort: &serviceTargetPort 8080
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: bagetter.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+
+health:
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 8080
+    initialDelaySeconds: 30
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 30
+
+scaling:
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+storage:
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName:
+    accessModes:
+      - ReadWriteOnce
+    mountPath: /data
+  volumes: []
+    # - name: foo
+    #   secret:
+    #     secretName: mysecret
+    #     optional: false
+  volumeMounts: []
+    # - name: foo
+    #   mountPath: "/etc/foo"
+    #   readOnly: true
+
+scheduling:
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# ------------------------------------------------------------------------------
+# Legacy keys maintained temporarily for compatibility with existing templates.
+# These will be removed once templates are updated to reference the new structure.
+# ------------------------------------------------------------------------------
+
+replicaCount: *replicaCount
+imagePullSecrets: *imagePullSecrets
+nameOverride: *nameOverride
+fullnameOverride: *fullnameOverride
+
+podAnnotations: *podAnnotations
+podLabels: *podLabels
+podSecurityContext: *workloadPodSecurityContext
+securityContext: *containerSecurityContext
+
+apiKey: *bagetterApiKey
+
+service:
+  type: *serviceType
+  port: *servicePort
+  targetPort: *serviceTargetPort
