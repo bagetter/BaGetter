@@ -36,6 +36,7 @@ public class Package
     public bool HasReadme { get; set; }
     public bool HasEmbeddedIcon { get; set; }
     public bool IsPrerelease { get; set; }
+    public string MirroredFrom { get; set; }
     public string ReleaseNotes { get; set; }
     public string Language { get; set; }
     public bool Listed { get; set; }

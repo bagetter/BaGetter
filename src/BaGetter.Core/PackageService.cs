@@ -100,10 +100,13 @@ public class PackageService : IPackageService
             return true;
         }
 
+        var mirrorFeedUrl = _upstream.GetServiceIndexUrl();
+
         _logger.LogInformation(
-            "Package {PackageId} {PackageVersion} does not exist locally. Checking upstream feed...",
+            "Package {PackageId} {PackageVersion} does not exist locally. Checking upstream feed ({mirrorFeedUrl})...",
             id,
-            version);
+            version,
+            mirrorFeedUrl);
 
         try
         {
@@ -122,7 +125,7 @@ public class PackageService : IPackageService
                 id,
                 version);
 
-            var result = await _indexer.IndexAsync(packageStream, cancellationToken);
+            var result = await _indexer.IndexAsync(packageStream, mirrorFeedUrl, cancellationToken);
 
             _logger.LogInformation(
                 "Finished indexing package {PackageId} {PackageVersion} from upstream feed with result {Result}",
