@@ -295,6 +295,12 @@ Each database engine requires a connection string to configure the connection. P
 
 You may configure the chosen database engine either using environment variables or by editing the `appsettings.json` file.
 
+:::info
+
+Database migrations are automatically applied on application startup.
+
+:::
+
 ### Environment Variables
 
 There are two environment variables related to database configuration. These are:
