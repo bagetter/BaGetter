@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using BaGetter.Core;
 using BaGetter.Web;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.WindowsServices;
 
 namespace BaGetter;
 
@@ -14,7 +16,18 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var host = CreateHostBuilder(args).Build();
+        if (WindowsServiceHelpers.IsWindowsService())
+        {
+            // Make sure appsettings.json can be found when running as windows service
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+        }
+
+        var builder = CreateHostBuilder(args);
+
+        // Support running as a windows service
+        builder.UseWindowsService();
+
+        var host = builder.Build();
         if (!host.ValidateStartupOptions())
         {
             return;
