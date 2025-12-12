@@ -74,8 +74,16 @@ public class PackageIndexingService : IPackageIndexingService
 
             if (package.HasEmbeddedIcon)
             {
-                iconStream = await packageReader.GetIconAsync(cancellationToken);
-                iconStream = await iconStream.AsTemporaryFileStreamAsync(cancellationToken);
+                try
+                {
+                    iconStream = await packageReader.GetIconAsync(cancellationToken);
+                    iconStream = await iconStream.AsTemporaryFileStreamAsync(cancellationToken);
+                }
+                catch (FileNotFoundException)
+                {
+                    // take it graceful
+                    iconStream = null;
+                }
             }
             else
             {
