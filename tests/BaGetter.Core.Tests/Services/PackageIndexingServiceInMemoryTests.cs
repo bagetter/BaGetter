@@ -26,6 +26,7 @@ public class PackageIndexingServiceInMemoryTests
     private readonly PackageIndexingService _target;
     private readonly BaGetterOptions _options;
     private readonly RetentionOptions _retentionOptions;
+    private readonly Mock<IPackageDeprecationService> _deprecations;
 
     public PackageIndexingServiceInMemoryTests()
     {
@@ -36,6 +37,7 @@ public class PackageIndexingServiceInMemoryTests
         _search = new Mock<ISearchIndexer>(MockBehavior.Strict);
         _options = new();
         _retentionOptions = new();
+        _deprecations = new Mock<IPackageDeprecationService>();
 
         var optionsSnapshot = new Mock<IOptionsSnapshot<BaGetterOptions>>();
         optionsSnapshot.Setup(o => o.Value).Returns(_options);
@@ -43,6 +45,7 @@ public class PackageIndexingServiceInMemoryTests
         _deleter = new PackageDeletionService(
             _packages,
             _storage,
+            _deprecations.Object,
             optionsSnapshot.Object,
             Mock.Of<ILogger<PackageDeletionService>>());
         _time = new Mock<SystemTime>(MockBehavior.Loose);

@@ -364,6 +364,7 @@ public class PackageServiceTests
         protected readonly Mock<IPackageDatabase> _db;
         protected readonly Mock<IUpstreamClient> _upstream;
         protected readonly Mock<IPackageIndexingService> _indexer;
+        protected readonly Mock<IPackageDeprecationService> _deprecations;
 
         protected readonly CancellationToken _cancellationToken = CancellationToken.None;
         protected readonly PackageService _target;
@@ -373,11 +374,13 @@ public class PackageServiceTests
             _db = new Mock<IPackageDatabase>();
             _upstream = new Mock<IUpstreamClient>();
             _indexer = new Mock<IPackageIndexingService>();
+            _deprecations = new Mock<IPackageDeprecationService>();
 
             _target = new PackageService(
                 _db.Object,
                 _upstream.Object,
                 _indexer.Object,
+                _deprecations.Object,
                 Mock.Of<ILogger<PackageService>>());
         }
     }

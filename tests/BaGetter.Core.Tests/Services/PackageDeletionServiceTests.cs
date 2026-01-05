@@ -15,6 +15,7 @@ public class PackageDeletionServiceTests
 
     private readonly Mock<IPackageDatabase> _packages;
     private readonly Mock<IPackageStorageService> _storage;
+    private readonly Mock<IPackageDeprecationService> _deprecations;
 
     private readonly BaGetterOptions _options;
     private readonly PackageDeletionService _target;
@@ -23,6 +24,7 @@ public class PackageDeletionServiceTests
     {
         _packages = new Mock<IPackageDatabase>();
         _storage = new Mock<IPackageStorageService>();
+        _deprecations = new Mock<IPackageDeprecationService>();
         _options = new BaGetterOptions();
 
         var optionsSnapshot = new Mock<IOptionsSnapshot<BaGetterOptions>>();
@@ -31,6 +33,7 @@ public class PackageDeletionServiceTests
         _target = new PackageDeletionService(
             _packages.Object,
             _storage.Object,
+            _deprecations.Object,
             optionsSnapshot.Object,
             Mock.Of<ILogger<PackageDeletionService>>());
     }
