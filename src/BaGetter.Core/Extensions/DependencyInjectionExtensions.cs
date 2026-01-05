@@ -84,6 +84,7 @@ public static partial class DependencyInjectionExtensions
         services.TryAddSingleton<NullSearchIndexer>();
         services.TryAddSingleton<NullSearchService>();
         services.TryAddSingleton<RegistrationBuilder>();
+        services.TryAddSingleton<IPackageDeprecationService, StoragePackageDeprecationService>();
         services.TryAddSingleton<SystemTime>();
         services.TryAddSingleton<ValidateStartupOptions>();
 

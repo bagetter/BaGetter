@@ -16,7 +16,7 @@ public class FileStorageService : IStorageService
 
     private readonly string _storePath;
 
-    public FileStorageService(IOptionsSnapshot<FileSystemStorageOptions> options)
+    public FileStorageService(IOptions<FileSystemStorageOptions> options)
     {
         ArgumentNullException.ThrowIfNull(options);
 

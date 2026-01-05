@@ -13,17 +13,20 @@ public class PackageService : IPackageService
     private readonly IPackageDatabase _db;
     private readonly IUpstreamClient _upstream;
     private readonly IPackageIndexingService _indexer;
+    private readonly IPackageDeprecationService _deprecations;
     private readonly ILogger<PackageService> _logger;
 
     public PackageService(
         IPackageDatabase db,
         IUpstreamClient upstream,
         IPackageIndexingService indexer,
+        IPackageDeprecationService deprecations,
         ILogger<PackageService> logger)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _upstream = upstream ?? throw new ArgumentNullException(nameof(upstream));
         _indexer = indexer ?? throw new ArgumentNullException(nameof(indexer));
+        _deprecations = deprecations ?? throw new ArgumentNullException(nameof(deprecations));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -48,8 +51,16 @@ public class PackageService : IPackageService
         var upstreamPackages = await _upstream.ListPackagesAsync(id, cancellationToken);
         var localPackages = await _db.FindAsync(id, includeUnlisted: true, cancellationToken);
 
-        if (!upstreamPackages.Any()) return localPackages;
-        if (!localPackages.Any()) return upstreamPackages;
+        if (!upstreamPackages.Any())
+        {
+            await _deprecations.AttachAsync(localPackages, cancellationToken);
+            return localPackages;
+        }
+        if (!localPackages.Any())
+        {
+            await _deprecations.AttachAsync(upstreamPackages, cancellationToken);
+            return upstreamPackages;
+        }
 
         // Merge the local packages into the upstream packages.
         var result = upstreamPackages.ToDictionary(p => p.Version);
@@ -60,7 +71,9 @@ public class PackageService : IPackageService
             result[localPackage.Key] = localPackage.Value;
         }
 
-        return result.Values.ToList();
+        var merged = result.Values.ToList();
+        await _deprecations.AttachAsync(merged, cancellationToken);
+        return merged;
     }
 
     public async Task<Package> FindPackageOrNullAsync(
@@ -73,7 +86,13 @@ public class PackageService : IPackageService
             return null;
         }
 
-        return await _db.FindOrNullAsync(id, version, includeUnlisted: true, cancellationToken);
+        var package = await _db.FindOrNullAsync(id, version, includeUnlisted: true, cancellationToken);
+        if (package != null)
+        {
+            await _deprecations.AttachAsync(new[] { package }, cancellationToken);
+        }
+
+        return package;
     }
 
     public async Task<bool> ExistsAsync(string id, NuGetVersion version, CancellationToken cancellationToken)

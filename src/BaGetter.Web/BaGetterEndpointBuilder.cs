@@ -48,6 +48,12 @@ public class BaGetterEndpointBuilder
             pattern: "api/v2/package/{id}/{version}",
             defaults: new { controller = "PackagePublish", action = "Relist" },
             constraints: new { httpMethod = new HttpMethodRouteConstraint("POST") });
+
+        endpoints.MapControllerRoute(
+            name: Routes.DeprecateRouteName,
+            pattern: "api/v2/package/{id}/{version}/deprecate",
+            defaults: new { controller = "PackagePublish", action = "Deprecate" },
+            constraints: new { httpMethod = new HttpMethodRouteConstraint("POST") });
     }
 
     public void MapSymbolRoutes(IEndpointRouteBuilder endpoints)

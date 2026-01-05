@@ -108,6 +108,7 @@ public abstract class AbstractContext<TContext> : DbContext, IContext where TCon
         package.Ignore(p => p.LicenseUrlString);
         package.Ignore(p => p.ProjectUrlString);
         package.Ignore(p => p.RepositoryUrlString);
+        package.Ignore(p => p.Deprecation);
 
         // TODO: This is needed to make the dependency to package relationship required.
         // Unfortunately, this would generate a migration that drops a foreign key, which

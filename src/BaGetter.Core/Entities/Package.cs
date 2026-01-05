@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 
 namespace BaGetter.Core;
@@ -72,4 +73,9 @@ public class Package
     public string LicenseUrlString => LicenseUrl?.AbsoluteUri ?? string.Empty;
     public string ProjectUrlString => ProjectUrl?.AbsoluteUri ?? string.Empty;
     public string RepositoryUrlString => RepositoryUrl?.AbsoluteUri ?? string.Empty;
+
+    /// <summary>
+    /// Optional deprecation metadata (loaded from storage, not persisted in the database).
+    /// </summary>
+    public PackageDeprecation Deprecation { get; set; }
 }
