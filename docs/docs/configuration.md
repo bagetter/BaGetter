@@ -148,6 +148,73 @@ The following `Mirror` setting configures BaGetter to index packages from [nuget
     }
     ```
   </TabItem>
+
+  <TabItem value="AzureIdentity" label="Azure Identity">
+    For Azure DevOps feeds, you can use Azure Managed Identity or a service principal to authenticate. Set `Type` to `AzureIdentity`:
+
+    ```json
+    {
+        ...
+
+        "Mirror": {
+            "Enabled": true,
+            "PackageSource": "https://pkgs.dev.azure.com/{org}/_packaging/{feed}/nuget/v3/index.json",
+            "Authentication": {
+                "Type": "AzureIdentity"
+            }
+        },
+
+        ...
+    }
+    ```
+
+    The required OAuth scope is auto-detected for Azure DevOps URLs. For other package sources, specify the `Scope` explicitly:
+
+    ```json
+    {
+        "Mirror": {
+            "Enabled": true,
+            "PackageSource": "https://custom-source.example.com/v3/index.json",
+            "Authentication": {
+                "Type": "AzureIdentity",
+                "Scope": "https://custom-source.example.com/.default"
+            }
+        }
+    }
+    ```
+
+    To authenticate as a **service principal** instead of a managed identity, provide `TenantId`, `ClientId`, and `ClientSecret`:
+
+    ```json
+    {
+        "Mirror": {
+            "Enabled": true,
+            "PackageSource": "https://pkgs.dev.azure.com/{org}/_packaging/{feed}/nuget/v3/index.json",
+            "Authentication": {
+                "Type": "AzureIdentity",
+                "TenantId": "your-tenant-id",
+                "ClientId": "your-client-id",
+                "ClientSecret": "your-client-secret"
+            }
+        }
+    }
+    ```
+
+    For a **user-assigned managed identity**, provide only the `ClientId`:
+
+    ```json
+    {
+        "Mirror": {
+            "Enabled": true,
+            "PackageSource": "https://pkgs.dev.azure.com/{org}/_packaging/{feed}/nuget/v3/index.json",
+            "Authentication": {
+                "Type": "AzureIdentity",
+                "ClientId": "your-managed-identity-client-id"
+            }
+        }
+    }
+    ```
+  </TabItem>
 </Tabs>
 
 
@@ -329,6 +396,12 @@ There are two settings related to the database configuration:
 
 - **Type**: The database engine to use, this should be one of the strings from the above list such as `PostgreSql` or `Sqlite`.
 - **ConnectionString**: The connection string for your database engine.
+
+:::tip
+
+When using Azure Table Storage (`AzureTable`), you can authenticate with managed identity by providing `AccountName` instead of a `ConnectionString`. See the [Azure installation guide](Installation/azure.md#package-metadata-database) for details.
+
+:::
 
 ## IIS server options
 
