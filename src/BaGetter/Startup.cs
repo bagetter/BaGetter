@@ -73,6 +73,9 @@ public class Startup
         app.AddGoogleCloudStorage();
         app.AddTencentOssStorage();
 
+        // Add Azure managed identity mirror authentication.
+        app.AddAzureMirrorAuthentication();
+
         // Add search providers.
         //app.AddAzureSearch();
     }

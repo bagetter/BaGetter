@@ -43,12 +43,9 @@ namespace BaGetter.Azure
                         new[] { nameof(AccountName) });
                 }
 
-                if (string.IsNullOrEmpty(AccessKey))
-                {
-                    yield return new ValidationResult(
-                        $"The {nameof(AccessKey)} configuration is required. See {helpUrl}",
-                        new[] { nameof(AccessKey) });
-                }
+                // AccessKey is only required when not using managed identity.
+                // When both ConnectionString and AccessKey are empty, managed identity
+                // (DefaultAzureCredential) will be used if AccountName is provided.
             }
 
             if (string.IsNullOrEmpty(Container))

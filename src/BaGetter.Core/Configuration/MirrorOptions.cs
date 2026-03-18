@@ -80,6 +80,25 @@ public class MirrorOptions : IValidatableObject
                     }
                     break;
 
+                case MirrorAuthenticationType.AzureIdentity:
+                    if (!string.IsNullOrEmpty(Authentication.ClientSecret))
+                    {
+                        if (string.IsNullOrEmpty(Authentication.TenantId))
+                        {
+                            yield return new ValidationResult(
+                                $"The {nameof(Authentication.TenantId)} configuration is required when {nameof(Authentication.ClientSecret)} is set",
+                                [nameof(Authentication.TenantId)]);
+                        }
+
+                        if (string.IsNullOrEmpty(Authentication.ClientId))
+                        {
+                            yield return new ValidationResult(
+                                $"The {nameof(Authentication.ClientId)} configuration is required when {nameof(Authentication.ClientSecret)} is set",
+                                [nameof(Authentication.ClientId)]);
+                        }
+                    }
+                    break;
+
                 case MirrorAuthenticationType.Custom:
                     if (Authentication.CustomHeaders == null)
                     {

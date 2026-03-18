@@ -5,5 +5,6 @@ public enum MirrorAuthenticationType
     None,
     Basic,
     Bearer,
-    Custom
+    Custom,
+    AzureIdentity
 }
