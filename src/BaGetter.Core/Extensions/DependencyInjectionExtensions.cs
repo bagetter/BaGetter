@@ -180,10 +180,21 @@ public static partial class DependencyInjectionExtensions
         var assemblyName = assembly.GetName().Name;
         var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
 
-        var client = new HttpClient(new HttpClientHandler
+        HttpMessageHandler handler = new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-        });
+        };
+
+        if (options.Authentication?.Type == MirrorAuthenticationType.AzureIdentity)
+        {
+            var authHandler = provider.GetService<IMirrorAuthenticationHandler>();
+            if (authHandler != null)
+            {
+                handler = authHandler.CreateHandler(handler);
+            }
+        }
+
+        var client = new HttpClient(handler);
 
         client.DefaultRequestHeaders.Add("User-Agent", $"{assemblyName}/{assemblyVersion}");
         client.Timeout = TimeSpan.FromSeconds(options.PackageDownloadTimeoutSeconds);
@@ -207,6 +218,10 @@ public static partial class DependencyInjectionExtensions
 
                 case MirrorAuthenticationType.Bearer:
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+                    break;
+
+                case MirrorAuthenticationType.AzureIdentity:
+                    // Token is injected dynamically by IMirrorAuthenticationHandler
                     break;
 
                 case MirrorAuthenticationType.Custom:

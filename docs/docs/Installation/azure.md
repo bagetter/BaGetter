@@ -64,6 +64,32 @@ If it doesn't exist, it will be created automatically.
 ```
 
 </TabItem>
+
+<TabItem value="managedIdentity" label="Managed Identity">
+
+To use Azure Managed Identity, set the database type to `AzureTable` and provide the storage account name instead of a connection string. Optionally set a custom table name (defaults to `Packages`):
+
+```json
+{
+    ...
+
+    "Database": {
+        "Type": "AzureTable",
+        "AccountName": "mystorageaccount",
+        "TableName": "Packages"
+    },
+
+    ...
+}
+```
+
+:::note
+
+The identity running BaGetter must have the **Storage Table Data Contributor** RBAC role on the storage account.
+
+:::
+
+</TabItem>
 </Tabs>
 
 ### Azure Blob Storage
@@ -108,6 +134,32 @@ To use a connection string, add it like this:
     ...
 }
 ```
+
+</TabItem>
+
+<TabItem value="managedIdentity" label="Managed Identity">
+
+To use Azure Managed Identity, provide the storage account name without an access key or connection string:
+
+```json
+{
+    ...
+
+    "Storage": {
+        "Type": "AzureBlobStorage",
+        "Container": "packages",
+        "AccountName": "mystorageaccount"
+    },
+
+    ...
+}
+```
+
+:::note
+
+The identity running BaGetter must have the **Storage Blob Data Contributor** RBAC role on the storage account.
+
+:::
 
 </TabItem>
 </Tabs>

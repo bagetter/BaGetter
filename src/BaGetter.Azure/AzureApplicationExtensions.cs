@@ -1,5 +1,6 @@
 using System;
 using Azure.Data.Tables;
+using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using BaGetter.Azure;
@@ -26,7 +27,18 @@ namespace BaGetter
             {
                 var options = provider.GetRequiredService<IOptions<AzureTableOptions>>().Value;
 
-                var tableServiceClient = new TableServiceClient(options.ConnectionString);
+                TableServiceClient tableServiceClient;
+                if (!string.IsNullOrEmpty(options.ConnectionString))
+                {
+                    tableServiceClient = new TableServiceClient(options.ConnectionString);
+                }
+                else
+                {
+                    tableServiceClient = new TableServiceClient(
+                        new Uri($"https://{options.AccountName}.table.core.windows.net"),
+                        new DefaultAzureCredential());
+                }
+
                 tableServiceClient.CreateTableIfNotExists(options.TableName);
                 return tableServiceClient;
             });
@@ -76,13 +88,19 @@ namespace BaGetter
             {
                 var options = provider.GetRequiredService<IOptions<AzureBlobStorageOptions>>().Value;
 
-                // TODO: Add BlobClientOptions with customer-provided key.
                 if (!string.IsNullOrEmpty(options.ConnectionString))
                 {
                     return new BlobServiceClient(options.ConnectionString);
                 }
 
-                return new BlobServiceClient(new Uri($"https://{options.AccountName}.blob.core.windows.net"), new StorageSharedKeyCredential(options.AccountName, options.AccessKey));
+                var blobUri = new Uri($"https://{options.AccountName}.blob.core.windows.net");
+
+                if (!string.IsNullOrEmpty(options.AccessKey))
+                {
+                    return new BlobServiceClient(blobUri, new StorageSharedKeyCredential(options.AccountName, options.AccessKey));
+                }
+
+                return new BlobServiceClient(blobUri, new DefaultAzureCredential());
             });
 
             app.Services.AddTransient(provider =>
@@ -109,6 +127,12 @@ namespace BaGetter
         {
             app.AddAzureBlobStorage();
             app.Services.Configure(configure);
+            return app;
+        }
+
+        public static BaGetterApplication AddAzureMirrorAuthentication(this BaGetterApplication app)
+        {
+            app.Services.TryAddSingleton<IMirrorAuthenticationHandler, AzureIdentityMirrorAuthHandlerFactory>();
             return app;
         }
 
