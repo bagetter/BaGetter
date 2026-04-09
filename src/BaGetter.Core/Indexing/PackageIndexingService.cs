@@ -65,6 +65,9 @@ public class PackageIndexingService : IPackageIndexingService
             package.CachedFrom = cacheFeedUrl;
             package.Published = _time.UtcNow;
 
+            // Validate package entries to prevent zip-slip and malformed archives
+            await packageReader.ValidatePackageEntriesAsync(cancellationToken);
+
             nuspecStream = await packageReader.GetNuspecAsync(cancellationToken);
             nuspecStream = await nuspecStream.AsTemporaryFileStreamAsync(cancellationToken);
 

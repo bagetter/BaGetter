@@ -43,6 +43,9 @@ public class PackageStorageService : IPackageStorageService
         var lowercasedId = package.Id.ToLowerInvariant();
         var lowercasedNormalizedVersion = package.NormalizedVersionString.ToLowerInvariant();
 
+        ValidatePathSegment(lowercasedId, nameof(package.Id));
+        ValidatePathSegment(lowercasedNormalizedVersion, nameof(package.NormalizedVersionString));
+
         var packagePath = PackagePath(lowercasedId, lowercasedNormalizedVersion);
         var nuspecPath = NuspecPath(lowercasedId, lowercasedNormalizedVersion);
         var readmePath = ReadmePath(lowercasedId, lowercasedNormalizedVersion);
@@ -165,6 +168,9 @@ public class PackageStorageService : IPackageStorageService
         var lowercasedId = id.ToLowerInvariant();
         var lowercasedNormalizedVersion = version.ToNormalizedString().ToLowerInvariant();
 
+        ValidatePathSegment(lowercasedId, nameof(id));
+        ValidatePathSegment(lowercasedNormalizedVersion, "version");
+
         var packagePath = PackagePath(lowercasedId, lowercasedNormalizedVersion);
         var nuspecPath = NuspecPath(lowercasedId, lowercasedNormalizedVersion);
         var readmePath = ReadmePath(lowercasedId, lowercasedNormalizedVersion);
@@ -184,6 +190,10 @@ public class PackageStorageService : IPackageStorageService
     {
         var lowercasedId = id.ToLowerInvariant();
         var lowercasedNormalizedVersion = version.ToNormalizedString().ToLowerInvariant();
+
+        ValidatePathSegment(lowercasedId, nameof(id));
+        ValidatePathSegment(lowercasedNormalizedVersion, "version");
+
         var path = pathFunc(lowercasedId, lowercasedNormalizedVersion);
 
         try
@@ -238,5 +248,13 @@ public class PackageStorageService : IPackageStorageService
             lowercasedId,
             lowercasedNormalizedVersion,
             "icon");
+    }
+
+    private static void ValidatePathSegment(string value, string paramName)
+    {
+        if (value.Contains("..") || value.Contains('/') || value.Contains('\\'))
+        {
+            throw new ArgumentException($"Invalid path segment: \"{value}\"", paramName);
+        }
     }
 }

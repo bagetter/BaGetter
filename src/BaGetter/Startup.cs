@@ -87,16 +87,22 @@ public class Startup
             app.UseDeveloperExceptionPage();
             app.UseStatusCodePages();
         }
+        else
+        {
+            app.UseHsts();
+        }
 
+        app.UseHttpsRedirection();
         app.UseForwardedHeaders();
         app.UsePathBase(options.PathBase);
 
         app.UseStaticFiles();
-        app.UseAuthentication();
         app.UseRouting();
-        app.UseAuthorization();
 
         app.UseCors(ConfigureBaGetterServer.CorsPolicy);
+
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.UseOperationCancelledMiddleware();
 

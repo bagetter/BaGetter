@@ -17,6 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Humanizer" />
     <PackageReference Include="Markdig" />
+    <PackageReference Include="HtmlSanitizer" />
   </ItemGroup>
 
   <ItemGroup>

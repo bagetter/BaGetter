@@ -59,7 +59,9 @@ public class GoogleCloudStorageService : IStorageService
             var existingObject = await storage.GetObjectAsync(_bucketName, objectName, cancellationToken: cancellationToken);
             var existingHash = Convert.FromBase64String(existingObject.Md5Hash);
 
-            // hash the content that was uploaded
+            // MD5 is used here because Google Cloud Storage only provides MD5 hashes
+            // in object metadata. This is not used for security purposes, only for
+            // content-equality comparison to detect conflicts.
             seekableContent.Position = 0;
             byte[] contentHash;
             using (var md5 = MD5.Create())

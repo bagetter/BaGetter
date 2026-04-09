@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BaGetter.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace BaGetter;
@@ -16,6 +18,13 @@ namespace BaGetter;
 public class ValidateBaGetterOptions
     : IValidateOptions<BaGetterOptions>
 {
+    private readonly ILogger<ValidateBaGetterOptions> _logger;
+
+    public ValidateBaGetterOptions(ILogger<ValidateBaGetterOptions> logger)
+    {
+        _logger = logger;
+    }
+
     private static readonly HashSet<string> ValidDatabaseTypes
         = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -49,6 +58,20 @@ public class ValidateBaGetterOptions
     public ValidateOptionsResult Validate(string name, BaGetterOptions options)
     {
         var failures = new List<string>();
+
+        // Security: warn prominently if no authentication is configured
+        var hasApiKey = !string.IsNullOrEmpty(options.ApiKey);
+        var hasApiKeys = options.Authentication?.ApiKeys?.Length > 0;
+        var hasCredentials = options.Authentication?.Credentials?.Length > 0 &&
+            options.Authentication.Credentials.Any(c => !string.IsNullOrWhiteSpace(c.Username));
+
+        if (!hasApiKey && !hasApiKeys && !hasCredentials)
+        {
+            _logger.LogWarning(
+                "SECURITY WARNING: No authentication is configured. " +
+                "Anyone can push, delete, and relist packages. " +
+                "Set 'ApiKey', 'Authentication:ApiKeys', or 'Authentication:Credentials' in your configuration.");
+        }
 
         if (options.Database == null) failures.Add($"The '{nameof(BaGetterOptions.Database)}' config is required");
         if (options.Mirror == null) failures.Add($"The '{nameof(BaGetterOptions.Mirror)}' config is required");

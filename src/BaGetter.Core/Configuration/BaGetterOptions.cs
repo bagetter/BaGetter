@@ -73,4 +73,17 @@ public class BaGetterOptions
     public StatisticsOptions Statistics { get; set; }
 
     public NugetAuthenticationOptions Authentication { get; set; }
+
+    /// <summary>
+    /// Allowed CORS origins. If empty or null, all origins are allowed.
+    /// Example: ["https://myapp.example.com", "https://admin.example.com"]
+    /// </summary>
+    public string[] AllowedCorsOrigins { get; set; }
+
+    /// <summary>
+    /// Trusted proxy IP addresses for forwarded headers.
+    /// If empty or null, forwarded headers are accepted from any source (not recommended in production).
+    /// Example: ["10.0.0.1", "192.168.1.1"]
+    /// </summary>
+    public string[] TrustedProxies { get; set; }
 }

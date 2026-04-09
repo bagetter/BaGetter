@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Encodings.Web;
 using System.Text;
 using System.Threading.Tasks;
@@ -95,6 +96,19 @@ public class NugetBasicAuthenticationHandler : AuthenticationHandler<Authenticat
 
     private bool ValidateCredentials(string username, string password)
     {
-        return bagetterOptions.Value.Authentication.Credentials.Any(a => a.Username.Equals(username, StringComparison.OrdinalIgnoreCase) && a.Password == password);
+        return bagetterOptions.Value.Authentication.Credentials.Any(a =>
+            a.Username.Equals(username, StringComparison.OrdinalIgnoreCase) &&
+            FixedTimeEquals(a.Password, password));
+    }
+
+    private static bool FixedTimeEquals(string expected, string actual)
+    {
+        if (expected == null || actual == null)
+            return false;
+
+        var expectedBytes = Encoding.UTF8.GetBytes(expected);
+        var actualBytes = Encoding.UTF8.GetBytes(actual);
+
+        return CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes);
     }
 }

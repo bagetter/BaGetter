@@ -73,9 +73,9 @@ public class Program
             {
                 web.ConfigureKestrel(options =>
                 {
-                    // Remove the upload limit from Kestrel. If needed, an upload limit can
-                    // be enforced by a reverse proxy server, like IIS.
-                    options.Limits.MaxRequestBodySize = null;
+                    // Limit upload size to 8 GiB (matches MaxPackageSizeGiB default).
+                    // Can be further restricted by a reverse proxy.
+                    options.Limits.MaxRequestBodySize = 8L * 1024 * 1024 * 1024;
                 });
 
                 web.UseStartup<Startup>();

@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core.Configuration;
@@ -28,6 +30,17 @@ public class ApiKeyAuthenticationService : IAuthenticationService
         // No authentication is necessary if there is no required API key.
         if (_apiKey == null && (_apiKeys.Length == 0)) return true;
 
-        return _apiKey == apiKey || _apiKeys.Any(x => x.Key.Equals(apiKey));
+        return FixedTimeEquals(_apiKey, apiKey) || _apiKeys.Any(x => FixedTimeEquals(x.Key, apiKey));
+    }
+
+    private static bool FixedTimeEquals(string expected, string actual)
+    {
+        if (expected == null || actual == null)
+            return false;
+
+        var expectedBytes = Encoding.UTF8.GetBytes(expected);
+        var actualBytes = Encoding.UTF8.GetBytes(actual);
+
+        return CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes);
     }
 }
