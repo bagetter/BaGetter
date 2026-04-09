@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core;
+using BaGetter.Protocol.Models;
 using Markdig;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -54,6 +55,12 @@ public class PackageModel : PageModel
     public IReadOnlyList<DependencyGroupModel> DependencyGroups { get; private set; }
     public IReadOnlyList<VersionModel> Versions { get; private set; }
 
+    public bool IsDeprecated { get; private set; }
+    public string DeprecationSummary { get; private set; }
+    public string DeprecationMessage { get; private set; }
+    public string DeprecationAlternateId { get; private set; }
+    public string DeprecationAlternateVersion { get; private set; }
+
     public HtmlString Readme { get; private set; }
 
     public HtmlString ParsedReleaseNotes { get; private set; }
@@ -99,6 +106,7 @@ public class PackageModel : PageModel
         UsedBy = dependents.Data;
         DependencyGroups = ToDependencyGroups(Package);
         Versions = ToVersions(listedPackages, packageVersion);
+        EnrichDeprecation(Package.Deprecation);
 
         if (Package.HasReadme)
         {
@@ -221,6 +229,37 @@ public class PackageModel : PageModel
 
         var releseNotesHtml = Markdown.ToHtml(Package.ReleaseNotes, MarkdownPipeline);
         return new HtmlString(releseNotesHtml);
+    }
+
+    private void EnrichDeprecation(PackageDeprecation deprecation)
+    {
+        if (deprecation == null) return;
+
+        IsDeprecated = true;
+        DeprecationMessage = deprecation.Message;
+        DeprecationAlternateId = deprecation.AlternatePackage?.Id;
+        DeprecationAlternateVersion = deprecation.AlternatePackage?.Range;
+
+        if (deprecation.Reasons == null || deprecation.Reasons.Count == 0)
+        {
+            DeprecationSummary = "This package has been deprecated.";
+            return;
+        }
+
+        var reasonText = string.Join(", ", deprecation.Reasons.Select(ToReadableReason));
+        DeprecationSummary = $"This package has been deprecated as it is {reasonText}.";
+    }
+
+    private static string ToReadableReason(string reason)
+    {
+        return reason?.ToLowerInvariant() switch
+        {
+            "legacy" => "legacy",
+            "criticalbugs" => "affected by critical bugs",
+            "criticalbug" => "affected by critical bugs",
+            "other" => "no longer recommended",
+            _ => reason
+        };
     }
 
     public class DependencyGroupModel

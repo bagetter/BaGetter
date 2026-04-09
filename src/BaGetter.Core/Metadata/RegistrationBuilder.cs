@@ -72,6 +72,7 @@ public class RegistrationBuilder
                 Version = package.Version.ToFullString(),
                 Authors = string.Join(", ", package.Authors),
                 Description = package.Description,
+                Deprecation = package.Deprecation,
                 Downloads = package.Downloads,
                 HasReadme = package.HasReadme,
                 IconUrl = package.HasEmbeddedIcon

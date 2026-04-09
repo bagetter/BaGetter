@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core;
@@ -15,6 +17,7 @@ public class PackagePublishController : Controller
     private readonly IPackageIndexingService _indexer;
     private readonly IPackageDatabase _packages;
     private readonly IPackageDeletionService _deleteService;
+    private readonly IPackageDeprecationService _deprecations;
     private readonly IOptionsSnapshot<BaGetterOptions> _options;
     private readonly ILogger<PackagePublishController> _logger;
 
@@ -23,6 +26,7 @@ public class PackagePublishController : Controller
         IPackageIndexingService indexer,
         IPackageDatabase packages,
         IPackageDeletionService deletionService,
+        IPackageDeprecationService deprecations,
         IOptionsSnapshot<BaGetterOptions> options,
         ILogger<PackagePublishController> logger)
     {
@@ -30,6 +34,7 @@ public class PackagePublishController : Controller
         _indexer = indexer ?? throw new ArgumentNullException(nameof(indexer));
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _deleteService = deletionService ?? throw new ArgumentNullException(nameof(deletionService));
+        _deprecations = deprecations ?? throw new ArgumentNullException(nameof(deprecations));
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -132,5 +137,58 @@ public class PackagePublishController : Controller
         {
             return NotFound();
         }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Deprecate(string id, string version, [FromBody] DeprecatePackageRequest request, CancellationToken cancellationToken)
+    {
+        if (_options.Value.IsReadOnlyMode)
+        {
+            return Unauthorized();
+        }
+
+        if (!NuGetVersion.TryParse(version, out var nugetVersion))
+        {
+            return NotFound();
+        }
+
+        if (!await _authentication.AuthenticateAsync(Request.GetApiKey(), cancellationToken))
+        {
+            return Unauthorized();
+        }
+
+        if (!await _packages.ExistsAsync(id, nugetVersion, cancellationToken))
+        {
+            return NotFound();
+        }
+
+        if (request?.Reasons == null || request.Reasons.Count == 0)
+        {
+            return BadRequest("At least one deprecation reason is required.");
+        }
+
+        var info = new PackageDeprecationInfo
+        {
+            Reasons = request.Reasons.Select(r => r?.Trim()).Where(r => !string.IsNullOrWhiteSpace(r)).ToArray(),
+            Message = request.Message,
+            AlternatePackageId = request.AlternatePackageId,
+            AlternatePackageRange = request.AlternatePackageVersion
+        };
+
+        try
+        {
+            var success = await _deprecations.DeprecateAsync(id, nugetVersion, info, cancellationToken);
+            if (!success)
+            {
+                return NotFound();
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to deprecate package {PackageId} {PackageVersion}", id, nugetVersion);
+            return BadRequest(e.Message);
+        }
+
+        return Ok();
     }
 }

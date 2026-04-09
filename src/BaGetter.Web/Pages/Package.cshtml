@@ -35,6 +35,34 @@ else
                 </h1>
             </div>
 
+            @if (Model.IsDeprecated)
+            {
+                <div class="deprecation-banner alert alert-warning" role="alert">
+                    <div class="deprecation-header">
+                        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                        <div class="deprecation-text">
+                            <div class="deprecation-summary">@Model.DeprecationSummary</div>
+                            @if (!string.IsNullOrWhiteSpace(Model.DeprecationMessage))
+                            {
+                                <div class="deprecation-message">@Model.DeprecationMessage</div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.DeprecationAlternateId))
+                    {
+                        <div class="deprecation-alt">
+                            <strong>Suggested alternative</strong>:
+                            <a asp-page="Package" asp-route-id="@Model.DeprecationAlternateId">@Model.DeprecationAlternateId</a>
+                            @if (!string.IsNullOrWhiteSpace(Model.DeprecationAlternateVersion))
+                            {
+                                <span class="text-muted">(@Model.DeprecationAlternateVersion)</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
             <div class="tabbed-info" x-data="{ tabs: tabs, active: tabs[0] }">
                 <ul class="nav">
                     <template x-for="tab in tabs" :key="tab.name">

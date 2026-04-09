@@ -13,17 +13,20 @@ public class PackageDeletionService : IPackageDeletionService
 {
     private readonly IPackageDatabase _packages;
     private readonly IPackageStorageService _storage;
+    private readonly IPackageDeprecationService _deprecations;
     private readonly BaGetterOptions _options;
     private readonly ILogger<PackageDeletionService> _logger;
 
     public PackageDeletionService(
         IPackageDatabase packages,
         IPackageStorageService storage,
+        IPackageDeprecationService deprecations,
         IOptionsSnapshot<BaGetterOptions> options,
         ILogger<PackageDeletionService> logger)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        _deprecations = deprecations ?? throw new ArgumentNullException(nameof(deprecations));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -82,6 +85,7 @@ public class PackageDeletionService : IPackageDeletionService
             version);
 
         await _storage.DeleteAsync(id, version, cancellationToken);
+        await _deprecations.DeleteAsync(id, version, cancellationToken);
 
         _logger.LogInformation(
             "Hard deleted package {PackageId} {PackageVersion} from storage",
