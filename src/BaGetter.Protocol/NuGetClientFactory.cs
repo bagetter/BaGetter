@@ -14,7 +14,7 @@ namespace BaGetter.Protocol;
 public partial class NuGetClientFactory
 {
     private readonly HttpClient _httpClient;
-    private readonly string _serviceIndexUrl;
+    public string ServiceIndexUrl { get; }
 
     private readonly SemaphoreSlim _mutex;
     private NuGetClients _clients;
@@ -39,7 +39,7 @@ public partial class NuGetClientFactory
     public NuGetClientFactory(HttpClient httpClient, string serviceIndexUrl)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _serviceIndexUrl = serviceIndexUrl ?? throw new ArgumentNullException(nameof(serviceIndexUrl));
+        ServiceIndexUrl = serviceIndexUrl ?? throw new ArgumentNullException(nameof(serviceIndexUrl));
 
         _mutex = new SemaphoreSlim(1, 1);
         _clients = null;
@@ -105,7 +105,6 @@ public partial class NuGetClientFactory
         return new CatalogClient(this);
     }
 
-
     private Task<ServiceIndexResponse> GetServiceIndexAsync(CancellationToken cancellationToken = default)
     {
         return GetAsync(c => c.ServiceIndex, cancellationToken);
@@ -146,7 +145,7 @@ public partial class NuGetClientFactory
             {
                 if (_clients == null)
                 {
-                    var serviceIndexClient = new RawServiceIndexClient(_httpClient, _serviceIndexUrl);
+                    var serviceIndexClient = new RawServiceIndexClient(_httpClient, ServiceIndexUrl);
 
                     var serviceIndex = await serviceIndexClient.GetAsync(cancellationToken);
 
