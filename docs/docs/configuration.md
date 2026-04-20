@@ -451,6 +451,13 @@ The specified file `./secrets/api-key.txt` contains the clear text api key only.
 
 The port mapping will make available the service at `http://localhost:5000`. (To make it available using `https` you should use an additional reverse proxy service, like "apache" or "nginx".)
 
+To enable HTTP protocol on the docker Console you can add the following variable:
+
+```yaml
+environment:
+ - Logging__Console__LogLevel__Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware=Information
+```
+
 Instead of targeting the `latest` version you may also refer to tags for major, minor and fixed releases, e.g. `1`, `1.4` or `1.4.8`.
 
 Aditional documentation for secrets:
