@@ -20,60 +20,42 @@ public class BaGetterUrlGenerator : IUrlGenerator
 
     public string GetServiceIndexUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.IndexRouteName,
-            values: null);
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.IndexRouteName, routeValues: null);
     }
 
     public string GetPackageContentResourceUrl()
     {
-        return AbsoluteUrl("v3/package/");
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, "v3/package/");
     }
 
     public string GetPackageMetadataResourceUrl()
     {
-        return AbsoluteUrl("v3/registration/");
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, "v3/registration/");
     }
 
     public string GetPackagePublishResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.UploadPackageRouteName,
-            values: null);
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.UploadPackageRouteName, routeValues: null);
     }
 
     public string GetSymbolPublishResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.UploadSymbolRouteName,
-            values: null);
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.UploadSymbolRouteName, routeValues: null);
     }
 
     public string GetSearchResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.SearchRouteName,
-            values: null);
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.SearchRouteName, routeValues: null);
     }
 
     public string GetAutocompleteResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.AutocompleteRouteName,
-            values: null);
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.AutocompleteRouteName, routeValues: null);
     }
 
     public string GetRegistrationIndexUrl(string id)
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.RegistrationIndexRouteName,
-            values: new { Id = id.ToLowerInvariant() });
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.RegistrationIndexRouteName, new { Id = id.ToLowerInvariant() });
     }
 
     public string GetRegistrationPageUrl(string id, NuGetVersion lower, NuGetVersion upper)
@@ -84,22 +66,16 @@ public class BaGetterUrlGenerator : IUrlGenerator
 
     public string GetRegistrationLeafUrl(string id, NuGetVersion version)
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.RegistrationLeafRouteName,
-            values: new
-            {
-                Id = id.ToLowerInvariant(),
-                Version = version.ToNormalizedString().ToLowerInvariant(),
-            });
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.RegistrationLeafRouteName, new
+        {
+            Id = id.ToLowerInvariant(),
+            Version = version.ToNormalizedString().ToLowerInvariant(),
+        });
     }
 
     public string GetPackageVersionsUrl(string id)
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.PackageVersionsRouteName,
-            values: new { Id = id.ToLowerInvariant() });
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.PackageVersionsRouteName, new { Id = id.ToLowerInvariant() });
     }
 
     public string GetPackageDownloadUrl(string id, NuGetVersion version)
@@ -107,15 +83,12 @@ public class BaGetterUrlGenerator : IUrlGenerator
         id = id.ToLowerInvariant();
         var versionString = version.ToNormalizedString().ToLowerInvariant();
 
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.PackageDownloadRouteName,
-            values: new
-            {
-                Id = id,
-                Version = versionString,
-                IdVersion = $"{id}.{versionString}"
-            });
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.PackageDownloadRouteName, new
+        {
+            Id = id,
+            Version = versionString,
+            IdVersion = $"{id}.{versionString}"
+        });
     }
 
     public string GetPackageManifestDownloadUrl(string id, NuGetVersion version)
@@ -123,15 +96,12 @@ public class BaGetterUrlGenerator : IUrlGenerator
         id = id.ToLowerInvariant();
         var versionString = version.ToNormalizedString().ToLowerInvariant();
 
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.PackageDownloadRouteName,
-            values: new
-            {
-                Id = id,
-                Version = versionString,
-                Id2 = id,
-            });
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.PackageDownloadRouteName, new
+        {
+            Id = id,
+            Version = versionString,
+            Id2 = id,
+        });
     }
 
     public string GetPackageIconDownloadUrl(string id, NuGetVersion version)
@@ -139,24 +109,61 @@ public class BaGetterUrlGenerator : IUrlGenerator
         id = id.ToLowerInvariant();
         var versionString = version.ToNormalizedString().ToLowerInvariant();
 
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.PackageDownloadIconRouteName,
-            values: new
-            {
-                Id = id,
-                Version = versionString
-            });
+        return AbsoluteUrl(_httpContextAccessor.HttpContext, Routes.PackageDownloadIconRouteName, new
+        {
+            Id = id,
+            Version = versionString
+        });
     }
 
-    private string AbsoluteUrl(string relativePath)
+    private string AbsoluteUrl(HttpContext httpContext, string routeName, object routeValues)
     {
-        var request = _httpContextAccessor.HttpContext.Request;
+        var absoluteUrl = _linkGenerator.GetUriByRouteValues(httpContext, routeName, routeValues);
+
+        var uri = new Uri(absoluteUrl, UriKind.Absolute);
+        var result = AbsoluteUrl(httpContext, uri.AbsolutePath.TrimStart('/'));
+
+        if (!string.IsNullOrEmpty(uri.Query))
+        {
+            result += ("?" + uri.Query);
+        }
+
+        return result;
+    }
+
+    private static string AbsoluteUrl(HttpContext httpContext, string relativePath)
+    {
+        var request = httpContext.Request;
+
+        var scheme = httpContext.GetServerVariable("HTTP_X_FORWARDED_PROTO")?.Trim().ToLowerInvariant();
+        var host = httpContext.GetServerVariable("HTTP_X_FORWARDED_HOST")?.Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(host))
+        {
+            host = httpContext.GetServerVariable("HTTP_X_FORWARDED_FOR")?.Trim().ToLowerInvariant();
+        }
+
+        var port = httpContext.GetServerVariable("HTTP_X_FORWARDED_PORT")?.Trim();
+
+        if (string.IsNullOrEmpty(scheme))
+        {
+            scheme = request.Scheme;
+        }
+
+        if (string.IsNullOrEmpty(host))
+        {
+            host = request.Host.ToUriComponent();
+            port = "";
+        }
+        else
+        {
+            port = ":" + port;
+        }
 
         return string.Concat(
-            request.Scheme,
+            scheme,
             "://",
-            request.Host.ToUriComponent(),
+            host,
+            port,
             request.PathBase.ToUriComponent(),
             "/",
             relativePath);
