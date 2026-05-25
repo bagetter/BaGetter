@@ -192,6 +192,7 @@ public class PackageModel : PageModel
                 Downloads = p.Downloads,
                 Selected = p.Version == selectedVersion,
                 LastUpdated = p.Published,
+                CachedFromUpstream = !string.IsNullOrEmpty(p.CachedFrom),
             })
             .OrderByDescending(m => m.Version)
             .ToList();
@@ -243,5 +244,6 @@ public class PackageModel : PageModel
         public long Downloads { get; set; }
         public bool Selected { get; set; }
         public DateTime LastUpdated { get; set; }
+        public bool CachedFromUpstream { get; set; }
     }
 }

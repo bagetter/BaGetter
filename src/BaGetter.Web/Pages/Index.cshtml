@@ -133,6 +133,15 @@ else
                             Latest version: @package.Version
                         </span>
                     </li>
+                    @if (package is BaGetterSearchResult { CachedFromUpstream: true })
+                    {
+                        <li>
+                            <span title="The latest version of this package was cached from an upstream feed">
+                                <i class="ms-Icon ms-Icon--Cloud"></i>
+                                Cached from upstream
+                            </span>
+                        </li>
+                    }
                     @if (package.Tags.Any())
                     {
                         <li>

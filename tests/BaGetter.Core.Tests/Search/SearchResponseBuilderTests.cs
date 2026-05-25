@@ -149,4 +149,52 @@ public class SearchResponseBuilderTests
         // Assert
         Assert.Equal(data.Count, result.TotalHits);
     }
+
+    [Fact]
+    public void BuildSearch_LatestVersionCachedFromUpstream_ShouldSetCachedFromUpstreamTrue()
+    {
+        // Arrange
+        var packageId = "BaGetter.Test";
+        var packages = new List<Package>
+        {
+            Generator.GetPackage(packageId, "1.0.0"),
+            Generator.GetPackage(packageId, "2.0.0", cachedFrom: "https://api.nuget.org/v3/flatcontainer/test/2.0.0/test.2.0.0.nupkg"),
+        };
+        var data = new List<PackageRegistration>
+        {
+            new PackageRegistration(packageId, packages)
+        };
+        var searchResponseBuilder = new SearchResponseBuilder(_urlGenerator.Object);
+
+        // Act
+        var result = searchResponseBuilder.BuildSearch(data);
+
+        // Assert
+        var searchResult = Assert.IsType<BaGetterSearchResult>(Assert.Single(result.Data));
+        Assert.True(searchResult.CachedFromUpstream);
+    }
+
+    [Fact]
+    public void BuildSearch_LatestVersionNotCached_ShouldSetCachedFromUpstreamFalse()
+    {
+        // Arrange — older version is cached, latest is locally published.
+        var packageId = "BaGetter.Test";
+        var packages = new List<Package>
+        {
+            Generator.GetPackage(packageId, "1.0.0", cachedFrom: "https://api.nuget.org/v3/flatcontainer/test/1.0.0/test.1.0.0.nupkg"),
+            Generator.GetPackage(packageId, "2.0.0"),
+        };
+        var data = new List<PackageRegistration>
+        {
+            new PackageRegistration(packageId, packages)
+        };
+        var searchResponseBuilder = new SearchResponseBuilder(_urlGenerator.Object);
+
+        // Act
+        var result = searchResponseBuilder.BuildSearch(data);
+
+        // Assert
+        var searchResult = Assert.IsType<BaGetterSearchResult>(Assert.Single(result.Data));
+        Assert.False(searchResult.CachedFromUpstream);
+    }
 }
