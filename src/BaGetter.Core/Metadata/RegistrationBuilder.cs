@@ -92,7 +92,8 @@ public class RegistrationBuilder
                 Summary = package.Summary,
                 Tags = package.Tags,
                 Title = package.Title,
-                DependencyGroups = ToDependencyGroups(package)
+                DependencyGroups = ToDependencyGroups(package),
+                CachedFrom = package.CachedFrom,
             },
         };
 

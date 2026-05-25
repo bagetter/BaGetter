@@ -18,7 +18,7 @@ public class SearchResponseBuilder : ISearchResponseBuilder
 
     public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations)
     {
-        var result = new List<SearchResult>();
+        var result = new List<BaGetterSearchResult>();
 
         foreach (var packageRegistration in packageRegistrations)
         {
@@ -28,7 +28,7 @@ public class SearchResponseBuilder : ISearchResponseBuilder
                 ? _url.GetPackageIconDownloadUrl(latest.Id, latest.Version)
                 : latest.IconUrlString;
 
-            result.Add(new SearchResult
+            result.Add(new BaGetterSearchResult
             {
                 PackageId = latest.Id,
                 Version = latest.Version.ToFullString(),
@@ -42,6 +42,7 @@ public class SearchResponseBuilder : ISearchResponseBuilder
                 Tags = latest.Tags,
                 Title = latest.Title,
                 TotalDownloads = versions.Sum(p => p.Downloads),
+                CachedFromUpstream = !string.IsNullOrEmpty(latest.CachedFrom),
                 Versions = versions
                     .Select(p => new SearchResultVersion
                     {

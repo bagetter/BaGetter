@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -163,6 +164,55 @@ public class MirrorIntegrationTests : IDisposable
   ""published"": ""2020-01-01T00:00:00Z"",
   ""registration"": ""http://localhost/v3/registration/testdata/index.json""
 }", json);
+    }
+
+    [Fact]
+    public async Task PullThroughSetsCachedFrom()
+    {
+        await _upstream.AddPackageAsync(_packageStream);
+
+        // Trigger pull-through by downloading the package from downstream
+        using var downloadResponse = await _downstreamClient.GetAsync(
+            "v3/package/TestData/1.2.3/TestData.1.2.3.nupkg");
+        Assert.Equal(HttpStatusCode.OK, downloadResponse.StatusCode);
+
+        // Fetch package metadata from downstream registration endpoint
+        using var metadataResponse = await _downstreamClient.GetAsync(
+            "v3/registration/TestData/index.json");
+        Assert.Equal(HttpStatusCode.OK, metadataResponse.StatusCode);
+
+        var json = await metadataResponse.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+
+        var catalogEntry = doc.RootElement
+            .GetProperty("items")[0]
+            .GetProperty("items")[0]
+            .GetProperty("catalogEntry");
+
+        Assert.Equal("http://localhost/v3/index.json",
+            catalogEntry.GetProperty("cachedFrom").GetString());
+    }
+
+    [Fact]
+    public async Task DirectUploadDoesNotSetCachedFrom()
+    {
+        // Push directly to downstream — no mirror involved
+        await _downstream.AddPackageAsync(_packageStream);
+
+        using var metadataResponse = await _downstreamClient.GetAsync(
+            "v3/registration/TestData/index.json");
+        Assert.Equal(HttpStatusCode.OK, metadataResponse.StatusCode);
+
+        var json = await metadataResponse.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+
+        var catalogEntry = doc.RootElement
+            .GetProperty("items")[0]
+            .GetProperty("items")[0]
+            .GetProperty("catalogEntry");
+
+        // cachedFrom should not be present for directly uploaded packages
+        Assert.False(catalogEntry.TryGetProperty("cachedFrom", out _));
     }
 
     public void Dispose()

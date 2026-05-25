@@ -33,4 +33,11 @@ public class BaGetterPackageMetadata : PackageMetadata
 
     [JsonPropertyName("repositoryType")]
     public string RepositoryType { get; set; }
+
+    /// <summary>
+    /// The upstream source URL this package was cached from, if pulled through the upstream repository.
+    /// </summary>
+    [JsonPropertyName("cachedFrom")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string CachedFrom { get; set; }
 }
