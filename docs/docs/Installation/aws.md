@@ -35,33 +35,50 @@ Update the `appsettings.json` file with those:
     ...
 }
 ```
-
 #### S3-compatible object storage
 
-You can use any other S3-compatible storage service, as long as it's compatible with Amazon AWS S3. Since the URL for services other than Amazon AWS will change, you need to provide this Service URL instead of the Region. For example:
+You can use any other S3-compatible storage service, as long as it's compatible with the Amazon AWS SDK S3 Client. Since the URL for services other than Amazon AWS will change, you need to provide the `ServiceUrl` instead of the `Region`. For example:
 
 ```json
 {
-    ...
-
-    "Storage": {
-        "Type": "AwsS3",
-        "Endpoint": "https://eu-central-1.linodeobjects.com",
-        "Bucket": "nuget-packages",
-        "AccessKey": "",
-        "SecretKey": ""
-    },
-
-    ...
+  // ...
+  "Storage": {
+    "Type": "AwsS3",
+    "ServiceUrl": "https://eu-central-1.linodeobjects.com",
+    "Bucket": "nuget-packages",
+    "AccessKey": "",
+    "SecretKey": ""
+  }
+  // ...
 }
 ```
 
-Note: to avoid errors, only one of `Region` or `Endpoint` setting can be set at the same time.
+> ⚠️ **Note:** To avoid errors, only one of the `Region` or `ServiceUrl` (Endpoint) settings can be configured at the same time.
+
+If your third-party S3 service (such as a local MinIO instance) does not support virtual host-style addressing, you can force the AWS SDK to use path-style addressing (where the bucket name is part of the URL path) by setting the `ForcePathStyle` option to `true`.
+
+> ⚠️ **Note:** The `ForcePathStyle` option can **only** be used when `ServiceUrl` is also configured.
+
+For example:
+
+```json
+{
+  // ...
+  "Storage": {
+    "Type": "AwsS3",
+    "ServiceUrl": "http://localhost:9000",
+    "ForcePathStyle": true,
+    "Bucket": "nuget-packages",
+    "AccessKey": "minioadmin",
+    "SecretKey": "minioadmin"
+  }
+  // ...
+}
+```
 
 #### Known compatible services
 
-So far, it has been tested in [Linode’s Object Storage](https://www.linode.com/docs/products/storage/object-storage/). If you succeed in using other storage service, let us know so we can state it here.
-
+So far, it has been tested with [Linode’s Object Storage](https://www.linode.com/docs/products/storage/object-storage/) and [Local MinIO](https://github.com/minio/minio). If you succeed in using another storage service, let us know so we can list it here.
 
 ### Amazon RDS
 

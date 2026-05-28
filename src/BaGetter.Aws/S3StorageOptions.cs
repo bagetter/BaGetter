@@ -19,6 +19,8 @@ public class S3StorageOptions : IValidatableObject
     [RequiredIf(nameof(Region), null)]
     public Uri Endpoint { get; set; }
 
+    public bool ForcePathStyle { get; set; }
+    
     [Required]
     public string Bucket { get; set; }
 

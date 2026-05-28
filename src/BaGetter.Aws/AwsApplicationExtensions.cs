@@ -32,7 +32,7 @@ public static class AwsApplicationExtensions
             var options = provider.GetRequiredService<IOptions<S3StorageOptions>>().Value;
 
             var config = options.Endpoint != null
-                ? new AmazonS3Config { ServiceURL = options.Endpoint.AbsoluteUri }
+                ? new AmazonS3Config { ServiceURL = options.Endpoint.AbsoluteUri, ForcePathStyle = options.ForcePathStyle }
                 : new AmazonS3Config { RegionEndpoint = RegionEndpoint.GetBySystemName(options.Region) };
 
             if (options.UseInstanceProfile)
