@@ -5,6 +5,7 @@
     ViewData["Title"] = Model.Found
         ? Model.Package.Id + " " + Model.Package.NormalizedVersionString
         : Model.Package.Id;
+    var fallbackIconUrl = Url.Content("~/_content/BaGetter.Web/images/default-package-icon-256x256.png");
 }
 
 @if (!Model.Found)
@@ -20,9 +21,9 @@ else
 {
     <div class="row display-package">
         <aside class="col-sm-1 package-icon">
-            <img src="@(Model.IconUrl ?? Url.Content("~/_content/BaGetter.Web/images/default-package-icon-256x256.png"))"
+            <img src="@(Model.IconUrl ?? fallbackIconUrl)"
                  class="img-responsive"
-                 onerror="this.src='@Url.Content("~/_content/BaGetter.Web/images/default-package-icon-256x256.png")'"
+                 onerror="this.src='@fallbackIconUrl'"
                  alt="The package icon" />
         </aside>
 

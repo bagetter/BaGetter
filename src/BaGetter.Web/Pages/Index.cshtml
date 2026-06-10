@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "Packages";
     ViewData["SearchQuery"] = Model.Query;
+    var fallbackIconUrl = Url.Content("~/_content/BaGetter.Web/images/default-package-icon-256x256.png");
 }
 
 @section SearchForm
@@ -105,9 +106,9 @@ else
     {
         <div class="row search-result">
             <div class="col-sm-1 hidden-xs hidden-sm">
-                <img src="@package.IconUrl"
+                <img src="@(package.IconUrl ?? fallbackIconUrl)"
                      class="package-icon img-responsive"
-                     onerror="this.src='@Url.Content("~/_content/BaGetter.Web/images/default-package-icon-256x256.png")'"
+                     onerror="this.src='@fallbackIconUrl'"
                      alt="The package icon" />
             </div>
             <div class="col-sm-11">
