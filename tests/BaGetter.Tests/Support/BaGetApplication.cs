@@ -69,8 +69,10 @@ public class BaGetterApplication : WebApplicationFactory<Startup>
                     { "Storage:Type", "FileSystem" },
                     { "Storage:Path", storagePath },
                     { "Search:Type", "Database" },
+                    { "Search:IncludeUpstream", "false" },
                     { "Mirror:Enabled", _upstreamClient != null ? "true": "false" },
                     { "Mirror:PackageSource", "http://localhost/v3/index.json" },
+                    { "FullProxy:Enabled", "false" },
                 };
                 _inMemoryConfiguration?.Invoke(dict);
 

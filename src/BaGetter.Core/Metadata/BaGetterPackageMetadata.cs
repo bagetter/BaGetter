@@ -14,7 +14,7 @@ namespace BaGetter.Core;
 public class BaGetterPackageMetadata : PackageMetadata
 {
     [JsonPropertyName("downloads")]
-    public long Downloads { get; set; }
+    public new long Downloads { get; set; }
 
     [JsonPropertyName("hasReadme")]
     public bool HasReadme { get; set; }
@@ -29,8 +29,6 @@ public class BaGetterPackageMetadata : PackageMetadata
     public string ReleaseNotes { get; set; }
 
     [JsonPropertyName("repositoryUrl")]
-    public string RepositoryUrl { get; set; }
+    public new string RepositoryUrl { get; set; }
 
-    [JsonPropertyName("repositoryType")]
-    public string RepositoryType { get; set; }
 }

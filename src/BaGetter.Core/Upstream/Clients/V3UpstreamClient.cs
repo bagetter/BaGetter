@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BaGetter.Protocol;
 using BaGetter.Protocol.Models;
 using Microsoft.Extensions.Logging;
+using NuGet.Packaging;
 using NuGet.Versioning;
 
 namespace BaGetter.Core;
@@ -30,6 +31,52 @@ public class V3UpstreamClient : IUpstreamClient
         _logger = logger;
     }
     public string GetServiceIndexUrl() => _client.ServiceIndexUrl;
+
+    public async Task<IReadOnlyList<SearchResult>> SearchAsync(
+        string query,
+        int skip,
+        int take,
+        bool includePrerelease,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _client.SearchAsync(
+                query,
+                skip,
+                take,
+                includePrerelease,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to search upstream packages");
+            return new List<SearchResult>();
+        }
+    }
+
+    public async Task<IReadOnlyList<string>> AutocompleteAsync(
+        string query,
+        int skip,
+        int take,
+        bool includePrerelease,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _client.AutocompleteAsync(
+                query,
+                skip,
+                take,
+                includePrerelease,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to autocomplete upstream package IDs");
+            return new List<string>();
+        }
+    }
 
     public async Task<Stream> DownloadPackageOrNullAsync(
         string id,
@@ -62,9 +109,8 @@ public class V3UpstreamClient : IUpstreamClient
     {
         try
         {
-            var packages = await _client.GetPackageMetadataAsync(id, cancellationToken);
-
-            return packages.Select(ToPackage).ToList();
+            var packageMetadata = await _client.GetPackageMetadataAsync(id, cancellationToken);
+            return packageMetadata.Select(ToPackage).ToList();
         }
         catch (Exception e)
         {
@@ -88,6 +134,80 @@ public class V3UpstreamClient : IUpstreamClient
         }
     }
 
+    public async Task EnrichPackageMetadataAsync(Package package, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+
+        if (package.HasReadme && package.RepositoryUrl != null && package.ProjectUrl != null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var manifestStream = await _client.DownloadPackageManifestAsync(
+                package.Id,
+                package.Version,
+                cancellationToken);
+
+            var nuspec = new NuspecReader(manifestStream);
+            var (repositoryUrl, repositoryType) = PackageArchiveReaderExtensions.GetRepositoryMetadata(nuspec);
+
+            package.HasReadme = package.HasReadme || !string.IsNullOrEmpty(nuspec.GetReadme());
+            package.RepositoryUrl ??= repositoryUrl;
+            if (string.IsNullOrEmpty(package.RepositoryType))
+            {
+                package.RepositoryType = repositoryType;
+            }
+
+            package.ProjectUrl ??= ParseUri(nuspec.GetProjectUrl());
+        }
+        catch (PackageNotFoundException)
+        {
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(
+                e,
+                "Failed to read {PackageId} {PackageVersion}'s upstream manifest metadata",
+                package.Id,
+                package.Version);
+        }
+    }
+
+    public async Task<Stream> DownloadPackageReadmeOrNullAsync(
+        string id,
+        NuGetVersion version,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var packageStream = await DownloadPackageOrNullAsync(id, version, cancellationToken);
+            if (packageStream == null)
+            {
+                return null;
+            }
+
+            using var packageReader = new PackageArchiveReader(packageStream);
+            if (!packageReader.HasReadme())
+            {
+                return null;
+            }
+
+            await using var readmeStream = await packageReader.GetReadmeAsync(cancellationToken);
+            return await readmeStream.AsTemporaryFileStreamAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(
+                e,
+                "Failed to read {PackageId} {PackageVersion}'s upstream readme",
+                id,
+                version);
+            return null;
+        }
+    }
+
     private Package ToPackage(PackageMetadata metadata)
     {
         var version = metadata.ParseVersion();
@@ -98,8 +218,8 @@ public class V3UpstreamClient : IUpstreamClient
             Version = version,
             Authors = ParseAuthors(metadata.Authors),
             Description = metadata.Description,
-            Downloads = 0,
-            HasReadme = false,
+            Downloads = metadata.Downloads,
+            HasReadme = !string.IsNullOrEmpty(metadata.ReadmeUrl),
             IsPrerelease = version.IsPrerelease,
             Language = metadata.Language,
             Listed = metadata.IsListed(),
@@ -112,8 +232,8 @@ public class V3UpstreamClient : IUpstreamClient
             LicenseUrl = ParseUri(metadata.LicenseUrl),
             ProjectUrl = ParseUri(metadata.ProjectUrl),
             PackageTypes = new List<PackageType>(),
-            RepositoryUrl = null,
-            RepositoryType = null,
+            RepositoryUrl = ParseUri(metadata.RepositoryUrl),
+            RepositoryType = metadata.RepositoryType,
             SemVerLevel = version.IsSemVer2 ? SemVerLevel.SemVer2 : SemVerLevel.Unknown,
             Tags = ParseTags(metadata.Tags),
 

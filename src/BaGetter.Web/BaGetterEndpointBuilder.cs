@@ -19,6 +19,7 @@ public class BaGetterEndpointBuilder
         MapSearchRoutes(endpoints);
         MapPackageMetadataRoutes(endpoints);
         MapPackageContentRoutes(endpoints);
+        MapProxyRoutes(endpoints);
     }
 
     public void MapServiceIndexRoutes(IEndpointRouteBuilder endpoints)
@@ -127,5 +128,15 @@ public class BaGetterEndpointBuilder
             name: Routes.PackageDownloadIconRouteName,
             pattern: "v3/package/{id}/{version}/icon",
             defaults: new { controller = "PackageContent", action = "DownloadIcon" });
+    }
+
+    public void MapProxyRoutes(IEndpointRouteBuilder endpoints)
+    {
+        // Full proxy: serve upstream package-resource assets through BaGetter so
+        // clients never contact the upstream.
+        endpoints.MapControllerRoute(
+            name: Routes.AssetProxyRouteName,
+            pattern: "v3/proxy/asset",
+            defaults: new { controller = "Proxy", action = "Get" });
     }
 }

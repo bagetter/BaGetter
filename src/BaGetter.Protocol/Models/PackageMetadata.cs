@@ -54,6 +54,12 @@ public class PackageMetadata
     public string Description { get; set; }
 
     /// <summary>
+    /// The number of downloads for this specific package version.
+    /// </summary>
+    [JsonPropertyName("downloads")]
+    public long Downloads { get; set; }
+
+    /// <summary>
     /// The URL to the package's icon.
     /// </summary>
     [JsonPropertyName("iconUrl")]
@@ -95,6 +101,24 @@ public class PackageMetadata
     /// </summary>
     [JsonPropertyName("projectUrl")]
     public string ProjectUrl { get; set; }
+
+    /// <summary>
+    /// The URL for the package's readme, if any.
+    /// </summary>
+    [JsonPropertyName("readmeUrl")]
+    public string ReadmeUrl { get; set; }
+
+    /// <summary>
+    /// The URL for the package's source repository.
+    /// </summary>
+    [JsonPropertyName("repositoryUrl")]
+    public string RepositoryUrl { get; set; }
+
+    /// <summary>
+    /// The type of the package's source repository.
+    /// </summary>
+    [JsonPropertyName("repositoryType")]
+    public string RepositoryType { get; set; }
 
     /// <summary>
     /// The package's publish date.

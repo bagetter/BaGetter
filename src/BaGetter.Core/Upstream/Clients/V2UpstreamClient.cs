@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Protocol.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Common;
@@ -70,6 +71,50 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
 
     public string GetServiceIndexUrl() => _repository.PackageSource.Source;
 
+    public async Task<IReadOnlyList<SearchResult>> SearchAsync(
+        string query,
+        int skip,
+        int take,
+        bool includePrerelease,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var resource = await _repository.GetResourceAsync<PackageSearchResource>(cancellationToken);
+            var packages = await resource.SearchAsync(
+                query ?? string.Empty,
+                new SearchFilter(includePrerelease),
+                skip,
+                take,
+                _ngLogger,
+                cancellationToken);
+
+            return packages.Select(ToSearchResult).ToList();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to search upstream packages");
+            return new List<SearchResult>();
+        }
+    }
+
+    public async Task<IReadOnlyList<string>> AutocompleteAsync(
+        string query,
+        int skip,
+        int take,
+        bool includePrerelease,
+        CancellationToken cancellationToken)
+    {
+        var results = await SearchAsync(
+            query,
+            skip,
+            take,
+            includePrerelease,
+            cancellationToken);
+
+        return results.Select(result => result.PackageId).ToList();
+    }
+
     public async Task<IReadOnlyList<NuGetVersion>> ListPackageVersionsAsync(string id, CancellationToken cancellationToken)
     {
         try
@@ -110,6 +155,40 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
         }
     }
 
+    public async Task EnrichPackageMetadataAsync(Package package, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+
+        try
+        {
+            using var packageStream = await DownloadPackageOrNullAsync(package.Id, package.Version, cancellationToken);
+            if (packageStream == null)
+            {
+                return;
+            }
+
+            using var packageReader = new PackageArchiveReader(packageStream);
+            var metadata = packageReader.GetPackageMetadata();
+
+            package.HasReadme = package.HasReadme || metadata.HasReadme;
+            package.ProjectUrl ??= metadata.ProjectUrl;
+            package.RepositoryUrl ??= metadata.RepositoryUrl;
+
+            if (string.IsNullOrEmpty(package.RepositoryType))
+            {
+                package.RepositoryType = metadata.RepositoryType;
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(
+                e,
+                "Failed to read {PackageId} {PackageVersion}'s upstream metadata",
+                package.Id,
+                package.Version);
+        }
+    }
+
     public async Task<Stream> DownloadPackageOrNullAsync(
         string id,
         NuGetVersion version,
@@ -147,6 +226,39 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
         }
     }
 
+    public async Task<Stream> DownloadPackageReadmeOrNullAsync(
+        string id,
+        NuGetVersion version,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var packageStream = await DownloadPackageOrNullAsync(id, version, cancellationToken);
+            if (packageStream == null)
+            {
+                return null;
+            }
+
+            using var packageReader = new PackageArchiveReader(packageStream);
+            if (!packageReader.HasReadme())
+            {
+                return null;
+            }
+
+            await using var readmeStream = await packageReader.GetReadmeAsync(cancellationToken);
+            return await readmeStream.AsTemporaryFileStreamAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(
+                e,
+                "Failed to read {PackageId} {PackageVersion}'s upstream readme",
+                id,
+                version);
+            return null;
+        }
+    }
+
     public void Dispose()
     {
         _cache.Dispose();
@@ -161,7 +273,7 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
             Version = package.Identity.Version,
             Authors = ParseAuthors(package.Authors),
             Description = package.Description,
-            Downloads = 0,
+            Downloads = package.DownloadCount ?? 0,
             HasReadme = false,
             Language = null,
             Listed = package.IsListed,
@@ -179,6 +291,34 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
             Tags = package.Tags?.Split(TagsSeparators, StringSplitOptions.RemoveEmptyEntries),
 
             Dependencies = ToDependencies(package)
+        };
+    }
+
+    private static SearchResult ToSearchResult(IPackageSearchMetadata package)
+    {
+        var version = package.Identity.Version.ToFullString();
+
+        return new SearchResult
+        {
+            PackageId = package.Identity.Id,
+            Version = version,
+            Description = package.Description,
+            Authors = ParseAuthors(package.Authors),
+            IconUrl = package.IconUrl?.AbsoluteUri ?? string.Empty,
+            LicenseUrl = package.LicenseUrl?.AbsoluteUri ?? string.Empty,
+            ProjectUrl = package.ProjectUrl?.AbsoluteUri ?? string.Empty,
+            Summary = package.Summary,
+            Tags = package.Tags?.Split(TagsSeparators, StringSplitOptions.RemoveEmptyEntries),
+            Title = package.Title,
+            TotalDownloads = package.DownloadCount ?? 0,
+            Versions =
+            [
+                new SearchResultVersion
+                {
+                    Version = version,
+                    Downloads = package.DownloadCount ?? 0
+                }
+            ]
         };
     }
 

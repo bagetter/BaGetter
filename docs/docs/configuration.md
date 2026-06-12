@@ -157,6 +157,69 @@ The following `Mirror` setting configures BaGetter to index packages from [nuget
 
 :::
 
+## Include upstream packages in search
+
+By default, search and autocomplete return only packages already indexed by BaGetter. To include
+results from the configured mirror source in the NuGet API and web browse page, enable upstream search:
+
+```json
+{
+    ...
+
+    "Mirror": {
+        "Enabled": true,
+        "PackageSource": "https://api.nuget.org/v3/index.json"
+    },
+    "Search": {
+        "IncludeUpstream": true
+    },
+
+    ...
+}
+```
+
+This setting uses the source and authentication configured in `Mirror`. Packages are still downloaded
+and cached only when a client requests a package version.
+
+## Full proxy mode
+
+In locked-down environments where only the BaGetter server can reach the upstream feed (clients can
+reach only BaGetter), enable full proxy mode. When enabled, BaGetter rewrites upstream
+package-resource asset URLs (icon and license URLs) found in metadata and search responses to
+BaGetter URLs and fetches those assets server-side, so clients never contact the upstream directly:
+
+```json
+{
+    ...
+
+    "Mirror": {
+        "Enabled": true,
+        "PackageSource": "https://api.nuget.org/v3/index.json"
+    },
+    "FullProxy": {
+        "Enabled": true,
+        "CacheMinutes": 30,
+        "AssetCacheMinutes": 1440
+    },
+
+    ...
+}
+```
+
+Full proxy needs a configured `Mirror` source to proxy upstream assets and implies upstream search
+(no separate `Search:IncludeUpstream` is needed). The set of trusted upstream hosts is **derived at
+runtime** from the configured `Mirror` upstream (its package source and service index resources), so
+this works for any provider, not just nuget.org — no host list is configured.
+
+- `CacheMinutes` — how long upstream search/autocomplete responses are cached (0 disables).
+- `AssetCacheMinutes` — how long proxied assets are cached.
+
+Only assets hosted on the configured upstream's own infrastructure are proxied. Truly external,
+author-supplied URLs (for example an icon hosted on a third-party site) are left untouched, because
+proxying arbitrary hosts would turn BaGetter into an open proxy. The asset proxy accepts only HTTPS
+URLs on trusted upstream hosts and rejects loopback/private addresses (SSRF protection). The cache is
+in-memory and therefore per-instance.
+
 ## Enable package hard deletions
 
 To prevent the ["left pad" problem](https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm),

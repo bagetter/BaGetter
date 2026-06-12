@@ -68,6 +68,8 @@ public class BaGetterOptions
 
     public MirrorOptions Mirror { get; set; }
 
+    public FullProxyOptions FullProxy { get; set; }
+
     public HealthCheckOptions HealthCheck { get; set; }
 
     public StatisticsOptions Statistics { get; set; }

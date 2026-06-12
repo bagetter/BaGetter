@@ -19,7 +19,8 @@ public class PackageModel : PageModel
 
     private readonly IPackageService _packages;
     private readonly IPackageContentService _content;
-    private readonly ISearchService _search;
+    private readonly IPackageSearchService _search;
+    private readonly IUpstreamClient _upstream;
     private readonly IUrlGenerator _url;
 
     static PackageModel()
@@ -32,12 +33,14 @@ public class PackageModel : PageModel
     public PackageModel(
         IPackageService packages,
         IPackageContentService content,
-        ISearchService search,
+        IPackageSearchService search,
+        IUpstreamClient upstream,
         IUrlGenerator url)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _content = content ?? throw new ArgumentNullException(nameof(content));
         _search = search ?? throw new ArgumentNullException(nameof(search));
+        _upstream = upstream ?? throw new ArgumentNullException(nameof(upstream));
         _url = url ?? throw new ArgumentNullException(nameof(url));
     }
 
@@ -87,12 +90,13 @@ public class PackageModel : PageModel
         }
 
         var packageVersion = Package.Version;
+        await _upstream.EnrichPackageMetadataAsync(Package, cancellationToken);
 
         Found = true;
         IsDotnetTemplate = Package.PackageTypes.Any(t => t.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
         IsDotnetTool = Package.PackageTypes.Any(t => t.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
         LastUpdated = packages.Max(p => p.Published);
-        TotalDownloads = packages.Sum(p => p.Downloads);
+        TotalDownloads = await UpdateDownloadStatsAsync(packages, cancellationToken);
 
         var dependents = await _search.FindDependentsAsync(Package.Id, cancellationToken);
 
@@ -112,6 +116,34 @@ public class PackageModel : PageModel
             : Package.IconUrlString;
         LicenseUrl = Package.LicenseUrlString;
         PackageDownloadUrl = _url.GetPackageDownloadUrl(Package.Id, packageVersion);
+    }
+
+    private async Task<long> UpdateDownloadStatsAsync(IReadOnlyList<Package> packages, CancellationToken cancellationToken)
+    {
+        var fallback = packages.Sum(p => p.Downloads);
+        var response = await _search.SearchAsync(
+            new SearchRequest
+            {
+                Query = Package.Id,
+                Skip = 0,
+                Take = 10,
+                IncludePrerelease = true,
+                IncludeSemVer2 = true,
+            },
+            cancellationToken);
+
+        var match = response.Data?.FirstOrDefault(
+            result => string.Equals(result.PackageId, Package.Id, StringComparison.OrdinalIgnoreCase));
+
+        var version = match?.Versions?.FirstOrDefault(
+            v => NuGetVersion.TryParse(v.Version, out var parsed) && parsed == Package.Version);
+
+        if (version?.Downloads > 0)
+        {
+            Package.Downloads = version.Downloads;
+        }
+
+        return match?.TotalDownloads ?? fallback;
     }
 
     private static List<DependencyGroupModel> ToDependencyGroups(Package package)

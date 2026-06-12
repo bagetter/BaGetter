@@ -9,6 +9,8 @@ using BaGetter.Protocol;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace BaGetter.Core;
@@ -68,6 +70,7 @@ public static partial class DependencyInjectionExtensions
         services.AddBaGetterOptions<DatabaseOptions>(nameof(BaGetterOptions.Database));
         services.AddBaGetterOptions<FileSystemStorageOptions>(nameof(BaGetterOptions.Storage));
         services.AddBaGetterOptions<MirrorOptions>(nameof(BaGetterOptions.Mirror));
+        services.AddBaGetterOptions<FullProxyOptions>(nameof(BaGetterOptions.FullProxy));
         services.AddBaGetterOptions<RetentionOptions>(nameof(BaGetterOptions.Retention));
         services.AddBaGetterOptions<SearchOptions>(nameof(BaGetterOptions.Search));
         services.AddBaGetterOptions<StorageOptions>(nameof(BaGetterOptions.Storage));
@@ -88,7 +91,12 @@ public static partial class DependencyInjectionExtensions
         services.TryAddSingleton<ValidateStartupOptions>();
 
         services.TryAddSingleton(HttpClientFactory);
-        services.TryAddSingleton(NuGetClientFactoryFactory);
+        services.TryAddSingleton<NuGetClientFactory>(NuGetClientFactoryFactory);
+
+        services.AddMemoryCache();
+        services.TryAddSingleton<IUpstreamHostProvider, UpstreamHostProvider>();
+        services.TryAddTransient<INuGetUrlRewriter, NuGetUrlRewriter>();
+        services.TryAddSingleton<IAssetProxyService>(provider => AssetProxyServiceFactory(provider));
 
         services.TryAddScoped<DownloadsImporter>();
 
@@ -97,6 +105,7 @@ public static partial class DependencyInjectionExtensions
         services.TryAddTransient<IPackageDeletionService, PackageDeletionService>();
         services.TryAddTransient<IPackageIndexingService, PackageIndexingService>();
         services.TryAddTransient<IPackageMetadataService, DefaultPackageMetadataService>();
+        services.TryAddTransient<IPackageSearchService, PackageSearchService>();
         services.TryAddTransient<IPackageService, PackageService>();
         services.TryAddTransient<IPackageStorageService, PackageStorageService>();
         services.TryAddTransient<IServiceIndexService, BaGetterServiceIndex>();
@@ -189,6 +198,32 @@ public static partial class DependencyInjectionExtensions
         client.Timeout = TimeSpan.FromSeconds(options.PackageDownloadTimeoutSeconds);
 
         return client;
+    }
+
+    /// <summary>
+    /// Creates an <see cref="IAssetProxyService"/> with a dedicated <see cref="HttpClient"/>
+    /// that disallows automatic redirects to prevent SSRF via upstream-controlled 3xx responses.
+    /// </summary>
+    private static AssetProxyService AssetProxyServiceFactory(IServiceProvider provider)
+    {
+        var mainClient = provider.GetRequiredService<HttpClient>();
+
+        var handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+        };
+
+        var proxyClient = new HttpClient(handler);
+        proxyClient.Timeout = mainClient.Timeout;
+        proxyClient.DefaultRequestHeaders.Add("User-Agent", mainClient.DefaultRequestHeaders.UserAgent.ToString());
+
+        return new AssetProxyService(
+            proxyClient,
+            provider.GetRequiredService<IUpstreamHostProvider>(),
+            provider.GetRequiredService<IMemoryCache>(),
+            provider.GetRequiredService<IOptions<FullProxyOptions>>(),
+            provider.GetRequiredService<ILogger<AssetProxyService>>());
     }
 
     private static NuGetClientFactory NuGetClientFactoryFactory(IServiceProvider provider)

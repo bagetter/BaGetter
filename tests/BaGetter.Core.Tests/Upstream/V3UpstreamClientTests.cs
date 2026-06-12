@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol;
@@ -131,6 +132,10 @@ public class V3UpstreamClientTests
                         MinClientVersion = "1.0.0",
                         PackageContentUrl = "https://content.test/",
                         Published = published,
+                        ProjectUrl = "https://project.test/",
+                        ReadmeUrl = "https://readme.test/",
+                        RepositoryUrl = "https://github.com/bagetter/source.test",
+                        RepositoryType = "git",
                         RequireLicenseAcceptance = true,
                         Summary = "Summary",
                         Title = "Title",
@@ -172,7 +177,7 @@ public class V3UpstreamClientTests
             Assert.Equal("Foo", package.Id);
             Assert.Equal(new[] { "Author1", "Author2" }, package.Authors);
             Assert.Equal("Description", package.Description);
-            Assert.False(package.HasReadme);
+            Assert.True(package.HasReadme);
             Assert.False(package.HasEmbeddedIcon);
             Assert.True(package.IsPrerelease);
             Assert.Null(package.ReleaseNotes);
@@ -186,12 +191,52 @@ public class V3UpstreamClientTests
             Assert.Equal("Title", package.Title);
             Assert.Equal("https://icon.test/", package.IconUrlString);
             Assert.Equal("https://license.test/", package.LicenseUrlString);
-            Assert.Equal("", package.ProjectUrlString);
-            Assert.Equal("", package.RepositoryUrlString);
-            Assert.Null(package.RepositoryType);
+            Assert.Equal("https://project.test/", package.ProjectUrlString);
+            Assert.Equal("https://github.com/bagetter/source.test", package.RepositoryUrlString);
+            Assert.Equal("git", package.RepositoryType);
             Assert.Equal(new[] { "Tag1", "Tag2" }, package.Tags);
             Assert.Equal("1.2.3-prerelease", package.NormalizedVersionString);
             Assert.Equal("1.2.3-prerelease+semver2", package.OriginalVersionString);
+
+            _client.Verify(
+                c => c.DownloadPackageManifestAsync(It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+    }
+
+    public class EnrichPackageMetadataAsync : FactsBase
+    {
+        [Fact]
+        public async Task ReadsRepositoryMetadataFromManifest()
+        {
+            var package = new Package
+            {
+                Id = "Foo",
+                Version = _version,
+            };
+            _client
+                .Setup(c => c.DownloadPackageManifestAsync("Foo", _version, _cancellation))
+                .ReturnsAsync(StringStream("""
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+                      <metadata>
+                        <id>Foo</id>
+                        <version>1.2.3-prerelease+semver2</version>
+                        <authors>Author</authors>
+                        <description>Description</description>
+                        <projectUrl>https://project-from-nuspec.test/</projectUrl>
+                        <readme>README.md</readme>
+                        <repository type="git" url="https://github.com/bagetter/source-from-nuspec" />
+                      </metadata>
+                    </package>
+                    """));
+
+            await _target.EnrichPackageMetadataAsync(package, _cancellation);
+
+            Assert.True(package.HasReadme);
+            Assert.Equal("https://project-from-nuspec.test/", package.ProjectUrlString);
+            Assert.Equal("https://github.com/bagetter/source-from-nuspec", package.RepositoryUrlString);
+            Assert.Equal("git", package.RepositoryType);
         }
     }
 
@@ -250,6 +295,11 @@ public class V3UpstreamClientTests
             _target = new V3UpstreamClient(
                 _client.Object,
                 Mock.Of<ILogger<V3UpstreamClient>>());
+        }
+
+        protected static Stream StringStream(string content)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(content));
         }
     }
 }

@@ -149,6 +149,19 @@ public class BaGetterUrlGenerator : IUrlGenerator
             });
     }
 
+    public string GetPackageProxyUrl(string upstreamUrl)
+    {
+        if (string.IsNullOrWhiteSpace(upstreamUrl))
+        {
+            return null;
+        }
+
+        return _linkGenerator.GetUriByRouteValues(
+            _httpContextAccessor.HttpContext,
+            Routes.AssetProxyRouteName,
+            values: new { url = upstreamUrl });
+    }
+
     private string AbsoluteUrl(string relativePath)
     {
         var request = _httpContextAccessor.HttpContext.Request;

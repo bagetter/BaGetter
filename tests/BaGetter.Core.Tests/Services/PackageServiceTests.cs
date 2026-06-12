@@ -180,6 +180,111 @@ public class PackageServiceTests
             Assert.Equal("3.0.0", ordered[2].Version.OriginalVersion);
         }
 
+        [Fact]
+        public async Task MergesUpstreamMetadataIntoLocalPackage()
+        {
+            var cacheDate = new DateTime(2026, 6, 11, 12, 0, 0, DateTimeKind.Utc);
+            var upstreamDate = new DateTime(2020, 4, 5, 10, 0, 0, DateTimeKind.Utc);
+            var localPackage = new Package
+            {
+                Version = new NuGetVersion("2.0.0"),
+                Downloads = 7,
+                HasReadme = false,
+                CachedFrom = "https://api.nuget.org/v3/index.json",
+                Listed = true,
+                Published = cacheDate
+            };
+            var upstreamPackage = new Package
+            {
+                Version = new NuGetVersion("2.0.0"),
+                Downloads = 123,
+                HasReadme = true,
+                Listed = false,
+                Published = upstreamDate,
+                ProjectUrl = new Uri("https://project.test/"),
+                RepositoryUrl = new Uri("https://github.com/bagetter/source"),
+                RepositoryType = "git"
+            };
+
+            Setup(
+                localPackages: new List<Package> { localPackage },
+                upstreamPackages: new List<Package> { upstreamPackage });
+
+            var result = await _target.FindPackagesAsync("MyPackage", _cancellationToken);
+
+            var package = Assert.Single(result);
+            Assert.NotSame(localPackage, package);
+            Assert.Equal(7, localPackage.Downloads);
+            Assert.False(localPackage.HasReadme);
+            Assert.Equal(cacheDate, localPackage.Published);
+            Assert.True(localPackage.Listed);
+            Assert.Equal(130, package.Downloads);
+            Assert.True(package.HasReadme);
+            Assert.Equal(upstreamDate, package.Published);
+            Assert.False(package.Listed);
+            Assert.Equal("https://project.test/", package.ProjectUrlString);
+            Assert.Equal("https://github.com/bagetter/source", package.RepositoryUrlString);
+            Assert.Equal("git", package.RepositoryType);
+        }
+
+        [Fact]
+        public async Task UsesUpstreamVisibilityMetadataForCachedPackageWithoutProvenance()
+        {
+            var cacheDate = new DateTime(2026, 6, 11, 12, 0, 0, DateTimeKind.Utc);
+            var upstreamDate = new DateTime(2020, 4, 5, 10, 0, 0, DateTimeKind.Utc);
+            var localPackage = new Package
+            {
+                Version = new NuGetVersion("2.0.0"),
+                Listed = true,
+                Published = cacheDate
+            };
+            var upstreamPackage = new Package
+            {
+                Version = new NuGetVersion("2.0.0"),
+                Listed = false,
+                Published = upstreamDate
+            };
+
+            Setup(
+                localPackages: new List<Package> { localPackage },
+                upstreamPackages: new List<Package> { upstreamPackage });
+
+            var result = await _target.FindPackagesAsync("MyPackage", _cancellationToken);
+
+            var package = Assert.Single(result);
+            Assert.Equal(upstreamDate, package.Published);
+            Assert.False(package.Listed);
+        }
+
+        [Fact]
+        public async Task PreservesLocalVisibilityMetadataWhenLocalPackageIsNotCached()
+        {
+            var localDate = new DateTime(2020, 4, 5, 10, 0, 0, DateTimeKind.Utc);
+            var upstreamDate = new DateTime(2026, 6, 11, 12, 0, 0, DateTimeKind.Utc);
+            var localPackage = new Package
+            {
+                Version = new NuGetVersion("2.0.0"),
+                Listed = true,
+                Published = localDate
+            };
+            var upstreamPackage = new Package
+            {
+                Version = new NuGetVersion("2.0.0"),
+                Listed = false,
+                Published = upstreamDate
+            };
+
+            Setup(
+                localPackages: new List<Package> { localPackage },
+                upstreamPackages: new List<Package> { upstreamPackage });
+
+            var result = await _target.FindPackagesAsync("MyPackage", _cancellationToken);
+
+            var package = Assert.Single(result);
+            Assert.Equal(localDate, package.Published);
+            Assert.True(package.Listed);
+        }
+
         private void Setup(
             IReadOnlyList<Package> localPackages = null,
             IReadOnlyList<Package> upstreamPackages = null)

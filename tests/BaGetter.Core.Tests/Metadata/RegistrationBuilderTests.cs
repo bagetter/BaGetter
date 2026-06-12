@@ -10,12 +10,15 @@ namespace BaGetter.Core.Tests.Metadata;
 public class RegistrationBuilderTests
 {
     private readonly Mock<IUrlGenerator> _urlGenerator;
+    private readonly Mock<INuGetUrlRewriter> _rewriter;
     private readonly RegistrationBuilder _registrationBuilder;
 
     public RegistrationBuilderTests()
     {
         _urlGenerator = new Mock<IUrlGenerator>();
-        _registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
+        _rewriter = new Mock<INuGetUrlRewriter>();
+        _rewriter.Setup(r => r.RewriteAssetUrl(It.IsAny<string>())).Returns((string s) => s);
+        _registrationBuilder = new RegistrationBuilder(_urlGenerator.Object, _rewriter.Object);
     }
 
     #region helper methods
@@ -42,14 +45,14 @@ public class RegistrationBuilderTests
     public void Ctor_UrlGeneratorIsNull_ShouldThrow()
     {
         // Act/Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => new RegistrationBuilder(null));
+        var ex = Assert.Throws<ArgumentNullException>(() => new RegistrationBuilder(null, _rewriter.Object));
     }
 
     [Fact]
     public void BuildIndex_PackageRegistrationIsNull_ShouldThrow()
     {
         // Arrange
-        var registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
+        var registrationBuilder = new RegistrationBuilder(_urlGenerator.Object, _rewriter.Object);
 
         // Act/Assert
         var ex = Assert.Throws<ArgumentNullException>(() => registrationBuilder.BuildIndex(null));
@@ -106,5 +109,30 @@ public class RegistrationBuilderTests
         // Assert
         Assert.Equal(isPackageListed, response.Listed);
         Assert.Equal(publishDate, response.Published);
+    }
+
+    [Fact]
+    public void BuildIndex_RewritesUpstreamIconAndLicenseUrls()
+    {
+        // Arrange
+        var package = Generator.GetPackage("Example.Test", "1.0.0");
+        package.HasEmbeddedIcon = false;
+        package.IconUrl = new Uri("https://api.example.com/example.test/1.0.0/icon");
+        package.LicenseUrl = new Uri("https://api.example.com/example.test/1.0.0/license");
+
+        _rewriter.Setup(r => r.RewriteAssetUrl("https://api.example.com/example.test/1.0.0/icon"))
+            .Returns("http://localhost/v3/proxy/asset?url=icon");
+        _rewriter.Setup(r => r.RewriteAssetUrl("https://api.example.com/example.test/1.0.0/license"))
+            .Returns("http://localhost/v3/proxy/asset?url=license");
+
+        var registration = new PackageRegistration("Example.Test", new List<Package> { package });
+
+        // Act
+        var response = _registrationBuilder.BuildIndex(registration);
+
+        // Assert
+        var metadata = response.Pages[0].ItemsOrNull[0].PackageMetadata;
+        Assert.Equal("http://localhost/v3/proxy/asset?url=icon", metadata.IconUrl);
+        Assert.Equal("http://localhost/v3/proxy/asset?url=license", metadata.LicenseUrl);
     }
 }

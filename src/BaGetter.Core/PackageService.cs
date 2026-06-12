@@ -57,6 +57,14 @@ public class PackageService : IPackageService
 
         foreach (var localPackage in local)
         {
+            if (result.TryGetValue(localPackage.Key, out var upstreamPackage))
+            {
+                var mergedPackage = ClonePackage(localPackage.Value);
+                MergeUpstreamMetadata(mergedPackage, upstreamPackage);
+                result[localPackage.Key] = mergedPackage;
+                continue;
+            }
+
             result[localPackage.Key] = localPackage.Value;
         }
 
@@ -145,5 +153,113 @@ public class PackageService : IPackageService
 
             return false;
         }
+    }
+
+    private static void MergeUpstreamMetadata(Package local, Package upstream)
+    {
+        local.Downloads += upstream.Downloads;
+        local.HasReadme = local.HasReadme || upstream.HasReadme;
+
+        // Cached upstream packages are indexed at cache time. Use upstream
+        // visibility metadata so package pages do not show the cache timestamp.
+        if (ShouldUseUpstreamVisibilityMetadata(local, upstream))
+        {
+            local.Published = upstream.Published;
+            local.Listed = upstream.Listed;
+        }
+
+        local.IconUrl ??= upstream.IconUrl;
+        local.LicenseUrl ??= upstream.LicenseUrl;
+        local.ProjectUrl ??= upstream.ProjectUrl;
+        local.RepositoryUrl ??= upstream.RepositoryUrl;
+
+        if (string.IsNullOrEmpty(local.RepositoryType))
+        {
+            local.RepositoryType = upstream.RepositoryType;
+        }
+
+        if (string.IsNullOrEmpty(local.Language))
+        {
+            local.Language = upstream.Language;
+        }
+
+        if (string.IsNullOrEmpty(local.MinClientVersion))
+        {
+            local.MinClientVersion = upstream.MinClientVersion;
+        }
+
+        if (string.IsNullOrEmpty(local.Summary))
+        {
+            local.Summary = upstream.Summary;
+        }
+
+        if (string.IsNullOrEmpty(local.Title))
+        {
+            local.Title = upstream.Title;
+        }
+
+        if (string.IsNullOrEmpty(local.Description))
+        {
+            local.Description = upstream.Description;
+        }
+
+        if ((local.Tags?.Length ?? 0) == 0)
+        {
+            local.Tags = upstream.Tags;
+        }
+
+        if ((local.Authors?.Length ?? 0) == 0)
+        {
+            local.Authors = upstream.Authors;
+        }
+    }
+
+    private static bool ShouldUseUpstreamVisibilityMetadata(Package local, Package upstream)
+    {
+        if (!string.IsNullOrEmpty(local.CachedFrom))
+        {
+            return true;
+        }
+
+        // Packages cached before cache provenance was persisted have no
+        // CachedFrom value, but their local publish date is the cache time.
+        return upstream.Published != default && local.Published > upstream.Published;
+    }
+
+    private static Package ClonePackage(Package package)
+    {
+        return new Package
+        {
+            Key = package.Key,
+            Id = package.Id,
+            Authors = package.Authors?.ToArray(),
+            Description = package.Description,
+            Downloads = package.Downloads,
+            HasReadme = package.HasReadme,
+            HasEmbeddedIcon = package.HasEmbeddedIcon,
+            IsPrerelease = package.IsPrerelease,
+            CachedFrom = package.CachedFrom,
+            ReleaseNotes = package.ReleaseNotes,
+            Language = package.Language,
+            Listed = package.Listed,
+            MinClientVersion = package.MinClientVersion,
+            Published = package.Published,
+            RequireLicenseAcceptance = package.RequireLicenseAcceptance,
+            SemVerLevel = package.SemVerLevel,
+            Summary = package.Summary,
+            Title = package.Title,
+            IconUrl = package.IconUrl,
+            LicenseUrl = package.LicenseUrl,
+            ProjectUrl = package.ProjectUrl,
+            RepositoryUrl = package.RepositoryUrl,
+            RepositoryType = package.RepositoryType,
+            Tags = package.Tags?.ToArray(),
+            RowVersion = package.RowVersion?.ToArray(),
+            Dependencies = package.Dependencies?.ToList(),
+            PackageTypes = package.PackageTypes?.ToList(),
+            TargetFrameworks = package.TargetFrameworks?.ToList(),
+            NormalizedVersionString = package.NormalizedVersionString,
+            OriginalVersionString = package.OriginalVersionString,
+        };
     }
 }

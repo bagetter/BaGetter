@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core;
+using BaGetter.Protocol.Models;
 using Moq;
 using NuGet.Versioning;
 using Xunit;
@@ -15,7 +16,8 @@ public class PackageModelFacts
 {
     private readonly Mock<IPackageContentService> _content;
     private readonly Mock<IPackageService> _packages;
-    private readonly Mock<ISearchService> _search;
+    private readonly Mock<IPackageSearchService> _search;
+    private readonly Mock<IUpstreamClient> _upstream;
     private readonly Mock<IUrlGenerator> _url;
     private readonly PackageModel _target;
 
@@ -25,17 +27,25 @@ public class PackageModelFacts
     {
         _content = new Mock<IPackageContentService>();
         _packages = new Mock<IPackageService>();
-        _search = new Mock<ISearchService>();
+        _search = new Mock<IPackageSearchService>();
+        _upstream = new Mock<IUpstreamClient>();
         _url = new Mock<IUrlGenerator>();
         _target = new PackageModel(
             _packages.Object,
             _content.Object,
             _search.Object,
+            _upstream.Object,
             _url.Object);
 
         _search
             .Setup(s => s.FindDependentsAsync("testpackage", _cancellation))
             .ReturnsAsync(new DependentsResponse());
+        _search
+            .Setup(s => s.SearchAsync(It.IsAny<SearchRequest>(), _cancellation))
+            .ReturnsAsync(new SearchResponse { Data = [] });
+        _upstream
+            .Setup(u => u.EnrichPackageMetadataAsync(It.IsAny<Package>(), _cancellation))
+            .Returns(Task.CompletedTask);
     }
 
     [Fact]
@@ -296,6 +306,41 @@ public class PackageModelFacts
         Assert.True(_target.Found);
         Assert.Equal(15, _target.TotalDownloads);
         Assert.Equal(now, _target.LastUpdated);
+    }
+
+    [Fact]
+    public async Task StatisticsUseExactSearchTotalDownloadsWhenAvailable()
+    {
+        _packages
+            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
+            .ReturnsAsync(new List<Package>
+            {
+                CreatePackage("1.0.0", downloads: 7),
+            });
+        _search
+            .Setup(s => s.SearchAsync(It.IsAny<SearchRequest>(), _cancellation))
+            .ReturnsAsync(new SearchResponse
+            {
+                Data =
+                [
+                    new SearchResult { PackageId = "otherpackage", TotalDownloads = 999 },
+                    new SearchResult
+                    {
+                        PackageId = "testpackage",
+                        TotalDownloads = 130,
+                        Versions =
+                        [
+                            new SearchResultVersion { Version = "1.0.0", Downloads = 42 },
+                        ],
+                    },
+                ]
+            });
+
+        await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
+
+        Assert.True(_target.Found);
+        Assert.Equal(130, _target.TotalDownloads);
+        Assert.Equal(42, _target.Package.Downloads);
     }
 
     [Fact]

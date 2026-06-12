@@ -1,3 +1,4 @@
+using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 using System.Collections.Generic;
 using System.IO;
@@ -11,6 +12,38 @@ namespace BaGetter.Core;
 /// </summary>
 public interface IUpstreamClient
 {
+    /// <summary>
+    /// Search for packages on the upstream package source.
+    /// </summary>
+    /// <param name="query">The search query.</param>
+    /// <param name="skip">The number of results to skip.</param>
+    /// <param name="take">The maximum number of results to return.</param>
+    /// <param name="includePrerelease">Whether prerelease packages should be included.</param>
+    /// <param name="cancellationToken">A token to cancel the task.</param>
+    /// <returns>The upstream search results, or an empty list if the upstream cannot be queried.</returns>
+    Task<IReadOnlyList<SearchResult>> SearchAsync(
+        string query,
+        int skip,
+        int take,
+        bool includePrerelease,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Search upstream package IDs for autocomplete.
+    /// </summary>
+    /// <param name="query">The autocomplete query.</param>
+    /// <param name="skip">The number of results to skip.</param>
+    /// <param name="take">The maximum number of results to return.</param>
+    /// <param name="includePrerelease">Whether prerelease packages should be included.</param>
+    /// <param name="cancellationToken">A token to cancel the task.</param>
+    /// <returns>The matching package IDs, or an empty list if the upstream cannot be queried.</returns>
+    Task<IReadOnlyList<string>> AutocompleteAsync(
+        string query,
+        int skip,
+        int take,
+        bool includePrerelease,
+        CancellationToken cancellationToken);
+
     /// <summary>
     /// Try to get all versions of a package from the upstream package source. Returns empty
     /// if the package could not be found.
@@ -36,6 +69,13 @@ public interface IUpstreamClient
     Task<IReadOnlyList<Package>> ListPackagesAsync(string id, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Enrich a single package with metadata that is not available in the upstream registration response.
+    /// </summary>
+    /// <param name="package">The package to enrich.</param>
+    /// <param name="cancellationToken">A token to cancel the task.</param>
+    Task EnrichPackageMetadataAsync(Package package, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Download a package from the upstream package source. Returns null if the package does not exist.
     /// </summary>
     /// <param name="id">The package ID to download.</param>
@@ -43,9 +83,21 @@ public interface IUpstreamClient
     /// <param name="cancellationToken"></param>
     /// <returns>
     /// The package stream or null if the package cannot be found.
-    /// The stream is guaranteed to be seekable if not not null.
+    /// The stream is guaranteed to be seekable if not null.
     /// </returns>
     Task<Stream> DownloadPackageOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Download a package's readme from the upstream package source. Returns null if the package or readme does not exist.
+    /// </summary>
+    /// <param name="id">The package ID to download.</param>
+    /// <param name="version">The package version to download.</param>
+    /// <param name="cancellationToken">A token to cancel the task.</param>
+    /// <returns>
+    /// The package readme stream or null if the package or readme cannot be found.
+    /// The stream is guaranteed to be seekable if not null.
+    /// </returns>
+    Task<Stream> DownloadPackageReadmeOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get the service index url from the upstream package source.

@@ -12,14 +12,17 @@ public class DefaultPackageMetadataService : IPackageMetadataService
 {
     private readonly IPackageService _packages;
     private readonly RegistrationBuilder _builder;
+    private readonly IUpstreamHostProvider _upstreamHosts;
 
-    public DefaultPackageMetadataService(IPackageService packages, RegistrationBuilder builder)
+    public DefaultPackageMetadataService(IPackageService packages, RegistrationBuilder builder, IUpstreamHostProvider upstreamHosts)
     {
         ArgumentNullException.ThrowIfNull(packages);
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(upstreamHosts);
 
         _packages = packages;
         _builder = builder;
+        _upstreamHosts = upstreamHosts;
     }
 
     /// <inheritdoc/>
@@ -30,6 +33,10 @@ public class DefaultPackageMetadataService : IPackageMetadataService
         {
             return null;
         }
+
+        // Warm the trusted-host snapshot so the (synchronous) URL rewriter in the
+        // builder can rewrite upstream asset URLs. No-op when full proxy is off.
+        await _upstreamHosts.EnsureResolvedAsync(cancellationToken);
 
         return _builder.BuildIndex(
             new PackageRegistration(

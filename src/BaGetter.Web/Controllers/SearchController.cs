@@ -12,9 +12,9 @@ namespace BaGetter.Web;
 [Authorize(AuthenticationSchemes = AuthenticationConstants.NugetBasicAuthenticationScheme, Policy = AuthenticationConstants.NugetUserPolicy)]
 public class SearchController : Controller
 {
-    private readonly ISearchService _searchService;
+    private readonly IPackageSearchService _searchService;
 
-    public SearchController(ISearchService searchService)
+    public SearchController(IPackageSearchService searchService)
     {
         _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
     }

@@ -15,13 +15,16 @@ public class DefaultPackageContentService : IPackageContentService
 {
     private readonly IPackageService _packages;
     private readonly IPackageStorageService _storage;
+    private readonly IUpstreamClient _upstream;
 
     public DefaultPackageContentService(
         IPackageService packages,
-        IPackageStorageService storage)
+        IPackageStorageService storage,
+        IUpstreamClient upstream)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        _upstream = upstream ?? throw new ArgumentNullException(nameof(upstream));
     }
 
     public async Task<PackageVersionsResponse> GetPackageVersionsOrNullAsync(
@@ -70,12 +73,25 @@ public class DefaultPackageContentService : IPackageContentService
     public async Task<Stream> GetPackageReadmeStreamOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken = default)
     {
         var package = await _packages.FindPackageOrNullAsync(id, version, cancellationToken);
-        if (package == null || !package.HasReadme)
+        if (package == null)
         {
             return null;
         }
 
-        return await _storage.GetReadmeStreamAsync(id, version, cancellationToken);
+        if (!package.HasReadme)
+        {
+            return await _upstream.DownloadPackageReadmeOrNullAsync(id, version, cancellationToken);
+        }
+
+        try
+        {
+            return await _storage.GetReadmeStreamAsync(id, version, cancellationToken)
+                ?? await _upstream.DownloadPackageReadmeOrNullAsync(id, version, cancellationToken);
+        }
+        catch (IOException)
+        {
+            return await _upstream.DownloadPackageReadmeOrNullAsync(id, version, cancellationToken);
+        }
     }
 
     public async Task<Stream> GetPackageIconStreamOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken = default)

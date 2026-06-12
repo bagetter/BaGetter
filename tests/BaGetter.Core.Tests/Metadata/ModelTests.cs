@@ -89,12 +89,9 @@ public class ModelTests
 
                 AddedProperties = new Dictionary<string, Type>
                 {
-                    { "Downloads", typeof(long) },
                     { "HasReadme", typeof(bool) },
                     { "PackageTypes", typeof(IReadOnlyList<string>) },
                     { "ReleaseNotes", typeof(string) },
-                    { "RepositoryUrl", typeof(string) },
-                    { "RepositoryType", typeof(string) },
                 }
             }
         };

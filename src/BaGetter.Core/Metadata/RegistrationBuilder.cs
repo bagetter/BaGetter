@@ -8,12 +8,15 @@ namespace BaGetter.Core;
 public class RegistrationBuilder
 {
     private readonly IUrlGenerator _url;
+    private readonly INuGetUrlRewriter _rewriter;
 
-    public RegistrationBuilder(IUrlGenerator url)
+    public RegistrationBuilder(IUrlGenerator url, INuGetUrlRewriter rewriter)
     {
         ArgumentNullException.ThrowIfNull(url);
+        ArgumentNullException.ThrowIfNull(rewriter);
 
         _url = url;
+        _rewriter = rewriter;
     }
 
     public virtual BaGetterRegistrationIndexResponse BuildIndex(PackageRegistration registration)
@@ -76,9 +79,9 @@ public class RegistrationBuilder
                 HasReadme = package.HasReadme,
                 IconUrl = package.HasEmbeddedIcon
                     ? _url.GetPackageIconDownloadUrl(package.Id, package.Version)
-                    : package.IconUrlString,
+                    : _rewriter.RewriteAssetUrl(package.IconUrlString),
                 Language = package.Language,
-                LicenseUrl = package.LicenseUrlString,
+                LicenseUrl = _rewriter.RewriteAssetUrl(package.LicenseUrlString),
                 Listed = package.Listed,
                 MinClientVersion = package.MinClientVersion,
                 ReleaseNotes = package.ReleaseNotes,

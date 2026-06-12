@@ -101,4 +101,11 @@ public interface IUrlGenerator
     /// <param name="id">The package's ID</param>
     /// <param name="version">The package's version</param>
     string GetPackageIconDownloadUrl(string id, NuGetVersion version);
+
+    /// <summary>
+    /// Get the URL to proxy an upstream package-resource asset through BaGetter.
+    /// Used by full proxy mode so clients never contact the upstream directly.
+    /// </summary>
+    /// <param name="upstreamUrl">The absolute upstream asset URL to proxy.</param>
+    string GetPackageProxyUrl(string upstreamUrl);
 }

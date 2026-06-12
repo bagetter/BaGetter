@@ -149,7 +149,7 @@ public static class PackageArchiveReaderExtensions
         return tags.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     }
 
-    private static (Uri repositoryUrl, string repositoryType) GetRepositoryMetadata(NuspecReader nuspec)
+    internal static (Uri repositoryUrl, string repositoryType) GetRepositoryMetadata(NuspecReader nuspec)
     {
         var repository = nuspec.GetRepositoryMetadata();
 
@@ -164,12 +164,14 @@ public static class PackageArchiveReaderExtensions
             return (null, null);
         }
 
-        if (repository.Type.Length > 100)
+        var repositoryType = repository.Type ?? string.Empty;
+
+        if (repositoryType.Length > 100)
         {
             throw new InvalidOperationException("Repository type must be less than or equal 100 characters");
         }
 
-        return (repositoryUri, repository.Type);
+        return (repositoryUri, repositoryType);
     }
 
     private static List<PackageDependency> GetDependencies(NuspecReader nuspec)
