@@ -228,6 +228,41 @@ To allow pre-release versions to be overwritten but not stable releases, set `Al
 
 Pushing a package with a pre-release version like "3.1.0-SNAPSHOT" will overwrite the existing "3.1.0-SNAPSHOT" package, but pushing a "3.1.0" package will fail if a "3.1.0" package already exists.
 
+## Filter upstream packages
+
+Package filtering can prevent selected packages or versions from being proxied from an upstream source.
+Rules support case-insensitive package ID matching, simple `*` wildcards, and
+[NuGet version ranges](https://learn.microsoft.com/nuget/concepts/package-versioning#version-ranges).
+
+```json
+{
+    ...
+
+    "PackageFiltering": {
+        "Enabled": true,
+        "BlockCachedPackages": true,
+        "Rules": [
+            {
+                "PackageId": "Example.Package",
+                "Versions": "*"
+            },
+            {
+                "PackageId": "Example.Tools.*",
+                "Versions": "[2.0.0,3.0.0)"
+            }
+        ]
+    },
+
+    ...
+}
+```
+
+`Versions` can be `*` to block every version, or a NuGet version range such as `[2.0.0,3.0.0)`.
+The same rules apply to packages discovered through upstream search when that feature is enabled.
+When `BlockCachedPackages` is `true`, matching packages that were previously cached from the
+upstream source are hidden and return `404`. Packages published directly to BaGetter are never
+blocked by these rules.
+
 ## Private feeds
 
 A private feed requires users to authenticate before accessing packages.

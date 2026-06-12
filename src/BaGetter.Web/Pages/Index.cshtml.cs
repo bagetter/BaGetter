@@ -12,9 +12,9 @@ namespace BaGetter.Web;
 
 public class IndexModel : PageModel
 {
-    private readonly ISearchService _search;
+    private readonly IPackageSearchService _search;
 
-    public IndexModel(ISearchService search)
+    public IndexModel(IPackageSearchService search)
     {
         _search = search ?? throw new ArgumentNullException(nameof(search));
     }

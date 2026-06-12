@@ -21,6 +21,7 @@ namespace BaGetter.Azure
                 HasReadme = entity.HasReadme,
                 HasEmbeddedIcon = entity.HasEmbeddedIcon,
                 IsPrerelease = entity.IsPrerelease,
+                CachedFrom = entity.CachedFrom,
                 Language = entity.Language,
                 Listed = entity.Listed,
                 MinClientVersion = entity.MinClientVersion,

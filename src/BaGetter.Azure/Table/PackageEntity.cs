@@ -21,6 +21,7 @@ namespace BaGetter.Azure
         public bool HasReadme { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         public bool IsPrerelease { get; set; }
+        public string CachedFrom { get; set; }
         public string Language { get; set; }
         public bool Listed { get; set; }
         public string MinClientVersion { get; set; }

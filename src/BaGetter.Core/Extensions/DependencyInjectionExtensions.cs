@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -72,6 +73,7 @@ public static partial class DependencyInjectionExtensions
         services.AddBaGetterOptions<SearchOptions>(nameof(BaGetterOptions.Search));
         services.AddBaGetterOptions<StorageOptions>(nameof(BaGetterOptions.Storage));
         services.AddBaGetterOptions<StatisticsOptions>(nameof(BaGetterOptions.Statistics));
+        services.AddBaGetterOptions<PackageFilteringOptions>(nameof(BaGetterOptions.PackageFiltering));
     }
 
     private static void AddBaGetServices(this IServiceCollection services)
@@ -114,6 +116,73 @@ public static partial class DependencyInjectionExtensions
         services.TryAddTransient<PackageDatabase>();
 
         services.TryAddTransient(UpstreamClientFactory);
+        services.AddPackageFiltering();
+    }
+
+    private static void AddPackageFiltering(this IServiceCollection services)
+    {
+        services.TryAddSingleton<IPackagePolicyEvaluator, PackagePolicyEvaluator>();
+
+        // Decorate existing services so filtering composes with optional package and search features.
+        services.DecoratePackageServiceWithFiltering();
+        services.DecoratePackageSearchServiceWithFiltering();
+    }
+
+    private static void DecoratePackageServiceWithFiltering(this IServiceCollection services)
+    {
+        var descriptor = services.LastOrDefault(service => service.ServiceType == typeof(IPackageService));
+        if (descriptor == null)
+        {
+            return;
+        }
+
+        services.Remove(descriptor);
+        services.Add(ServiceDescriptor.Describe(
+            typeof(IPackageService),
+            provider => new PackageFilteringPackageService(
+                (IPackageService)CreateService(provider, descriptor),
+                provider.GetRequiredService<IPackageDatabase>(),
+                provider.GetRequiredService<IPackagePolicyEvaluator>()),
+            descriptor.Lifetime));
+    }
+
+    private static void DecoratePackageSearchServiceWithFiltering(this IServiceCollection services)
+    {
+        var descriptor = services.LastOrDefault(service => service.ServiceType == typeof(IPackageSearchService));
+        if (descriptor == null)
+        {
+            services.TryAddTransient<IPackageSearchService>(provider => new PackageFilteringSearchService(
+                provider.GetRequiredService<ISearchService>(),
+                provider.GetRequiredService<IPackageDatabase>(),
+                provider.GetRequiredService<IPackagePolicyEvaluator>(),
+                provider.GetRequiredService<ISearchResponseBuilder>()));
+            return;
+        }
+
+        services.Remove(descriptor);
+        services.Add(ServiceDescriptor.Describe(
+            typeof(IPackageSearchService),
+            provider => new PackageFilteringSearchService(
+                (ISearchService)CreateService(provider, descriptor),
+                provider.GetRequiredService<IPackageDatabase>(),
+                provider.GetRequiredService<IPackagePolicyEvaluator>(),
+                provider.GetRequiredService<ISearchResponseBuilder>()),
+            descriptor.Lifetime));
+    }
+
+    private static object CreateService(IServiceProvider provider, ServiceDescriptor descriptor)
+    {
+        if (descriptor.ImplementationInstance != null)
+        {
+            return descriptor.ImplementationInstance;
+        }
+
+        if (descriptor.ImplementationFactory != null)
+        {
+            return descriptor.ImplementationFactory(provider);
+        }
+
+        return ActivatorUtilities.CreateInstance(provider, descriptor.ImplementationType);
     }
 
     private static void AddDefaultProviders(this IServiceCollection services)

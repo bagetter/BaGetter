@@ -29,6 +29,7 @@ namespace BaGetter.Azure
                 HasReadme = package.HasReadme,
                 HasEmbeddedIcon = package.HasEmbeddedIcon,
                 IsPrerelease = package.IsPrerelease,
+                CachedFrom = package.CachedFrom,
                 Language = package.Language,
                 Listed = package.Listed,
                 MinClientVersion = package.MinClientVersion,

@@ -17,7 +17,7 @@ public class IndexModelFacts
 
     public IndexModelFacts()
     {
-        var search = new Mock<ISearchService>();
+        var search = new Mock<IPackageSearchService>();
         search
             .Setup(s => s.SearchAsync(It.IsAny<SearchRequest>(), _cancellation))
             .Callback((SearchRequest r, CancellationToken c) => _capturedRequest = r)

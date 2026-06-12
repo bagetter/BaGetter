@@ -132,6 +132,24 @@ internal static class BaGetWebApplicationFactoryExtensions
         }
     }
 
+    public static async Task AddCachedPackageAsync(
+        this WebApplicationFactory<Startup> factory,
+        Stream package,
+        string cacheFeedUrl,
+        CancellationToken cancellationToken = default)
+    {
+        var scopeFactory = factory.Services.GetRequiredService<IServiceScopeFactory>();
+
+        using var scope = scopeFactory.CreateScope();
+        var indexer = scope.ServiceProvider.GetRequiredService<IPackageIndexingService>();
+
+        var result = await indexer.IndexAsync(package, cacheFeedUrl, cancellationToken);
+        if (result != PackageIndexingResult.Success)
+        {
+            throw new InvalidOperationException($"Unexpected indexing result {result}");
+        }
+    }
+
     public static async Task AddSymbolPackageAsync(
         this WebApplicationFactory<Startup> factory,
         Stream symbolPackage,
