@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Metadata;
 using Xunit;
 
 namespace BaGetter.Core.Tests.Metadata;

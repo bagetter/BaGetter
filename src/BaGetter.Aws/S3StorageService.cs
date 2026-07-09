@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
-using BaGetter.Core;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.Options;
 
 namespace BaGetter.Aws;

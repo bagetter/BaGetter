@@ -1,0 +1,124 @@
+@page
+@model BaGetter.Web.Pages.Admin.FeedsModel
+@using BaGetter.Core.Entities
+
+@{
+    ViewData["Title"] = "Feed Management";
+}
+
+<div class="col-sm-12">
+    <h1>Feed Management</h1>
+    <hr class="breadcrumb-divider" />
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success" role="alert">@Model.SuccessMessage</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+    }
+
+    <h3>Create feed</h3>
+    <form method="post" asp-page-handler="Create">
+        @Html.AntiForgeryToken()
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label asp-for="NewSlug">Slug</label>
+                    <input asp-for="NewSlug" class="form-control" placeholder="e.g. internal, team-frontend" />
+                    <small class="text-muted">Lowercase alphanumeric and hyphens only. Cannot be changed after creation.</small>
+                    <span asp-validation-for="NewSlug" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NewName">Display Name</label>
+                    <input asp-for="NewName" class="form-control" />
+                    <span asp-validation-for="NewName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NewDescription">Description</label>
+                    <input asp-for="NewDescription" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primary">Create Feed</button>
+            </div>
+        </div>
+    </form>
+
+    <h3 style="margin-top: 32px">Existing feeds</h3>
+    @if (Model.Feeds.Count == 0)
+    {
+        <p>No feeds found.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Slug</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Created</th>
+                    <th style="width:1%"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var feed in Model.Feeds)
+                {
+                    var isDefault = feed.Slug == Feed.DefaultSlug;
+                    <tr>
+                        <td>
+                            @feed.Slug
+                            @if (isDefault)
+                            {
+                                <span class="label label-default label-primary">default</span>
+                            }
+                        </td>
+                        <td>@feed.Name</td>
+                        <td>@feed.Description</td>
+                        <td>@feed.CreatedAtUtc.ToString("yyyy-MM-dd")</td>
+                        <td style="white-space: nowrap">
+                            <a asp-page="/Admin/FeedSettings" asp-route-slug="@feed.Slug" class="btn btn-xs btn-default">Settings</a>
+                            <button type="button"
+                                    class="btn btn-xs btn-warning"
+                                    data-toggle="collapse"
+                                    data-target="#edit-@feed.Id"
+                                    aria-expanded="false"
+                                    aria-controls="edit-@feed.Id">
+                                Edit details
+                            </button>
+                            @if (!isDefault)
+                            {
+                                <form method="post" asp-page-handler="Delete" style="display:inline"
+                                      onsubmit="return confirm('Are you sure you want to delete feed \'@feed.Slug\'? All packages in this feed will be removed.');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="feedId" value="@feed.Id" />
+                                    <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                    <tr class="feed-edit-row">
+                        <td colspan="5" class="feed-edit-cell">
+                            <div id="edit-@feed.Id" class="collapse feed-edit-panel">
+                                <form method="post" asp-page-handler="Edit">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="EditSlug" value="@feed.Slug" />
+                                    <div class="form-group">
+                                        <label>Display Name</label>
+                                        <input type="text" name="EditName" class="form-control input-sm" value="@feed.Name" style="max-width:400px" required maxlength="256" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <input type="text" name="EditDescription" class="form-control input-sm" value="@feed.Description" style="max-width:400px" maxlength="4000" />
+                                    </div>
+                                    <button type="submit" class="btn btn-xs btn-primary">Save</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

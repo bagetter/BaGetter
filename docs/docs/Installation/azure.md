@@ -42,6 +42,30 @@ To use a SQL database, set the database type to the SQL provider of your choice 
 }
 ```
 
+To authenticate using managed identity instead of a username/password, add `Authentication=Active Directory Default` to the connection string:
+
+```json
+{
+    ...
+
+    "Database": {
+        "Type": "SqlServer",
+        "ConnectionString": "Server=tcp:<server>.database.windows.net,1433;Initial Catalog=<database>;Authentication=Active Directory Default;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"
+    },
+
+    ...
+}
+```
+
+The managed identity must be added as a user in the database before BaGetter can connect:
+
+```sql
+CREATE USER [<identity-name>] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [<identity-name>];
+ALTER ROLE db_datawriter ADD MEMBER [<identity-name>];
+ALTER ROLE db_ddladmin ADD MEMBER [<identity-name>];
+```
+
 </TabItem>
 
 <TabItem value="table" label="Table Storage">
@@ -108,6 +132,29 @@ To use a connection string, add it like this:
     ...
 }
 ```
+
+</TabItem>
+
+<TabItem value="managedIdentity" label="Managed identity">
+
+To authenticate using managed identity, set `ConnectionString` to the blob service endpoint and enable `UseAzureDefaultCredential`:
+
+```json
+{
+    ...
+
+    "Storage": {
+        "Type": "AzureBlobStorage",
+        "Container": "my-container",
+        "ConnectionString": "https://<account>.blob.core.windows.net",
+        "UseAzureDefaultCredential": true
+    },
+
+    ...
+}
+```
+
+The managed identity must be granted the **Storage Blob Data Contributor** role on the storage account before BaGetter can read or write packages.
 
 </TabItem>
 </Tabs>

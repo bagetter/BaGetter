@@ -23,4 +23,11 @@ public class SearchResponse
     /// </summary>
     [JsonPropertyName("data")]
     public IReadOnlyList<SearchResult> Data { get; set; }
+
+    /// <summary>
+    /// The filter values present in the feed (package types, frameworks and tags).
+    /// Only populated when facets were requested on the search; otherwise <c>null</c>.
+    /// </summary>
+    [JsonPropertyName("facets")]
+    public SearchFacets Facets { get; set; }
 }

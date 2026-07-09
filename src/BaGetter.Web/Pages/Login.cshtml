@@ -1,0 +1,70 @@
+@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Sign in";
+}
+
+<div class="col-sm-6 col-sm-offset-3">
+    <h1>Sign in</h1>
+    <hr class="breadcrumb-divider" />
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    @if (Model.IsEntraEnabled)
+    {
+        <div class="entra-login-section">
+            <a href="@Url.Page("/Login", "EntraSignIn", new { ReturnUrl = Model.ReturnUrl })"
+               class="btn btn-default btn-block entra-sign-in-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" style="vertical-align: text-bottom; margin-right: 8px;">
+                    <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                    <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                    <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                    <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                </svg>
+                Sign in with Microsoft
+            </a>
+        </div>
+
+        @if (Model.IsLocalEnabled)
+        {
+            <div class="login-divider">
+                <span>or sign in with a local account</span>
+            </div>
+        }
+    }
+
+    @if (Model.IsLocalEnabled)
+    {
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div class="form-group">
+                <label asp-for="Username"></label>
+                <input asp-for="Username" class="form-control" autocomplete="username" autofocus />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        </form>
+    }
+
+    @if (!Model.IsEntraEnabled && !Model.IsLocalEnabled)
+    {
+        <div class="alert alert-warning" role="alert">
+            Authentication is not configured. Contact your administrator.
+        </div>
+    }
+</div>

@@ -1,4 +1,4 @@
-namespace BaGetter.Core;
+namespace BaGetter.Core.Entities;
 
 // See NuGetGallery.Core's: https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/Entities/PackageType.cs
 public class PackageType

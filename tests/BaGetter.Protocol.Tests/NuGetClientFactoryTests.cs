@@ -1,3 +1,4 @@
+using BaGetter.Protocol.Tests.Support;
 using Xunit;
 
 namespace BaGetter.Protocol.Tests;

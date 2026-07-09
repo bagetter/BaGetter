@@ -2,20 +2,34 @@
 
 @model StatisticsModel
 
+@using BaGetter.Core.Configuration
 @using BaGetter.Core.Statistics
 @using BaGetter.Web.Helper
 @using Microsoft.Extensions.Options
 
 @inject IOptionsSnapshot<StatisticsOptions> Options
+@inject IOptionsSnapshot<NugetAuthenticationOptions> AuthOptions
 @inject IStatisticsService StatisticsService
 @inject ApplicationVersion Version
 
 @{
-    ViewData["Title"] = "Stats";
+    ViewData["Title"] = "Stats — " + Model.FeedName;
+    var requiresAuth = AuthOptions.Value.Mode != AuthenticationMode.Config;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+
+@if (requiresAuth && !isAuthenticated)
+{
+    <div class="text-center" style="margin-top: 60px;">
+        <h2>Sign in required</h2>
+        <p>You need to sign in to view statistics.</p>
+        <a asp-page="/Login" class="btn btn-primary">Sign in</a>
+    </div>
+    return;
 }
 
 <div class="col-sm-12">
-    <h1>Statistics</h1>
+    <h1>Statistics &mdash; @Model.FeedName</h1>
     <hr class="breadcrumb-divider" />
     <div class="row">
         <article class="col-sm-4">
@@ -30,7 +44,7 @@
             <h4>Total amount of packages</h4>
         </article>
         <div class="col-sm-8">
-            <h4>@await StatisticsService.GetPackagesTotalAmount()</h4>
+            <h4>@Model.PackagesTotal</h4>
         </div>
     </div>
     <div class="row">
@@ -38,7 +52,7 @@
             <h4>Total amount of package versions</h4>
         </article>
         <div class="col-sm-8">
-            <h4>@await StatisticsService.GetVersionsTotalAmount()</h4>
+            <h4>@Model.VersionsTotal</h4>
         </div>
     </div>
     @if (Options.Value.ListConfiguredServices)

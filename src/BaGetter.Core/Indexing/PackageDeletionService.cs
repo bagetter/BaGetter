@@ -3,51 +3,59 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Feeds;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NuGet.Versioning;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Indexing;
 
 public class PackageDeletionService : IPackageDeletionService
 {
     private readonly IPackageDatabase _packages;
     private readonly IPackageStorageService _storage;
-    private readonly BaGetterOptions _options;
+    private readonly IFeedSettingsResolver _feedSettings;
+    private readonly IFeedService _feedService;
     private readonly ILogger<PackageDeletionService> _logger;
 
     public PackageDeletionService(
         IPackageDatabase packages,
         IPackageStorageService storage,
-        IOptionsSnapshot<BaGetterOptions> options,
+        IFeedSettingsResolver feedSettings,
+        IFeedService feedService,
         ILogger<PackageDeletionService> logger)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-        _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _feedSettings = feedSettings ?? throw new ArgumentNullException(nameof(feedSettings));
+        _feedService = feedService ?? throw new ArgumentNullException(nameof(feedService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<bool> TryDeletePackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<bool> TryDeletePackageAsync(Guid feedId, string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        switch (_options.PackageDeletionBehavior)
+        var feed = await _feedService.GetFeedByIdAsync(feedId, cancellationToken);
+        var behavior = _feedSettings.GetPackageDeletionBehavior(feed);
+        switch (behavior)
         {
             case PackageDeletionBehavior.Unlist:
-                return await TryUnlistPackageAsync(id, version, cancellationToken);
+                return await TryUnlistPackageAsync(feedId, id, version, cancellationToken);
 
             case PackageDeletionBehavior.HardDelete:
-                return await TryHardDeletePackageAsync(id, version, cancellationToken);
+                return await TryHardDeletePackageAsync(feedId, feedSlug, id, version, cancellationToken);
 
             default:
-                throw new InvalidOperationException($"Unknown deletion behavior '{_options.PackageDeletionBehavior}'");
+                throw new InvalidOperationException($"Unknown deletion behavior '{behavior}'");
         }
     }
 
-    private async Task<bool> TryUnlistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<bool> TryUnlistPackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Unlisting package {PackageId} {PackageVersion}...", id, version);
 
-        if (!await _packages.UnlistPackageAsync(id, version, cancellationToken))
+        if (!await _packages.UnlistPackageAsync(feedId, id, version, cancellationToken))
         {
             _logger.LogWarning("Could not find package {PackageId} {PackageVersion}", id, version);
 
@@ -59,14 +67,30 @@ public class PackageDeletionService : IPackageDeletionService
         return true;
     }
 
-    private async Task<bool> TryHardDeletePackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<bool> TryRelistPackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Relisting package {PackageId} {PackageVersion}...", id, version);
+
+        if (!await _packages.RelistPackageAsync(feedId, id, version, cancellationToken))
+        {
+            _logger.LogWarning("Could not find package {PackageId} {PackageVersion}", id, version);
+
+            return false;
+        }
+
+        _logger.LogInformation("Relisted package {PackageId} {PackageVersion}", id, version);
+
+        return true;
+    }
+
+    public async Task<bool> TryHardDeletePackageAsync(Guid feedId, string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
             "Hard deleting package {PackageId} {PackageVersion} from the database...",
             id,
             version);
 
-        var found = await _packages.HardDeletePackageAsync(id, version, cancellationToken);
+        var found = await _packages.HardDeletePackageAsync(feedId, id, version, cancellationToken);
         if (!found)
         {
             _logger.LogWarning(
@@ -81,7 +105,7 @@ public class PackageDeletionService : IPackageDeletionService
             id,
             version);
 
-        await _storage.DeleteAsync(id, version, cancellationToken);
+        await _storage.DeleteAsync(feedSlug, id, version, cancellationToken);
 
         _logger.LogInformation(
             "Hard deleted package {PackageId} {PackageVersion} from storage",
@@ -91,8 +115,8 @@ public class PackageDeletionService : IPackageDeletionService
         return found;
     }
 
-    private static IList<NuGetVersion> GetValidVersions<S, T>(IEnumerable<NuGetVersion> versions, Func<NuGetVersion, S> getParent, Func<NuGetVersion,T> getSelector, int versionsToKeep)
-            where S : IComparable<S>, IEquatable<S>
+    private static IList<NuGetVersion> GetValidVersions<TS, T>(IEnumerable<NuGetVersion> versions, Func<NuGetVersion, TS> getParent, Func<NuGetVersion, T> getSelector, int versionsToKeep)
+            where TS : IComparable<TS>, IEquatable<TS>
             where T : IComparable<T>, IEquatable<T>
     {
         var validVersions = versions
@@ -107,10 +131,10 @@ public class PackageDeletionService : IPackageDeletionService
         return versions.Where(k => validVersions.Any(v => getParent(k).Equals(v.parent) && getSelector(k).Equals(v.selector))).ToList();
     }
 
-    public async Task<int> DeleteOldVersionsAsync(Package package, uint? maxMajor, uint? maxMinor, uint? maxPatch, uint? maxPrerelease, CancellationToken cancellationToken)
+    public async Task<int> DeleteOldVersionsAsync(Guid feedId, string feedSlug, Package package, uint? maxMajor, uint? maxMinor, uint? maxPatch, uint? maxPrerelease, CancellationToken cancellationToken)
     {
         // list all versions of the package
-        var packages = await _packages.FindAsync(package.Id, includeUnlisted: true, cancellationToken);
+        var packages = await _packages.FindAsync(feedId, package.Id, includeUnlisted: true, cancellationToken);
         if (packages is null || packages.Count <= maxMajor) return 0;
 
         var goodVersions = new HashSet<NuGetVersion>();
@@ -148,7 +172,7 @@ public class PackageDeletionService : IPackageDeletionService
         var deleted = 0;
         foreach (var version in versionsToDelete)
         {
-            if (await TryHardDeletePackageAsync(package.Id, version.Version, cancellationToken)) deleted++;
+            if (await TryHardDeletePackageAsync(feedId, feedSlug, package.Id, version.Version, cancellationToken)) deleted++;
         }
         return deleted;
     }
@@ -225,5 +249,4 @@ public class PackageDeletionService : IPackageDeletionService
         }
         return null;
     }
-
 }

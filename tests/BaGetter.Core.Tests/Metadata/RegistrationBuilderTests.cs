@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Metadata;
 using BaGetter.Core.Tests.Support;
 using Moq;
 using Xunit;

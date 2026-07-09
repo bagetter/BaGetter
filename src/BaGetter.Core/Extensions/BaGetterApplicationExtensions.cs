@@ -1,10 +1,12 @@
 using System;
-using BaGetter.Core;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Search;
 using BaGetter.Core.Statistics;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace BaGetter;
+namespace BaGetter.Core.Extensions;
 
 public static class BaGetterApplicationExtensions
 {

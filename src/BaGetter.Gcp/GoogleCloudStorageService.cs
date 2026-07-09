@@ -1,11 +1,10 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGetter.Core;
+using BaGetter.Core.Storage;
 using Google;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Options;

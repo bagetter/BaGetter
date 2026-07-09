@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Protocol;
+namespace BaGetter.Protocol.Extensions;
 
 /// <summary>
 /// These are documented interpretations of values returned by the Service Index resource.
@@ -10,51 +10,51 @@ namespace BaGetter.Protocol;
 public static class ServiceIndexModelExtensions
 {
     // See: https://github.com/NuGet/NuGet.Client/blob/e08358296db5bfa6f7f32d6f4ec8de288f3b0388/src/NuGet.Core/NuGet.Protocol/ServiceTypes.cs
-    private static readonly string Version200 = "/2.0.0";
-    private static readonly string Version300beta = "/3.0.0-beta";
-    private static readonly string Version300 = "/3.0.0";
-    private static readonly string Version340 = "/3.4.0";
-    private static readonly string Version360 = "/3.6.0";
-    private static readonly string Version470 = "/4.7.0";
-    private static readonly string Version490 = "/4.9.0";
-    private static readonly string Version500 = "/5.0.0";
-    private static readonly string Version510 = "/5.1.0";
+    private static readonly string _version200 = "/2.0.0";
+    private static readonly string _version300Beta = "/3.0.0-beta";
+    private static readonly string _version300 = "/3.0.0";
+    private static readonly string _version340 = "/3.4.0";
+    private static readonly string _version360 = "/3.6.0";
+    private static readonly string _version470 = "/4.7.0";
+    private static readonly string _version490 = "/4.9.0";
+    private static readonly string _version500 = "/5.0.0";
+    private static readonly string _version510 = "/5.1.0";
 
-    private static readonly string[] Catalog = { "Catalog" + Version300 };
-    private static readonly string[] SearchQueryService = { "SearchQueryService" + Version340, "SearchQueryService" + Version300beta, "SearchQueryService" };
-    private static readonly string[] RegistrationsBaseUrl = { "RegistrationsBaseUrl" + Version360, "RegistrationsBaseUrl" + Version340, "RegistrationsBaseUrl" + Version300beta, "RegistrationsBaseUrl" };
-    private static readonly string[] SearchAutocompleteService = { "SearchAutocompleteService", "SearchAutocompleteService" + Version300beta };
-    private static readonly string[] ReportAbuse = { "ReportAbuseUriTemplate", "ReportAbuseUriTemplate" + Version300 };
-    private static readonly string[] PackageDetailsUriTemplate = { "PackageDetailsUriTemplate" + Version510 };
-    private static readonly string[] LegacyGallery = { "LegacyGallery" + Version200 };
-    private static readonly string[] PackagePublish = { "PackagePublish" + Version200 };
-    private static readonly string[] PackageBaseAddress = { "PackageBaseAddress" + Version300 };
-    private static readonly string[] RepositorySignatures = { "RepositorySignatures" + Version500, "RepositorySignatures" + Version490, "RepositorySignatures" + Version470 };
-    private static readonly string[] SymbolPackagePublish = { "SymbolPackagePublish" + Version490 };
+    private static readonly string[] _catalog = { "Catalog" + _version300 };
+    private static readonly string[] _searchQueryService = { "SearchQueryService" + _version340, "SearchQueryService" + _version300Beta, "SearchQueryService" };
+    private static readonly string[] _registrationsBaseUrl = { "RegistrationsBaseUrl" + _version360, "RegistrationsBaseUrl" + _version340, "RegistrationsBaseUrl" + _version300Beta, "RegistrationsBaseUrl" };
+    private static readonly string[] _searchAutocompleteService = { "SearchAutocompleteService", "SearchAutocompleteService" + _version300Beta };
+    private static readonly string[] _reportAbuse = { "ReportAbuseUriTemplate", "ReportAbuseUriTemplate" + _version300 };
+    private static readonly string[] _packageDetailsUriTemplate = { "PackageDetailsUriTemplate" + _version510 };
+    private static readonly string[] _legacyGallery = { "LegacyGallery" + _version200 };
+    private static readonly string[] _packagePublish = { "PackagePublish" + _version200 };
+    private static readonly string[] _packageBaseAddress = { "PackageBaseAddress" + _version300 };
+    private static readonly string[] _repositorySignatures = { "RepositorySignatures" + _version500, "RepositorySignatures" + _version490, "RepositorySignatures" + _version470 };
+    private static readonly string[] _symbolPackagePublish = { "SymbolPackagePublish" + _version490 };
 
     public static string GetPackageContentResourceUrl(this ServiceIndexResponse serviceIndex)
     {
-        return serviceIndex.GetRequiredResourceUrl(PackageBaseAddress, nameof(PackageBaseAddress));
+        return serviceIndex.GetRequiredResourceUrl(_packageBaseAddress, "PackageBaseAddress");
     }
 
     public static string GetPackageMetadataResourceUrl(this ServiceIndexResponse serviceIndex)
     {
-        return serviceIndex.GetRequiredResourceUrl(RegistrationsBaseUrl, nameof(RegistrationsBaseUrl));
+        return serviceIndex.GetRequiredResourceUrl(_registrationsBaseUrl, "RegistrationsBaseUrl");
     }
 
     public static string GetSearchQueryResourceUrl(this ServiceIndexResponse serviceIndex)
     {
-        return serviceIndex.GetRequiredResourceUrl(SearchQueryService, nameof(SearchQueryService));
+        return serviceIndex.GetRequiredResourceUrl(_searchQueryService, "SearchQueryService");
     }
 
     public static string GetCatalogResourceUrl(this ServiceIndexResponse serviceIndex)
     {
-        return serviceIndex.GetResourceUrl(Catalog);
+        return serviceIndex.GetResourceUrl(_catalog);
     }
 
     public static string GetSearchAutocompleteResourceUrl(this ServiceIndexResponse serviceIndex)
     {
-        return serviceIndex.GetResourceUrl(SearchAutocompleteService);
+        return serviceIndex.GetResourceUrl(_searchAutocompleteService);
     }
 
     public static string GetResourceUrl(this ServiceIndexResponse serviceIndex, string[] types)

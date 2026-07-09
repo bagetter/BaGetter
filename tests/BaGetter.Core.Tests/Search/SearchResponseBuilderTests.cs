@@ -1,3 +1,7 @@
+using BaGetter.Core.Entities;
+using BaGetter.Core.Metadata;
+using BaGetter.Core.Search;
+
 namespace BaGetter.Core.Tests.Search;
 
 using System;
@@ -148,5 +152,67 @@ public class SearchResponseBuilderTests
 
         // Assert
         Assert.Equal(data.Count, result.TotalHits);
+    }
+
+    [Fact]
+    public void BuildSearch_WithoutUnlistedState_LeavesListedNull()
+    {
+        // Arrange
+        var listed = Generator.GetPackage("BaGetter.Test", "1.0.0");
+        listed.Listed = true;
+        var data = new List<PackageRegistration> { new PackageRegistration("BaGetter.Test", new List<Package> { listed }) };
+        var searchResponseBuilder = new SearchResponseBuilder(_urlGenerator.Object);
+
+        // Act
+        var result = searchResponseBuilder.BuildSearch(data);
+
+        // Assert
+        Assert.Null(Assert.Single(result.Data).Listed);
+    }
+
+    [Fact]
+    public void BuildSearch_IncludeUnlistedState_PrefersLatestListedVersion_AndFlagsListed()
+    {
+        // Arrange: the newest version is unlisted, an older one is listed.
+        var newerUnlisted = Generator.GetPackage("BaGetter.Test", "2.0.0");
+        newerUnlisted.Listed = false;
+        var olderListed = Generator.GetPackage("BaGetter.Test", "1.0.0");
+        olderListed.Listed = true;
+        var data = new List<PackageRegistration>
+        {
+            new PackageRegistration("BaGetter.Test", new List<Package> { newerUnlisted, olderListed })
+        };
+        var searchResponseBuilder = new SearchResponseBuilder(_urlGenerator.Object);
+
+        // Act
+        var result = searchResponseBuilder.BuildSearch(data, includeUnlistedState: true);
+
+        // Assert: shows the latest *listed* version and is not marked unlisted.
+        var item = Assert.Single(result.Data);
+        Assert.Equal("1.0.0", item.Version);
+        Assert.True(item.Listed);
+    }
+
+    [Fact]
+    public void BuildSearch_IncludeUnlistedState_AllUnlisted_ShowsLatestAndFlagsUnlisted()
+    {
+        // Arrange: every version is unlisted.
+        var newer = Generator.GetPackage("BaGetter.Test", "2.0.0");
+        newer.Listed = false;
+        var older = Generator.GetPackage("BaGetter.Test", "1.0.0");
+        older.Listed = false;
+        var data = new List<PackageRegistration>
+        {
+            new PackageRegistration("BaGetter.Test", new List<Package> { newer, older })
+        };
+        var searchResponseBuilder = new SearchResponseBuilder(_urlGenerator.Object);
+
+        // Act
+        var result = searchResponseBuilder.BuildSearch(data, includeUnlistedState: true);
+
+        // Assert: falls back to the latest version and is marked unlisted.
+        var item = Assert.Single(result.Data);
+        Assert.Equal("2.0.0", item.Version);
+        Assert.False(item.Listed);
     }
 }

@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using BaGetter.Protocol.Internal;
+using BaGetter.Protocol.Converters;
 
 namespace BaGetter.Protocol.Models;
 

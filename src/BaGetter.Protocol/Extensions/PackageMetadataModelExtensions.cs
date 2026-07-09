@@ -1,7 +1,7 @@
 using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 
-namespace BaGetter.Protocol;
+namespace BaGetter.Protocol.Extensions;
 
 /// <summary>
 /// These are documented interpretations of values returned by the
@@ -14,7 +14,7 @@ public static class RegistrationModelExtensions
     /// </summary>
     /// <param name="package">The package metadata.</param>
     /// <returns>The package version.</returns>
-    public static NuGetVersion ParseVersion(this PackageMetadata package)
+    public static NuGetVersion ParseVersion(this Models.PackageMetadata package)
     {
         return NuGetVersion.Parse(package.Version);
     }
@@ -24,7 +24,7 @@ public static class RegistrationModelExtensions
     /// </summary>
     /// <param name="package">The package metadata.</param>
     /// <returns>True if the package is listed.</returns>
-    public static bool IsListed(this PackageMetadata package)
+    public static bool IsListed(this Models.PackageMetadata package)
     {
         if (package.Listed.HasValue)
         {

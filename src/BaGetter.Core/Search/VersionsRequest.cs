@@ -1,4 +1,6 @@
-namespace BaGetter.Core;
+using System;
+
+namespace BaGetter.Core.Search;
 
 /// <summary>
 /// The NuGet V3 enumerate package versions request.
@@ -6,6 +8,8 @@ namespace BaGetter.Core;
 /// </summary>
 public class VersionsRequest
 {
+    public Guid FeedId { get; set; }
+
     /// <summary>
     /// Whether to include pre-release packages.
     /// </summary>

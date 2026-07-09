@@ -2,9 +2,10 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Protocol.Extensions;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Protocol.Internal;
+namespace BaGetter.Protocol.ServiceIndex;
 
 /// <summary>
 /// The NuGet Service Index client, used to discover other resources.

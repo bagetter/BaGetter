@@ -1,7 +1,7 @@
 using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 
-namespace BaGetter.Protocol;
+namespace BaGetter.Protocol.Extensions;
 
 /// <summary>
 /// These are documented interpretations of values returned by the Search resource.

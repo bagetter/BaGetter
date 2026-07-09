@@ -1,14 +1,21 @@
 using System;
 using Azure.Data.Tables;
+using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
-using BaGetter.Azure;
+using BaGetter.Azure.Configuration;
+using BaGetter.Azure.Storage;
+using BaGetter.Azure.Table;
 using BaGetter.Core;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Extensions;
+using BaGetter.Core.Search;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter
+namespace BaGetter.Azure
 {
     public static class AzureApplicationExtensions
     {
@@ -75,6 +82,11 @@ namespace BaGetter
             app.Services.AddSingleton(provider =>
             {
                 var options = provider.GetRequiredService<IOptions<AzureBlobStorageOptions>>().Value;
+
+                if (options.UseAzureDefaultCredential)
+                {
+                    return new BlobServiceClient(new Uri(options.ConnectionString), new DefaultAzureCredential());
+                }
 
                 // TODO: Add BlobClientOptions with customer-provided key.
                 if (!string.IsNullOrEmpty(options.ConnectionString))

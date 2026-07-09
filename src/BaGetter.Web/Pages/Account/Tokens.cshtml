@@ -1,0 +1,120 @@
+@page
+@model BaGetter.Web.Pages.Account.TokensModel
+
+@{
+    ViewData["Title"] = "Personal Access Tokens";
+}
+
+<div class="col-sm-12">
+    <h1>Personal Access Tokens</h1>
+    <hr class="breadcrumb-divider" />
+
+    @if (!string.IsNullOrEmpty(Model.NewTokenPlaintext))
+    {
+        <div class="alert alert-success token-created-alert">
+            <strong>Token created successfully!</strong>
+            <p>Copy this token now. You will not be able to see it again.</p>
+            <div class="token-display" x-data="{ copied: false }">
+                <code id="new-token-value">@Model.NewTokenPlaintext</code>
+                <button class="btn btn-default btn-sm"
+                        type="button"
+                        @@click="navigator.clipboard.writeText(document.getElementById('new-token-value').textContent); copied = true; setTimeout(() => copied = false, 2000)">
+                    <span x-show="!copied"><i class="ms-Icon ms-Icon--Copy"></i> Copy</span>
+                    <span x-show="copied" x-cloak>Copied!</span>
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <h3>Create new token</h3>
+    <form method="post" asp-page-handler="Create" class="form-inline token-create-form">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label asp-for="TokenName" class="sr-only">Name</label>
+            <input asp-for="TokenName" class="form-control" placeholder="Token name (e.g., CI pipeline)" />
+            <span asp-validation-for="TokenName" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="ExpiryDays" class="sr-only">Expires in</label>
+            <select asp-for="ExpiryDays" class="form-control">
+                <option value="30">30 days</option>
+                <option value="60">60 days</option>
+                <option value="90" selected>90 days</option>
+                <option value="180">180 days</option>
+                @if (Model.MaxTokenExpiryDays >= 365)
+                {
+                    <option value="365">1 year</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Token</button>
+    </form>
+
+    <h3>Your tokens</h3>
+    @if (Model.Tokens.Count == 0)
+    {
+        <p>You have no personal access tokens.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Prefix</th>
+                    <th>Name</th>
+                    <th>Created</th>
+                    <th>Expires</th>
+                    <th>Last Used</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var token in Model.Tokens)
+                {
+                    <tr class="@(token.IsRevoked ? "text-muted" : (token.ExpiresAtUtc <= DateTime.UtcNow ? "text-muted" : ""))">
+                        <td><code>@token.TokenPrefix...</code></td>
+                        <td>@token.Name</td>
+                        <td>@token.CreatedAtUtc.ToString("yyyy-MM-dd")</td>
+                        <td>@token.ExpiresAtUtc.ToString("yyyy-MM-dd")</td>
+                        <td>@(token.LastUsedAtUtc?.ToString("yyyy-MM-dd") ?? "Never")</td>
+                        <td>
+                            @if (token.IsRevoked)
+                            {
+                                <span class="label label-default">Revoked</span>
+                            }
+                            else if (token.ExpiresAtUtc <= DateTime.UtcNow)
+                            {
+                                <span class="label label-warning">Expired</span>
+                            }
+                            else
+                            {
+                                <span class="label label-success">Active</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!token.IsRevoked && token.ExpiresAtUtc > DateTime.UtcNow)
+                            {
+                                <form method="post" asp-page-handler="Revoke" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="tokenId" value="@token.Id" />
+                                    <button type="submit" class="btn btn-danger btn-xs"
+                                            onclick="return confirm('Are you sure you want to revoke this token?');">
+                                        Revoke
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -1,9 +1,36 @@
 @page
+@using BaGetter.Core.Configuration
+@using BaGetter.Core.Feeds
+@using BaGetter.Web.Extensions
+@using Microsoft.Extensions.Options
 @model IndexModel
+@inject IOptions<NugetAuthenticationOptions> AuthOptions
+@inject IFeedContext FeedContext
 
 @{
-    ViewData["Title"] = "Packages";
+    ViewData["Title"] = "Packages \u2014 " + FeedContext.CurrentFeed.Name;
     ViewData["SearchQuery"] = Model.Query;
+    var requiresAuth = AuthOptions.Value.Mode != AuthenticationMode.Config;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+
+@if (requiresAuth && !isAuthenticated)
+{
+    <div class="text-center" style="margin-top: 60px;">
+        <h2>Sign in required</h2>
+        <p>You need to sign in to browse packages.</p>
+        <a asp-page="/Login" class="btn btn-primary">Sign in</a>
+    </div>
+    return;
+}
+
+@if (Model.HasNoAccessibleFeeds)
+{
+    <div class="text-center" style="margin-top: 60px;">
+        <h2>No feeds available</h2>
+        <p>You don't currently have access to any feeds. Please contact an administrator to be granted permissions.</p>
+    </div>
+    return;
 }
 
 @section SearchForm
@@ -20,10 +47,20 @@
         <input type="hidden" name="framework" value="@Model.Framework" />
     }
 
+    @if (Model.Tag != "any")
+    {
+        <input type="hidden" name="tag" value="@Model.Tag" />
+    }
+
     @if (Model.Prerelease != true)
     {
         <input type="hidden" name="prerelease" value="False" />
     }
+}
+
+@if (FeedContext.CurrentFeed != null)
+{
+    <h1 class="feed-title">@FeedContext.CurrentFeed.Name</h1>
 }
 
 <div class="search-options form-inline">
@@ -33,13 +70,14 @@
         <div class="search-dropdown">
             <div class="dropdown">
                 <button class="btn btn-default dropdown-toggle" type="button" id="package-type" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    @PackageTypes.GetValueOrDefault(Model.PackageType, "Other")
+                    @PackageTypeLabel(Model.PackageType)
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="package-type">
-                    @foreach (var packageType in PackageTypes)
+                    <li><a href="@SearchLink(packageType: "any", page: 1)">Any</a></li>
+                    @foreach (var packageType in Model.PackageTypeFacets)
                     {
-                        <li><a href="@SearchLink(packageType: packageType.Key, page: 1)">@packageType.Value</a></li>
+                        <li><a href="@SearchLink(packageType: packageType, page: 1)">@PackageTypeLabel(packageType)</a></li>
                     }
                 </ul>
             </div>
@@ -52,24 +90,38 @@
         <div class="search-dropdown">
             <div class="dropdown">
                 <button class="btn btn-default dropdown-toggle" type="button" id="framework" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    @TargetFrameworks.GetValueOrDefault(Model.Framework, "Other")
+                    @FrameworkLabel(Model.Framework)
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="framework">
-                    @foreach (var framework in TargetFrameworks)
+                    <li><a href="@SearchLink(framework: "any", page: 1)">Any</a></li>
+                    @foreach (var framework in Model.FrameworkFacets)
                     {
-                        @if (framework.Key.StartsWith("divider"))
-                        {
-                            <li role="separator" class="divider"></li>
-                        }
-                        else if (framework.Key.StartsWith("header"))
-                        {
-                            <li class="dropdown-header">@framework.Value</li>
-                        }
-                        else
-                        {
-                            <li><a href="@SearchLink(framework: framework.Key, page: 1)">@framework.Value</a></li>
-                        }
+                        <li><a href="@SearchLink(framework: framework, page: 1)">@FrameworkLabel(framework)</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Tag:</label>
+
+        <div class="search-dropdown">
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="tag" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    @(Model.Tag == "any" ? "Any" : Model.Tag)
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu tag-dropdown-menu" aria-labelledby="tag">
+                    <li class="tag-search">
+                        <input type="text" class="form-control input-sm" placeholder="Filter tags..."
+                               autocomplete="off" oninput="window.baget.filterTags(this)" onclick="event.stopPropagation()" />
+                    </li>
+                    <li><a href="@SearchLink(tag: "any", page: 1)">Any</a></li>
+                    @foreach (var tag in Model.TagFacets)
+                    {
+                        <li data-tag="@tag"><a href="@SearchLink(tag: tag, page: 1)">@tag</a></li>
                     }
                 </ul>
             </div>
@@ -130,7 +182,16 @@ else
                     <li>
                         <span>
                             <i class="ms-Icon ms-Icon--Flag"></i>
-                            Latest version: @package.Version
+                            Latest version:
+                            @if (package.Listed == false)
+                            {
+                                <span class="unlisted-version" title="This package is unlisted">@package.Version</span>
+                                <span class="unlisted-label">(unlisted)</span>
+                            }
+                            else
+                            {
+                                @package.Version
+                            }
                         </span>
                     </li>
                     @if (package.Tags.Any())
@@ -173,30 +234,23 @@ else
 
 @functions {
 
-    private IReadOnlyDictionary<string, string> PackageTypes { get; } = new Dictionary<string, string>()
+    // Display-name lookups only. The set of options shown comes from the feed's facets
+    // (Model.PackageTypeFacets / Model.FrameworkFacets); unknown values fall back to their raw value.
+    private static readonly IReadOnlyDictionary<string, string> _packageTypeNames = new Dictionary<string, string>()
     {
-        { "any", "Any" },
         { "dependency", "Dependency" },
         { "dotnettool", ".NET tool" },
         { "dotnettemplate", ".NET template" },
     };
 
-    private IReadOnlyDictionary<string, string> TargetFrameworks { get; } = new Dictionary<string, string>()
+    private static readonly IReadOnlyDictionary<string, string> _frameworkNames = new Dictionary<string, string>()
     {
-        { "any", "Any" },
-
-        { "divider1", "-" },
-        { "header1", ".NET" },
-
         { "net10.0", ".NET 10.0" },
         { "net9.0", ".NET 9.0" },
         { "net8.0", ".NET 8.0" },
         { "net7.0", ".NET 7.0" },
         { "net6.0", ".NET 6.0" },
         { "net5.0", ".NET 5.0" },
-
-        { "divider2", "-" },
-        { "header2", ".NET Standard" },
 
         { "netstandard2.1", ".NET Standard 2.1" },
         { "netstandard2.0", ".NET Standard 2.0" },
@@ -208,18 +262,12 @@ else
         { "netstandard1.1", ".NET Standard 1.1" },
         { "netstandard1.0", ".NET Standard 1.0" },
 
-        { "divider3", "-" },
-        { "header3", ".NET Core" },
-
         { "netcoreapp3.1", ".NET Core 3.1" },
         { "netcoreapp3.0", ".NET Core 3.0" },
         { "netcoreapp2.2", ".NET Core 2.2" },
         { "netcoreapp2.1", ".NET Core 2.1" },
         { "netcoreapp1.1", ".NET Core 1.1" },
         { "netcoreapp1.0", ".NET Core 1.0" },
-
-        { "divider4", "-" },
-        { "header4", ".NET Framework" },
 
         { "net481", ".NET Framework 4.8.1" },
         { "net48", ".NET Framework 4.8" },
@@ -239,21 +287,36 @@ else
         { "net11", ".NET Framework 1.1" },
     };
 
+    private string PackageTypeLabel(string packageType)
+    {
+        if (string.IsNullOrEmpty(packageType) || packageType == "any") return "Any";
+        return _packageTypeNames.GetValueOrDefault(packageType, packageType);
+    }
+
+    private string FrameworkLabel(string framework)
+    {
+        if (string.IsNullOrEmpty(framework) || framework == "any") return "Any";
+        return _frameworkNames.GetValueOrDefault(framework, framework);
+    }
+
     private string SearchLink(
         string packageType = null,
         string framework = null,
+        string tag = null,
         bool? prerelease = null,
         int? page = null)
     {
         // Use model's value if the argument was skipped.
-        packageType = packageType ?? Model.PackageType;
-        framework = framework ?? Model.Framework;
-        prerelease = prerelease ?? Model.Prerelease;
-        page = page ?? Model.PageIndex;
+        packageType ??= Model.PackageType;
+        framework ??= Model.Framework;
+        tag ??= Model.Tag;
+        prerelease ??= Model.Prerelease;
+        page ??= Model.PageIndex;
 
         // Remove query parameters that have default value
         if (packageType == "any") packageType = null;
         if (framework == "any") framework = null;
+        if (tag == "any") tag = null;
         if (prerelease == true) prerelease = null;
         if (page == 1) page = null;
 
@@ -263,6 +326,7 @@ else
             p = page,
             packageType,
             framework,
+            tag,
             prerelease,
         });
     }

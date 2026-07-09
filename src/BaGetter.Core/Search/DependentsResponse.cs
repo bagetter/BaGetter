@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Search;
 
 /// <summary>
 /// The package ids that depend on the queried package.

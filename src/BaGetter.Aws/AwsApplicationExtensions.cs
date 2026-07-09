@@ -3,13 +3,15 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using BaGetter.Aws;
 using BaGetter.Core;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Extensions;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter;
+namespace BaGetter.Aws;
 
 public static class AwsApplicationExtensions
 {

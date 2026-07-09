@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using BaGetter.Core.Metadata;
 using BaGetter.Protocol.Models;
 using Xunit;
 

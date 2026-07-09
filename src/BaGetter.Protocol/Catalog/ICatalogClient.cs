@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Protocol;
+namespace BaGetter.Protocol.Catalog;
 
 /// <summary>
 /// The Catalog client, used to discover package events.<br/>

@@ -1,4 +1,4 @@
-namespace BaGetter.Core;
+namespace BaGetter.Core.Entities;
 
 public class TargetFramework
 {

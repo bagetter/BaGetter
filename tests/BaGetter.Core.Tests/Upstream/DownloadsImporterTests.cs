@@ -1,4 +1,6 @@
 using System;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Upstream;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;

@@ -3,8 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Storage;
 
 public class SymbolStorageService : ISymbolStorageService
 {
@@ -19,12 +20,13 @@ public class SymbolStorageService : ISymbolStorageService
     }
 
     public async Task SavePortablePdbContentAsync(
+        string feedSlug,
         string filename,
         string key,
         Stream pdbStream,
         CancellationToken cancellationToken)
     {
-        var path = GetPathForKey(filename, key);
+        var path = GetPathForKey(feedSlug, filename, key);
         var result = await _storage.PutAsync(path, pdbStream, PdbContentType, cancellationToken);
 
         if (result == StoragePutResult.Conflict)
@@ -33,9 +35,9 @@ public class SymbolStorageService : ISymbolStorageService
         }
     }
 
-    public async Task<Stream> GetPortablePdbContentStreamOrNullAsync(string filename, string key)
+    public async Task<Stream> GetPortablePdbContentStreamOrNullAsync(string feedSlug, string filename, string key)
     {
-        var path = GetPathForKey(filename, key);
+        var path = GetPathForKey(feedSlug, filename, key);
 
         try
         {
@@ -43,11 +45,25 @@ public class SymbolStorageService : ISymbolStorageService
         }
         catch
         {
+            if (feedSlug == Feed.DefaultSlug)
+            {
+                // Legacy fallback: before multi-feed support, symbols were stored without a feed prefix.
+                var legacyPath = GetPathForKey(null, filename, key);
+                try
+                {
+                    return await _storage.GetAsync(legacyPath);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             return null;
         }
     }
 
-    private static string GetPathForKey(string filename, string key)
+    private static string GetPathForKey(string feedSlug, string filename, string key)
     {
         // Ensure the filename doesn't try to escape out of the current directory.
         var tempPath = Path.GetDirectoryName(Path.GetTempPath());
@@ -69,9 +85,8 @@ public class SymbolStorageService : ISymbolStorageService
         // users have reported other age values. We will ignore the age.
         key = string.Concat(key.AsSpan(0, 32), "ffffffff");
 
-        return Path.Combine(
-            SymbolsPathPrefix,
-            filename.ToLowerInvariant(),
-            key.ToLowerInvariant());
+        return feedSlug != null
+            ? Path.Combine(SymbolsPathPrefix, feedSlug, filename.ToLowerInvariant(), key.ToLowerInvariant())
+            : Path.Combine(SymbolsPathPrefix, filename.ToLowerInvariant(), key.ToLowerInvariant());
     }
 }

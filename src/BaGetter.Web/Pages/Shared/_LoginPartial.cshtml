@@ -1,0 +1,70 @@
+@using BaGetter.Core.Authentication
+@using BaGetter.Core.Configuration
+@using Microsoft.Extensions.Options
+
+@inject IOptionsSnapshot<NugetAuthenticationOptions> AuthOptions
+
+@{
+    var authMode = AuthOptions.Value.Mode;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var authProvider = User.FindFirst("auth_provider")?.Value
+                    ?? User.FindFirst("AuthProvider")?.Value;
+    var isEntraUser = string.Equals(authProvider, "Entra", StringComparison.OrdinalIgnoreCase);
+    var displayName = User.FindFirst("DisplayName")?.Value
+                   ?? User.FindFirst("name")?.Value
+                   ?? User.Identity?.Name
+                   ?? "User";
+
+    var isAdmin = isAuthenticated &&
+        string.Equals(User.FindFirst(AuthenticationConstants.IsAdminClaim)?.Value, "true", StringComparison.Ordinal);
+
+    // Admin links must never be scoped to a feed — strip any /feeds/{slug} segment that
+    // FeedResolutionMiddleware appended to PathBase so the dropdown always points at root.
+    var pathBase = Context.Request.PathBase.Value ?? string.Empty;
+    var feedsIdx = pathBase.IndexOf("/feeds/", StringComparison.OrdinalIgnoreCase);
+    var adminBase = feedsIdx >= 0 ? pathBase[..feedsIdx] : pathBase;
+}
+
+@if (authMode != AuthenticationMode.Config)
+{
+    if (isAuthenticated)
+    {
+        <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    <span class="ms-Icon ms-Icon--Contact" aria-hidden="true"></span>
+                    <span>@displayName</span>
+                    <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    @if (isEntraUser)
+                    {
+                        <li><a asp-page="/Account/Tokens"><span class="ms-Icon ms-Icon--Permissions" aria-hidden="true"></span> My Tokens</a></li>
+                    }
+                    @if (isAdmin)
+                    {
+                        <li role="separator" class="divider"></li>
+                        <li><a href="@adminBase/Admin/Accounts"><span class="ms-Icon ms-Icon--People" aria-hidden="true"></span> Accounts</a></li>
+                        <li><a href="@adminBase/Admin/Groups"><span class="ms-Icon ms-Icon--Group" aria-hidden="true"></span> Groups</a></li>
+                        <li><a href="@adminBase/Admin/Feeds"><span class="ms-Icon ms-Icon--Database" aria-hidden="true"></span> Feeds</a></li>
+                    }
+                    <li role="separator" class="divider"></li>
+                    <li>
+                        <form asp-page="/Logout" method="post" id="logout-form">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="dropdown-sign-out">
+                                <span class="ms-Icon ms-Icon--SignOut" aria-hidden="true"></span> Sign out
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    }
+    else
+    {
+        <ul class="nav navbar-nav navbar-right">
+            <li><a asp-page="/Login"><span>Sign in</span></a></li>
+        </ul>
+    }
+}

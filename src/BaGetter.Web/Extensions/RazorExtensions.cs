@@ -1,6 +1,6 @@
 ﻿using Humanizer;
 
-namespace BaGetter.Web;
+namespace BaGetter.Web.Extensions;
 
 public static class RazorExtensions
 {

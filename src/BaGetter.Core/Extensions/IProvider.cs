@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Configuration;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Extensions;
 
 /// <summary>
 /// Attempts to provide the <typeparamref name="TService"/>.

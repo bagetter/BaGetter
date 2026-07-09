@@ -2,9 +2,11 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Storage;
 
 /// <summary>
 /// Stores content on disk.

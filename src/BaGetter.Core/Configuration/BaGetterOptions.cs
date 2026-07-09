@@ -1,7 +1,6 @@
 using System;
-using BaGetter.Core.Configuration;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Configuration;
 
 public class BaGetterOptions
 {
@@ -66,6 +65,12 @@ public class BaGetterOptions
 
     public SearchOptions Search { get; set; }
 
+    /// <summary>
+    /// Global mirror configuration. Kept for backward compatibility: on first startup after
+    /// upgrading to multi-feed support, these settings are copied to the default feed and are
+    /// no longer read at runtime. Configure mirroring per-feed via the admin UI instead.
+    /// </summary>
+    [Obsolete("Mirror config is now per-feed. This property is only read once at upgrade time to seed the default feed; configure mirroring via the admin UI or FeedSettings.")]
     public MirrorOptions Mirror { get; set; }
 
     public HealthCheckOptions HealthCheck { get; set; }

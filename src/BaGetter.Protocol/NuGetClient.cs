@@ -6,7 +6,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Protocol.Extensions;
 using BaGetter.Protocol.Models;
+using BaGetter.Protocol.PackageContent;
+using BaGetter.Protocol.PackageMetadata;
+using BaGetter.Protocol.Search;
 using NuGet.Versioning;
 
 namespace BaGetter.Protocol;
@@ -67,6 +71,7 @@ public class NuGetClient
         _metadataClient = clientFactory.CreatePackageMetadataClient();
         _searchClient = clientFactory.CreateSearchClient();
         _autocompleteClient = clientFactory.CreateAutocompleteClient();
+        ServiceIndexUrl = clientFactory.ServiceIndexUrl;
     }
 
     /// <summary>
@@ -169,8 +174,8 @@ public class NuGetClient
         var packages = await GetPackageMetadataAsync(packageId, cancellationToken);
 
         return packages
-            .Where(p => p.IsListed())
-            .Select(p => p.ParseVersion())
+            .Where(p => RegistrationModelExtensions.IsListed(p))
+            .Select(p => RegistrationModelExtensions.ParseVersion(p))
             .ToList();
     }
 
@@ -207,11 +212,11 @@ public class NuGetClient
     /// <param name="packageId">The package ID.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package's metadata, or an empty list if the package does not exist.</returns>
-    public virtual async Task<IReadOnlyList<PackageMetadata>> GetPackageMetadataAsync(
+    public virtual async Task<IReadOnlyList<Models.PackageMetadata>> GetPackageMetadataAsync(
         string packageId,
         CancellationToken cancellationToken = default)
     {
-        var result = new List<PackageMetadata>();
+        var result = new List<Models.PackageMetadata>();
 
         var registrationIndex = await _metadataClient.GetRegistrationIndexOrNullAsync(packageId, cancellationToken);
 
@@ -254,7 +259,7 @@ public class NuGetClient
     /// <exception cref="PackageNotFoundException">
     ///     The package could not be found.
     /// </exception>
-    public virtual async Task<PackageMetadata> GetPackageMetadataAsync(
+    public virtual async Task<Models.PackageMetadata> GetPackageMetadataAsync(
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken = default)

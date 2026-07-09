@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using BaGetter.Core;
+using BaGetter.Core.Validation;
 
 namespace BaGetter.Aws;
 

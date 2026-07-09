@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NuGet.Versioning;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Entities;
 
 // See NuGetGallery's: https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/Entities/Package.cs
 [DebuggerDisplay("{Id} {Version}")]
 public class Package
 {
     public int Key { get; set; }
+
+    public Guid FeedId { get; set; }
+    public Feed Feed { get; set; }
 
     public string Id { get; set; }
 

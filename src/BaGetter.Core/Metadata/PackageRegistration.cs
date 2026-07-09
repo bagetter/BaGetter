@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using BaGetter.Core.Entities;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Metadata;
 
 /// <summary>
 /// The information on all versions of a package.

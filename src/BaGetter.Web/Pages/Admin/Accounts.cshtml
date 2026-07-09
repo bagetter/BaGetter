@@ -1,0 +1,163 @@
+@page
+@model BaGetter.Web.Pages.Admin.AccountsModel
+
+@{
+    ViewData["Title"] = "Accounts";
+}
+
+<div class="col-sm-12">
+    <h1>Accounts</h1>
+    <hr class="breadcrumb-divider" />
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success" role="alert">@Model.SuccessMessage</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+    }
+
+    <h3>Create local account</h3>
+    <form method="post" asp-page-handler="Create">
+        @Html.AntiForgeryToken()
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label asp-for="NewUsername">Username</label>
+                    <input asp-for="NewUsername" class="form-control" />
+                    <span asp-validation-for="NewUsername" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NewDisplayName">Display Name</label>
+                    <input asp-for="NewDisplayName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="NewPassword">Password</label>
+                    <input asp-for="NewPassword" class="form-control" />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="NewCanLoginToUI" /> Can sign in to web UI
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </div>
+        </div>
+    </form>
+
+    <h3>Existing accounts</h3>
+    @if (Model.Users.Count == 0)
+    {
+        <p>No user accounts found.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Display Name</th>
+                    <th>Provider</th>
+                    <th>Groups</th>
+                    <th>Enabled</th>
+                    <th>UI Login</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr class="@(!user.IsEnabled ? "text-muted" : "")">
+                        <td>@user.Username</td>
+                        <td>@user.DisplayName</td>
+                        <td>
+                            @if (user.AuthProvider == BaGetter.Core.Entities.AuthProvider.Entra)
+                            {
+                                <span class="label label-info">Entra</span>
+                            }
+                            else
+                            {
+                                <span class="label label-default">Local</span>
+                            }
+                        </td>
+                        <td>
+                            @if (Model.UserGroupMemberships.TryGetValue(user.Id, out var groups) && groups.Count > 0)
+                            {
+                                @foreach (var group in groups)
+                                {
+                                    var isRoleSynced = !string.IsNullOrEmpty(group.AppRoleValue);
+                                    if (isRoleSynced)
+                                    {
+                                        <span class="label label-primary" title="Role-synced via '@group.AppRoleValue'">@group.Name</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="label label-default" title="Manual membership">@group.Name</span>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">None</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.IsEnabled)
+                            {
+                                <span class="label label-success">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="label label-danger">No</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.CanLoginToUI)
+                            {
+                                <span class="label label-success">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="label label-danger">No</span>
+                            }
+                        </td>
+                        <td>@user.CreatedAtUtc.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <form method="post" asp-page-handler="ToggleEnabled" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <input type="hidden" name="isEnabled" value="@user.IsEnabled.ToString()" />
+                                <button type="submit" class="btn btn-xs @(user.IsEnabled ? "btn-warning" : "btn-success")">
+                                    @(user.IsEnabled ? "Disable" : "Enable")
+                                </button>
+                            </form>
+                            <form method="post" asp-page-handler="ToggleCanLoginToUI" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <input type="hidden" name="canLoginToUI" value="@user.CanLoginToUI.ToString()" />
+                                <button type="submit" class="btn btn-xs @(user.CanLoginToUI ? "btn-warning" : "btn-success")">
+                                    @(user.CanLoginToUI ? "Revoke Web Access" : "Grant Web Access")
+                                </button>
+                            </form>
+                            @if (!user.IsEnabled)
+                            {
+                                <form method="post" asp-page-handler="Delete" style="display:inline"
+                                      onsubmit="return confirm('Are you sure you want to permanently delete the account \'@user.Username\'? This action cannot be undone.');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit" class="btn btn-xs btn-danger">
+                                        Delete
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

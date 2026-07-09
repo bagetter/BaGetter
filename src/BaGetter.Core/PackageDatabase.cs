@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Versioning;
 
@@ -34,30 +35,30 @@ public class PackageDatabase : IPackageDatabase
         }
     }
 
-    public async Task<bool> ExistsAsync(string id, CancellationToken cancellationToken)
+    public async Task<bool> ExistsAsync(Guid feedId, string id, CancellationToken cancellationToken)
     {
         return await _context
             .Packages
-            .Where(p => p.Id == id)
+            .Where(p => p.FeedId == feedId && p.Id == id)
             .AnyAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<bool> ExistsAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         return await _context
             .Packages
-            .Where(p => p.Id == id)
+            .Where(p => p.FeedId == feedId && p.Id == id)
             .Where(p => p.NormalizedVersionString == version.ToNormalizedString())
             .AnyAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Package>> FindAsync(string id, bool includeUnlisted, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Package>> FindAsync(Guid feedId, string id, bool includeUnlisted, CancellationToken cancellationToken)
     {
         var query = _context.Packages
             .Include(p => p.Dependencies)
             .Include(p => p.PackageTypes)
             .Include(p => p.TargetFrameworks)
-            .Where(p => p.Id == id);
+            .Where(p => p.FeedId == feedId && p.Id == id);
 
         if (!includeUnlisted)
         {
@@ -68,6 +69,7 @@ public class PackageDatabase : IPackageDatabase
     }
 
     public Task<Package> FindOrNullAsync(
+        Guid feedId,
         string id,
         NuGetVersion version,
         bool includeUnlisted,
@@ -76,7 +78,7 @@ public class PackageDatabase : IPackageDatabase
         var query = _context.Packages
             .Include(p => p.Dependencies)
             .Include(p => p.TargetFrameworks)
-            .Where(p => p.Id == id)
+            .Where(p => p.FeedId == feedId && p.Id == id)
             .Where(p => p.NormalizedVersionString == version.ToNormalizedString());
 
         if (!includeUnlisted)
@@ -87,25 +89,25 @@ public class PackageDatabase : IPackageDatabase
         return query.AsSingleQuery().FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<bool> UnlistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public Task<bool> UnlistPackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        return TryUpdatePackageAsync(id, version, p => p.Listed = false, cancellationToken);
+        return TryUpdatePackageAsync(feedId, id, version, p => p.Listed = false, cancellationToken);
     }
 
-    public Task<bool> RelistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public Task<bool> RelistPackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        return TryUpdatePackageAsync(id, version, p => p.Listed = true, cancellationToken);
+        return TryUpdatePackageAsync(feedId, id, version, p => p.Listed = true, cancellationToken);
     }
 
-    public async Task AddDownloadAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task AddDownloadAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        await TryUpdatePackageAsync(id, version, p => p.Downloads += 1, cancellationToken);
+        await TryUpdatePackageAsync(feedId, id, version, p => p.Downloads += 1, cancellationToken);
     }
 
-    public async Task<bool> HardDeletePackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<bool> HardDeletePackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         var package = await _context.Packages
-            .Where(p => p.Id == id)
+            .Where(p => p.FeedId == feedId && p.Id == id)
             .Where(p => p.NormalizedVersionString == version.ToNormalizedString())
             .Include(p => p.Dependencies)
             .Include(p => p.TargetFrameworks)
@@ -124,13 +126,14 @@ public class PackageDatabase : IPackageDatabase
     }
 
     private async Task<bool> TryUpdatePackageAsync(
+        Guid feedId,
         string id,
         NuGetVersion version,
         Action<Package> action,
         CancellationToken cancellationToken)
     {
         var package = await _context.Packages
-            .Where(p => p.Id == id)
+            .Where(p => p.FeedId == feedId && p.Id == id)
             .Where(p => p.NormalizedVersionString == version.ToNormalizedString())
             .FirstOrDefaultAsync(cancellationToken);
 

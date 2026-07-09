@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BaGetter.Core.Entities;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Metadata;
 
 public class RegistrationBuilder
 {

@@ -1,7 +1,12 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Feeds;
+using BaGetter.Core.Indexing;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Versioning;
 using Xunit;
@@ -10,13 +15,15 @@ namespace BaGetter.Core.Tests.Services;
 
 public class PackageDeletionServiceTests
 {
-    private static readonly string PackageId = "Package";
-    private static readonly NuGetVersion PackageVersion = new NuGetVersion("1.0.0");
+    private static readonly string _packageId = "Package";
+    private static readonly NuGetVersion _packageVersion = new NuGetVersion("1.0.0");
 
     private readonly Mock<IPackageDatabase> _packages;
     private readonly Mock<IPackageStorageService> _storage;
 
     private readonly BaGetterOptions _options;
+    private readonly Mock<IFeedSettingsResolver> _feedSettings;
+    private readonly Mock<IFeedService> _feedService;
     private readonly PackageDeletionService _target;
 
     public PackageDeletionServiceTests()
@@ -25,13 +32,28 @@ public class PackageDeletionServiceTests
         _storage = new Mock<IPackageStorageService>();
         _options = new BaGetterOptions();
 
-        var optionsSnapshot = new Mock<IOptionsSnapshot<BaGetterOptions>>();
-        optionsSnapshot.Setup(o => o.Value).Returns(_options);
+        _feedSettings = new Mock<IFeedSettingsResolver>();
+        var defaultFeed = new Feed
+        {
+            Id = Guid.Empty,
+            Slug = Feed.DefaultSlug,
+            Name = "Default",
+        };
+        _feedService = new Mock<IFeedService>();
+        _feedService
+            .Setup(s => s.GetFeedByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(defaultFeed);
+
+        // Default: delegate deletion behavior from _options (mirrors old behavior)
+        _feedSettings
+            .Setup(r => r.GetPackageDeletionBehavior(It.IsAny<Feed>()))
+            .Returns(() => _options.PackageDeletionBehavior);
 
         _target = new PackageDeletionService(
             _packages.Object,
             _storage.Object,
-            optionsSnapshot.Object,
+            _feedSettings.Object,
+            _feedService.Object,
             Mock.Of<ILogger<PackageDeletionService>>());
     }
 
@@ -45,24 +67,24 @@ public class PackageDeletionServiceTests
         _options.PackageDeletionBehavior = PackageDeletionBehavior.Unlist;
 
         _packages
-            .Setup(p => p.UnlistPackageAsync(PackageId, PackageVersion, cancellationToken))
+            .Setup(p => p.UnlistPackageAsync(It.IsAny<Guid>(), _packageId, _packageVersion, cancellationToken))
             .ReturnsAsync(packageExists);
 
         // Act
-        var result = await _target.TryDeletePackageAsync(PackageId, PackageVersion, cancellationToken);
+        var result = await _target.TryDeletePackageAsync(Guid.Empty, "default", _packageId, _packageVersion, cancellationToken);
 
         // Assert
         Assert.Equal(packageExists, result);
 
         _packages.Verify(
-            p => p.UnlistPackageAsync(PackageId, PackageVersion, cancellationToken),
+            p => p.UnlistPackageAsync(It.IsAny<Guid>(), _packageId, _packageVersion, cancellationToken),
             Times.Once);
 
         _packages.Verify(
-            p => p.HardDeletePackageAsync(It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()),
+            p => p.HardDeletePackageAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _storage.Verify(
-            s => s.DeleteAsync(It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()),
+            s => s.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -80,17 +102,17 @@ public class PackageDeletionServiceTests
         var cancellationToken = CancellationToken.None;
 
         _packages
-            .Setup(p => p.HardDeletePackageAsync(PackageId, PackageVersion, cancellationToken))
+            .Setup(p => p.HardDeletePackageAsync(It.IsAny<Guid>(), _packageId, _packageVersion, cancellationToken))
             .Callback(() => databaseStep = step++)
             .ReturnsAsync(packageExists);
 
         _storage
-            .Setup(s => s.DeleteAsync(PackageId, PackageVersion, cancellationToken))
+            .Setup(s => s.DeleteAsync(It.IsAny<string>(), _packageId, _packageVersion, cancellationToken))
             .Callback(() => storageStep = step++)
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _target.TryDeletePackageAsync(PackageId, PackageVersion, cancellationToken);
+        var result = await _target.TryDeletePackageAsync(Guid.Empty, "default", _packageId, _packageVersion, cancellationToken);
 
         // Assert - The database step MUST happen before the storage step.
         Assert.Equal(packageExists, result);
@@ -100,15 +122,36 @@ public class PackageDeletionServiceTests
         // The storage deletion should happen even if the package couldn't
         // be found in the database. This ensures consistency.
         _packages.Verify(
-            p => p.HardDeletePackageAsync(PackageId, PackageVersion, cancellationToken),
+            p => p.HardDeletePackageAsync(It.IsAny<Guid>(), _packageId, _packageVersion, cancellationToken),
             Times.Once);
         _storage.Verify(
-            s => s.DeleteAsync(PackageId, PackageVersion, cancellationToken),
+            s => s.DeleteAsync(It.IsAny<string>(), _packageId, _packageVersion, cancellationToken),
             Times.Once);
 
         _packages.Verify(
-            p => p.UnlistPackageAsync(It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()),
+            p => p.UnlistPackageAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TryRelist_ReturnsTrueOnlyIfPackageExists(bool packageExists)
+    {
+        // Arrange
+        var cancellationToken = CancellationToken.None;
+        _packages
+            .Setup(p => p.RelistPackageAsync(It.IsAny<Guid>(), _packageId, _packageVersion, cancellationToken))
+            .ReturnsAsync(packageExists);
+
+        // Act
+        var result = await _target.TryRelistPackageAsync(Guid.Empty, _packageId, _packageVersion, cancellationToken);
+
+        // Assert
+        Assert.Equal(packageExists, result);
+        _packages.Verify(
+            p => p.RelistPackageAsync(It.IsAny<Guid>(), _packageId, _packageVersion, cancellationToken),
+            Times.Once);
     }
 
     [Theory]
@@ -122,29 +165,30 @@ public class PackageDeletionServiceTests
         var databaseStep = 0;
         var storageStep = 0;
         _packages
-            .Setup(p => p.FindAsync(PackageId, true, cancellationToken))
+            .Setup(p => p.FindAsync(It.IsAny<Guid>(), _packageId, true, cancellationToken))
             .ReturnsAsync([
-                new Package { Id = PackageId, Version = new NuGetVersion("1.0.0-dev") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.0.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.0.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.1.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.1.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("3.0.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.0.0-dev") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.0.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.0.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.1.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.1.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("3.0.0") },
             ]);
         _storage
-            .Setup(s => s.DeleteAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(s => s.DeleteAsync(It.IsAny<string>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => storageStep++)
             .Returns(Task.CompletedTask);
         _packages
-            .Setup(p => p.HardDeletePackageAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(p => p.HardDeletePackageAsync(It.IsAny<Guid>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => databaseStep++)
             .ReturnsAsync(true);
 
         // Act
         var deleted = await _target.DeleteOldVersionsAsync(
-            new Package { Id = PackageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
-            maxMajor: maxVersions, maxMinor:null, maxPatch:null, maxPrerelease:null, cancellationToken);
+            Guid.Empty, "default",
+            new Package { Id = _packageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
+            maxMajor: maxVersions, maxMinor: null, maxPatch: null, maxPrerelease: null, cancellationToken);
 
         // Assert - The database step MUST happen before the storage step.
         Assert.Equal(expectedCount, deleted);
@@ -163,30 +207,31 @@ public class PackageDeletionServiceTests
         var databaseStep = 0;
         var storageStep = 0;
         _packages
-            .Setup(p => p.FindAsync(PackageId, true, cancellationToken))
+            .Setup(p => p.FindAsync(It.IsAny<Guid>(), _packageId, true, cancellationToken))
             .ReturnsAsync([
-                new Package { Id = PackageId, Version = new NuGetVersion("1.0.0-dev") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.0.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.0.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.0.0-dev") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.0.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.0.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0") },
             ]);
         _storage
-            .Setup(s => s.DeleteAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(s => s.DeleteAsync(It.IsAny<string>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => storageStep++)
             .Returns(Task.CompletedTask);
         _packages
-            .Setup(p => p.HardDeletePackageAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(p => p.HardDeletePackageAsync(It.IsAny<Guid>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => databaseStep++)
             .ReturnsAsync(true);
 
         // Act
         var deleted = await _target.DeleteOldVersionsAsync(
-            new Package { Id = PackageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
-            maxMajor: null, maxMinor:maxVersions, maxPatch:null, maxPrerelease:null, cancellationToken);
+            Guid.Empty, "default",
+            new Package { Id = _packageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
+            maxMajor: null, maxMinor: maxVersions, maxPatch: null, maxPrerelease: null, cancellationToken);
 
         // Assert - The database step MUST happen before the storage step.
         Assert.Equal(expectedCount, deleted);
@@ -205,30 +250,31 @@ public class PackageDeletionServiceTests
         var databaseStep = 0;
         var storageStep = 0;
         _packages
-            .Setup(p => p.FindAsync(PackageId, true, cancellationToken))
+            .Setup(p => p.FindAsync(It.IsAny<Guid>(), _packageId, true, cancellationToken))
             .ReturnsAsync([
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.5") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.0-beta.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.5") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.0-beta.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0") },
             ]);
         _storage
-            .Setup(s => s.DeleteAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(s => s.DeleteAsync(It.IsAny<string>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => storageStep++)
             .Returns(Task.CompletedTask);
         _packages
-            .Setup(p => p.HardDeletePackageAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(p => p.HardDeletePackageAsync(It.IsAny<Guid>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => databaseStep++)
             .ReturnsAsync(true);
 
         // Act
         var deleted = await _target.DeleteOldVersionsAsync(
-            new Package { Id = PackageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
-            maxMajor: null, maxMinor:null, maxPatch:maxPrereleaseVersions, maxPrerelease:null, cancellationToken);
+            Guid.Empty, "default",
+            new Package { Id = _packageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
+            maxMajor: null, maxMinor: null, maxPatch: maxPrereleaseVersions, maxPrerelease: null, cancellationToken);
 
         // Assert - The database step MUST happen before the storage step.
         Assert.Equal(expectedCount, deleted);
@@ -250,55 +296,56 @@ public class PackageDeletionServiceTests
         var databaseStep = 0;
         var storageStep = 0;
         _packages
-            .Setup(p => p.FindAsync(PackageId, true, cancellationToken))
+            .Setup(p => p.FindAsync(It.IsAny<Guid>(), _packageId, true, cancellationToken))
             .ReturnsAsync([
-                new Package { Id = PackageId, Version = new NuGetVersion("1.0.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.4") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.5") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-test.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-test.3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-test.7") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-test.8") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-test.9") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev4") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.1-alpha.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.1-alpha.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.1-alpha.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.0-latest") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-dev1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-dev2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-alpha.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-alpha.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-beta.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-beta.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.4") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.5") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.0.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.4") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.5") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-test.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-test.3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-test.7") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-test.8") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-test.9") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev4") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.1-alpha.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.1-alpha.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.1-alpha.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.0-latest") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-dev1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-dev2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-alpha.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-alpha.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-beta.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-beta.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.4") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.5") },
             ]);
         _storage
-            .Setup(s => s.DeleteAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(s => s.DeleteAsync(It.IsAny<string>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => storageStep++)
             .Returns(Task.CompletedTask);
         _packages
-            .Setup(p => p.HardDeletePackageAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(p => p.HardDeletePackageAsync(It.IsAny<Guid>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => databaseStep++)
             .ReturnsAsync(true);
 
         // Act
         var deleted = await _target.DeleteOldVersionsAsync(
-            new Package { Id = PackageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
-            maxMajor: null, maxMinor:null, maxPatch:null, maxPrerelease:maxVersions, cancellationToken);
+            Guid.Empty, "default",
+            new Package { Id = _packageId, Version = new NuGetVersion("4.0.0"), IsPrerelease = false },
+            maxMajor: null, maxMinor: null, maxPatch: null, maxPrerelease: maxVersions, cancellationToken);
 
         // Assert - The database step MUST happen before the storage step.
         Assert.Equal(expectedCount, deleted);
@@ -322,65 +369,66 @@ public class PackageDeletionServiceTests
         var databaseStep = 0;
         var storageStep = 0;
         _packages
-            .Setup(p => p.FindAsync(PackageId, true, cancellationToken))
+            .Setup(p => p.FindAsync(It.IsAny<Guid>(), _packageId, true, cancellationToken))
             .ReturnsAsync([
-                new Package { Id = PackageId, Version = new NuGetVersion("1.0.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.4") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-beta.5") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-test.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.0-dev3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.1-alpha.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.1-alpha.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.1.1-alpha.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.0-latest") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.2.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-dev1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-dev2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-alpha.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-alpha.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-beta.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0-beta.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.4") },
-                new Package { Id = PackageId, Version = new NuGetVersion("1.3.5") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.3.0-dev1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.3.0-dev2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.3.0-alpha.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.3.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.3.1-alpha.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("2.3.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("3.1.0-beta.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("3.1.0-beta.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("3.1.0") },
-                new Package { Id = PackageId, Version = new NuGetVersion("3.3.0-dev1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("3.3.0-dev2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("4.0.1") },
-                new Package { Id = PackageId, Version = new NuGetVersion("4.0.2") },
-                new Package { Id = PackageId, Version = new NuGetVersion("4.0.3") },
-                new Package { Id = PackageId, Version = new NuGetVersion("4.4.4") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.0.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.4") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-beta.5") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-test.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.0-dev3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.1-alpha.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.1-alpha.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.1.1-alpha.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.0-latest") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.2.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-dev1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-dev2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-alpha.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-alpha.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-beta.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0-beta.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.4") },
+                new Package { Id = _packageId, Version = new NuGetVersion("1.3.5") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.3.0-dev1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.3.0-dev2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.3.0-alpha.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.3.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.3.1-alpha.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("2.3.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("3.1.0-beta.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("3.1.0-beta.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("3.1.0") },
+                new Package { Id = _packageId, Version = new NuGetVersion("3.3.0-dev1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("3.3.0-dev2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("4.0.1") },
+                new Package { Id = _packageId, Version = new NuGetVersion("4.0.2") },
+                new Package { Id = _packageId, Version = new NuGetVersion("4.0.3") },
+                new Package { Id = _packageId, Version = new NuGetVersion("4.4.4") },
             ]);
         _storage
-            .Setup(s => s.DeleteAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(s => s.DeleteAsync(It.IsAny<string>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => storageStep++)
             .Returns(Task.CompletedTask);
         _packages
-            .Setup(p => p.HardDeletePackageAsync(PackageId, It.IsAny<NuGetVersion>(), cancellationToken))
+            .Setup(p => p.HardDeletePackageAsync(It.IsAny<Guid>(), _packageId, It.IsAny<NuGetVersion>(), cancellationToken))
             .Callback(() => databaseStep++)
             .ReturnsAsync(true);
 
         // Act
         var deleted = await _target.DeleteOldVersionsAsync(
-            new Package { Id = PackageId, Version = new NuGetVersion("4.4.5"), IsPrerelease = false },
-            maxMajor: maxMajorVersions, maxMinor:maxMinorVersions, maxPatch:maxPatchVersions, maxPrerelease:maxPrereleaseVersions, cancellationToken);
+            Guid.Empty, "default",
+            new Package { Id = _packageId, Version = new NuGetVersion("4.4.5"), IsPrerelease = false },
+            maxMajor: maxMajorVersions, maxMinor: maxMinorVersions, maxPatch: maxPatchVersions, maxPrerelease: maxPrereleaseVersions, cancellationToken);
 
         // Assert - The database step MUST happen before the storage step.
         Assert.Equal(expectedCount, deleted);

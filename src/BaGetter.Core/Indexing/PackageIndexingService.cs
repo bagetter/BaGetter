@@ -2,11 +2,17 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Extensions;
+using BaGetter.Core.Feeds;
+using BaGetter.Core.Search;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Indexing;
 
 public class PackageIndexingService : IPackageIndexingService
 {
@@ -15,7 +21,8 @@ public class PackageIndexingService : IPackageIndexingService
     private readonly ISearchIndexer _search;
     private readonly SystemTime _time;
     private readonly IOptionsSnapshot<BaGetterOptions> _options;
-    private readonly IOptionsSnapshot<RetentionOptions> _retentionOptions;
+    private readonly IFeedSettingsResolver _feedSettings;
+    private readonly IFeedService _feedService;
     private readonly ILogger<PackageIndexingService> _logger;
     private readonly IPackageDeletionService _packageDeletionService;
 
@@ -26,7 +33,8 @@ public class PackageIndexingService : IPackageIndexingService
         ISearchIndexer search,
         SystemTime time,
         IOptionsSnapshot<BaGetterOptions> options,
-        IOptionsSnapshot<RetentionOptions> retentionOptions,
+        IFeedSettingsResolver feedSettings,
+        IFeedService feedService,
         ILogger<PackageIndexingService> logger)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
@@ -34,7 +42,8 @@ public class PackageIndexingService : IPackageIndexingService
         _search = search ?? throw new ArgumentNullException(nameof(search));
         _time = time ?? throw new ArgumentNullException(nameof(time));
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        _retentionOptions = retentionOptions ?? throw new ArgumentNullException(nameof(retentionOptions));
+        _feedSettings = feedSettings ?? throw new ArgumentNullException(nameof(feedSettings));
+        _feedService = feedService ?? throw new ArgumentNullException(nameof(feedService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _packageDeletionService = packageDeletionService ?? throw new ArgumentNullException(nameof(packageDeletionService));
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -45,12 +54,7 @@ public class PackageIndexingService : IPackageIndexingService
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
-    public Task<PackageIndexingResult> IndexAsync(Stream stream, CancellationToken cancellationToken = default)
-    {
-        return IndexAsync(stream, null, cancellationToken);
-    }
-
-    public async Task<PackageIndexingResult> IndexAsync(Stream packageStream, string cacheFeedUrl = null, CancellationToken cancellationToken = default)
+    public async Task<PackageIndexingResult> IndexAsync(Guid feedId, string feedSlug, Stream packageStream, string cacheFeedUrl, CancellationToken cancellationToken)
     {
         // Try to extract all the necessary information from the package.
         Package package;
@@ -64,6 +68,7 @@ public class PackageIndexingService : IPackageIndexingService
             package = packageReader.GetPackageMetadata();
             package.CachedFrom = cacheFeedUrl;
             package.Published = _time.UtcNow;
+            package.FeedId = feedId;
 
             nuspecStream = await packageReader.GetNuspecAsync(cancellationToken);
             nuspecStream = await nuspecStream.AsTemporaryFileStreamAsync(cancellationToken);
@@ -96,16 +101,18 @@ public class PackageIndexingService : IPackageIndexingService
         }
 
         // The package is well-formed. Ensure this is a new package.
-        if (await _packages.ExistsAsync(package.Id, package.Version, cancellationToken))
+        var feed = await _feedService.GetFeedByIdAsync(feedId, cancellationToken);
+        if (await _packages.ExistsAsync(feedId, package.Id, package.Version, cancellationToken))
         {
-            if (_options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.False ||
-                (_options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.PrereleaseOnly && !package.IsPrerelease))
+            var allowOverwrites = _feedSettings.GetAllowPackageOverwrites(feed);
+            if (allowOverwrites == PackageOverwriteAllowed.False ||
+                (allowOverwrites == PackageOverwriteAllowed.PrereleaseOnly && !package.IsPrerelease))
             {
                 return PackageIndexingResult.PackageAlreadyExists;
             }
 
-            await _packages.HardDeletePackageAsync(package.Id, package.Version, cancellationToken);
-            await _storage.DeleteAsync(package.Id, package.Version, cancellationToken);
+            await _packages.HardDeletePackageAsync(feedId, package.Id, package.Version, cancellationToken);
+            await _storage.DeleteAsync(feedSlug, package.Id, package.Version, cancellationToken);
         }
 
         // TODO: Add more package validations
@@ -120,6 +127,7 @@ public class PackageIndexingService : IPackageIndexingService
             packageStream.Position = 0;
 
             await _storage.SavePackageContentAsync(
+                feedSlug,
                 package,
                 packageStream,
                 nuspecStream,
@@ -171,7 +179,8 @@ public class PackageIndexingService : IPackageIndexingService
 
         await _search.IndexAsync(package, cancellationToken);
 
-        if (_retentionOptions.Value.MaxMajorVersions.HasValue)
+        var retention = _feedSettings.GetRetentionOptions(feed);
+        if (retention.MaxMajorVersions.HasValue)
         {
             try
             {
@@ -181,11 +190,13 @@ public class PackageIndexingService : IPackageIndexingService
                     package.NormalizedVersionString);
 
                 var deleted = await _packageDeletionService.DeleteOldVersionsAsync(
+                    feedId,
+                    feedSlug,
                     package,
-                    _retentionOptions.Value.MaxMajorVersions,
-                    _retentionOptions.Value.MaxMinorVersions,
-                    _retentionOptions.Value.MaxPatchVersions,
-                    _retentionOptions.Value.MaxPrereleaseVersions,
+                    retention.MaxMajorVersions,
+                    retention.MaxMinorVersions,
+                    retention.MaxPatchVersions,
+                    retention.MaxPrereleaseVersions,
                     cancellationToken);
                 if (deleted > 0)
                 {

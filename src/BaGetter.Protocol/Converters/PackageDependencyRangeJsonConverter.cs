@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace BaGetter.Protocol.Internal;
+namespace BaGetter.Protocol.Converters;
 
 /// <summary>
 /// This is an internal API that may be changed or removed without notice in any release.

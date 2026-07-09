@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Protocol.Internal;
+namespace BaGetter.Protocol.Search;
 
 public class NullAutocompleteClient : IAutocompleteClient
 {

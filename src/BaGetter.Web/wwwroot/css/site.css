@@ -18,6 +18,9 @@
   --alert-warning-bg-color: #fff4ce;
   --alert-warning-border-color: #fff4ce;
   --alert-warning-text-color: #000;
+  --alert-success-bg-color: #dff0d8;
+  --alert-success-border-color: #d6e9c6;
+  --alert-success-text-color: #3c763d;
   /* Tabbed Instructions */
   --tabbed-info-bg-color: #eaeaea;
   --tabbed-info-active-bg-color: #002440;
@@ -62,6 +65,9 @@
     --alert-warning-bg-color: #333;
     --alert-warning-border-color: #333;
     --alert-warning-text-color: #fff;
+    --alert-success-bg-color: #1e2e1e;
+    --alert-success-border-color: #2d4a2d;
+    --alert-success-text-color: #7fbf7f;
     /* Tabbed Instructions */
     --tabbed-info-bg-color: #444;
     --tabbed-info-active-bg-color: #1a1a1a;
@@ -85,6 +91,247 @@
   }
 }
 
+
+/* Dark Mode - Form Controls */
+@media (prefers-color-scheme: dark) {
+  .form-control,
+  .form-control:focus,
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="search"],
+  input[type="number"],
+  select,
+  textarea {
+    background-color: #2a2a2a;
+    color: #ccc;
+    border-color: #555;
+  }
+
+  .form-control:focus {
+    border-color: #777;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.5), 0 0 8px rgba(150,150,150,.4);
+  }
+
+  .form-control[disabled],
+  .form-control[readonly] {
+    background-color: #1e1e1e;
+    color: #888;
+  }
+
+  select.form-control option {
+    background-color: #2a2a2a;
+    color: #ccc;
+  }
+
+  .table,
+  .table > thead > tr > th,
+  .table > thead > tr > td,
+  .table > tbody > tr > th,
+  .table > tbody > tr > td,
+  .table > tfoot > tr > th,
+  .table > tfoot > tr > td {
+    background-color: #1e1e1e;
+    color: #ccc;
+    border-color: #444;
+  }
+
+  .table > thead > tr > th {
+    border-bottom-color: #555;
+  }
+
+  .table-striped > tbody > tr:nth-of-type(odd) > td,
+  .table-striped > tbody > tr:nth-of-type(odd) > th {
+    background-color: #252525;
+  }
+
+  .table-hover > tbody > tr:hover > td,
+  .table-hover > tbody > tr:hover > th {
+    background-color: #2d2d2d;
+  }
+
+  .panel,
+  .panel-default {
+    background-color: #1e1e1e;
+    border-color: #444;
+  }
+
+  .panel-default > .panel-heading {
+    background-color: #252525;
+    border-color: #444;
+    color: #ccc;
+  }
+
+  .panel-body {
+    background-color: #1e1e1e;
+    color: #ccc;
+  }
+
+  .panel-footer {
+    background-color: #252525;
+    border-color: #444;
+    color: #ccc;
+  }
+
+  /* Buttons */
+  .btn-default {
+    background-color: #3a3a3a;
+    border-color: #555;
+    color: #ccc;
+  }
+
+  .btn-default:hover,
+  .btn-default:focus,
+  .btn-default:active,
+  .btn-default.active {
+    background-color: #4a4a4a;
+    border-color: #666;
+    color: #fff;
+  }
+
+  .btn-primary {
+    background-color: #1a4f7a;
+    border-color: #133d5e;
+    color: #c8e0f4;
+  }
+
+  .btn-primary:hover,
+  .btn-primary:focus,
+  .btn-primary:active,
+  .btn-primary.active {
+    background-color: #235e8e;
+    border-color: #1a4f7a;
+    color: #e0effa;
+  }
+
+  .btn-success {
+    background-color: #1e5224;
+    border-color: #163d1a;
+    color: #a3d9a5;
+  }
+
+  .btn-success:hover,
+  .btn-success:focus,
+  .btn-success:active,
+  .btn-success.active {
+    background-color: #27642e;
+    border-color: #1e5224;
+    color: #c8eaca;
+  }
+
+  .btn-warning {
+    background-color: #6b4400;
+    border-color: #4d3100;
+    color: #ffd080;
+  }
+
+  .btn-warning:hover,
+  .btn-warning:focus,
+  .btn-warning:active,
+  .btn-warning.active {
+    background-color: #7d5000;
+    border-color: #6b4400;
+    color: #ffe0a8;
+  }
+
+  .btn-danger {
+    background-color: #5a1e1c;
+    border-color: #421614;
+    color: #f0a09e;
+  }
+
+  .btn-danger:hover,
+  .btn-danger:focus,
+  .btn-danger:active,
+  .btn-danger.active {
+    background-color: #6e2422;
+    border-color: #5a1e1c;
+    color: #f8c8c7;
+  }
+
+  .btn-info {
+    background-color: #1a4455;
+    border-color: #12303e;
+    color: #7dd0e8;
+  }
+
+  .btn-info:hover,
+  .btn-info:focus,
+  .btn-info:active,
+  .btn-info.active {
+    background-color: #225566;
+    border-color: #1a4455;
+    color: #aae0f0;
+  }
+
+  .btn-link {
+    color: #5b9fd4;
+  }
+
+  .btn-link:hover,
+  .btn-link:focus {
+    color: #8bbfe0;
+  }
+
+  .btn-link.text-danger {
+    color: #e07070;
+  }
+
+  .btn-link.text-danger:hover,
+  .btn-link.text-danger:focus {
+    color: #f0a0a0;
+  }
+
+  /* Labels / badges */
+  .label-default {
+    background-color: #555;
+    color: #ccc;
+  }
+
+  .label-primary {
+    background-color: #1a4f7a;
+    color: #c8e0f4;
+  }
+
+  .label-info {
+    background-color: #1a4455;
+    color: #7dd0e8;
+  }
+
+  .label-success {
+    background-color: #1e5224;
+    color: #a3d9a5;
+  }
+
+  .label-warning {
+    background-color: #6b4400;
+    color: #ffd080;
+  }
+
+  .label-danger {
+    background-color: #5a1e1c;
+    color: #f0a09e;
+  }
+
+  /* Alerts */
+  .alert-danger {
+    background-color: #3b1515;
+    border-color: #5c2020;
+    color: #f0a09e;
+  }
+
+  /* bg-info (selected version row, etc.) */
+  .bg-info {
+    background-color: #1a3a50 !important;
+    color: #c8e0f4 !important;
+  }
+
+  /* hr / dividers */
+  hr,
+  .breadcrumb-divider {
+    border-color: #444;
+  }
+}
 
 /* Layout
 -------------------------------------------------- */
@@ -116,8 +363,8 @@ main {
 }
 
 .footer p {
-  text-align: center;    
-  vertical-align: middle;    
+  text-align: center;
+  vertical-align: middle;
 }
 
 h1,
@@ -185,10 +432,91 @@ h4 {
   border-color: var(--alert-warning-border-color);
 }
 
+.alert-success {
+  color: var(--alert-success-text-color);
+  background-color: var(--alert-success-bg-color);
+  border-color: var(--alert-success-border-color);
+}
+
 /* Navigation
 -------------------------------------------------- */
 #navbar ul {
   margin-left: -15px;
+}
+
+#navbar .navbar-right {
+  margin-left: auto;
+  margin-right: -15px;
+}
+
+.navbar-inverse .navbar-nav.navbar-right > li > a {
+  color: var(--navbar-text-color);
+}
+
+.navbar-inverse .navbar-nav.navbar-right > li > a:hover,
+.navbar-inverse .navbar-nav.navbar-right > li > a:focus {
+  color: var(--navbar-active-text-color);
+}
+
+.navbar-inverse .navbar-nav.navbar-right .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+.dropdown-menu .ms-Icon {
+  margin-right: 6px;
+  width: 16px;
+  display: inline-block;
+  text-align: center;
+}
+
+.dropdown-sign-out {
+  width: 100%;
+  text-align: left;
+  padding: 3px 20px;
+  font-weight: normal;
+  line-height: 1.42857143;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+}
+
+.dropdown-sign-out:hover {
+  background-color: #f5f5f5;
+  color: #262626;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dropdown-menu {
+    background-color: #2a2a2a;
+    border-color: #444;
+  }
+
+  .dropdown-menu > li > a {
+    color: #ccc;
+  }
+
+  .dropdown-menu > li > a:hover,
+  .dropdown-menu > li > a:focus {
+    background-color: #3a3a3a;
+    color: #fff;
+  }
+
+  .dropdown-menu .divider {
+    background-color: #444;
+  }
+
+  .dropdown-sign-out {
+    color: #ccc;
+  }
+
+  .dropdown-sign-out:hover {
+    background-color: #3a3a3a;
+    color: #fff;
+  }
 }
 
 .navbar-inverse {
@@ -269,6 +597,33 @@ h4 {
 
 /* Index page
 -------------------------------------------------- */
+.feed-url {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.feed-url-label {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.feed-url code {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  word-break: break-all;
+}
+
+.feed-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 28px;
+}
+
 .search-options {
   margin-bottom: 20px;
 }
@@ -292,6 +647,35 @@ h4 {
   display: inline-block;
   width: auto;
   vertical-align: middle;
+}
+
+.tag-dropdown-menu {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-top: 0;
+}
+
+.tag-dropdown-menu .tag-search {
+  position: sticky;
+  top: 0;
+  padding: 8px 10px;
+  background: inherit;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  z-index: 1;
+}
+
+.tag-dropdown-menu .tag-search input {
+  width: 100%;
+}
+
+.search-result .unlisted-version {
+  text-decoration: line-through;
+}
+
+.search-result .unlisted-label {
+  font-style: italic;
+  opacity: 0.7;
 }
 
 .search-result {
@@ -391,15 +775,14 @@ h4 {
   }
 
 .tabbed-info .content {
-  display: table;
-  height: 1px;
+  display: flex;
+  align-items: stretch;
 }
 
   .tabbed-info .content .script {
-    display: table-cell;
-    width: 100%;
-    max-width: 1px;
-    padding: 0 10px 8px 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 8px 10px;
     font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
     line-height: 1.5;
     color: var(--tabbed-info-script-text-color);
@@ -413,14 +796,26 @@ h4 {
   content: "> ";
 }
 
+/* File-content tabs (e.g. nuget.config) show verbatim text: preserve each line's
+   indentation, wrap long lines, and drop the "> " shell-prompt prefix. pre-wrap is
+   scoped to the line (not the container) so the template's source whitespace between
+   generated line divs is not rendered as blank lines. */
+.tabbed-info .content .script.script-file .script-line {
+  white-space: pre-wrap;
+}
+
+.tabbed-info .content .script.script-file .script-line:before {
+  content: "";
+}
+
 .tabbed-info .content .copy-button {
-  display: table-cell;
+  display: flex;
+  flex: 0 0 auto;
 }
 
 .tabbed-info .content .copy-button button {
-  height: 100%;
+  height: auto;
   min-height: 42px;
-  vertical-align: baseline;
   border-radius: 0px;
 }
 
@@ -497,6 +892,14 @@ h4 {
   width: 16px;
   height: 16px;
   margin-top: 3px;
+}
+
+/* Render the GitHub logo as a mask filled with the text color so it matches the
+   font icons (currentColor) in both light and dark mode instead of staying black. */
+.package-details-info .github-icon {
+  background-color: currentColor;
+  -webkit-mask: url("../images/github-32x32.png") no-repeat center / contain;
+          mask: url("../images/github-32x32.png") no-repeat center / contain;
 }
 
   .package-details-info .tag {
@@ -586,9 +989,111 @@ h4 {
     color: #23527c;
   }
 
+/* Token management page
+-------------------------------------------------- */
+.token-create-form {
+  margin-bottom: 24px;
+}
+
+.token-create-form .form-group {
+  margin-right: 10px;
+}
+
+.token-display {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.token-display code {
+  padding: 6px 10px;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.token-created-alert {
+  border-color: var(--alert-success-border-color);
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+/* Login page
+-------------------------------------------------- */
+.entra-sign-in-btn {
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 1px solid #8c8c8c;
+  background-color: var(--body-bg-color);
+  color: var(--text-color);
+}
+
+.entra-sign-in-btn:hover,
+.entra-sign-in-btn:focus {
+  background-color: var(--tabbed-info-bg-color);
+  color: var(--text-color);
+  border-color: #666;
+}
+
+.login-divider {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.login-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #ccc;
+}
+
+.login-divider span {
+  background-color: var(--body-bg-color);
+  padding: 0 12px;
+  position: relative;
+  color: #888;
+  font-size: 14px;
+}
+
 /* Upload page
 -------------------------------------------------- */
 code {
   background-color: var(--code-bg-color);
   color: var(--code-text-color);
+}
+
+/* Animated edit panel on the Feed Management admin page. */
+.feed-edit-row,
+.feed-edit-row > .feed-edit-cell {
+    background-color: transparent !important;
+}
+
+.feed-edit-row > .feed-edit-cell {
+    padding: 0 !important;
+    border: 0 !important;
+    line-height: 0;
+}
+
+.feed-edit-panel {
+    padding: 12px;
+    line-height: normal;
+    border-left: 3px solid #ddd;
+    margin: 4px 0 8px 8px;
+}
+
+/* Auto-fade confirmation checkmarks after a brief delay. */
+.saved-indicator {
+    animation: saved-indicator-fade 0.4s ease-in 3s forwards;
+}
+
+@keyframes saved-indicator-fade {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
 }

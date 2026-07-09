@@ -5,14 +5,14 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BaGetter.Protocol.Tests;
+namespace BaGetter.Protocol.Tests.Support;
 
 /// <remarks>
 /// Based off: <see href="https://github.com/NuGet/NuGet.Services.Metadata/blob/0c69b9dd47e01125c22f72c1e27cf3cdafc65233/tests/NuGet.Protocol.Catalog.Tests/TestDataHttpMessageHandler.cs"/>
 /// </remarks>
 public class TestDataHttpMessageHandler : HttpMessageHandler
 {
-    private static readonly Dictionary<string, Func<string>> UrlToGetContent = new Dictionary<string, Func<string>>
+    private static readonly Dictionary<string, Func<string>> _urlToGetContent = new Dictionary<string, Func<string>>
     {
         { TestData.ServiceIndexUrl, () => TestData.ServiceIndex },
         { TestData.CatalogIndexUrl, () => TestData.CatalogIndex },
@@ -40,7 +40,7 @@ public class TestDataHttpMessageHandler : HttpMessageHandler
     {
         Func<string> getContent;
         if (request.Method != HttpMethod.Get
-            || !UrlToGetContent.TryGetValue(request.RequestUri.AbsoluteUri, out getContent))
+            || !_urlToGetContent.TryGetValue(request.RequestUri.AbsoluteUri, out getContent))
         {
             return new HttpResponseMessage
             {

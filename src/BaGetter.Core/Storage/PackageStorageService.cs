@@ -2,10 +2,11 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Storage;
 
 public class PackageStorageService : IPackageStorageService
 {
@@ -29,6 +30,7 @@ public class PackageStorageService : IPackageStorageService
     }
 
     public async Task SavePackageContentAsync(
+        string feedSlug,
         Package package,
         Stream packageStream,
         Stream nuspecStream,
@@ -43,10 +45,10 @@ public class PackageStorageService : IPackageStorageService
         var lowercasedId = package.Id.ToLowerInvariant();
         var lowercasedNormalizedVersion = package.NormalizedVersionString.ToLowerInvariant();
 
-        var packagePath = PackagePath(lowercasedId, lowercasedNormalizedVersion);
-        var nuspecPath = NuspecPath(lowercasedId, lowercasedNormalizedVersion);
-        var readmePath = ReadmePath(lowercasedId, lowercasedNormalizedVersion);
-        var iconPath = IconPath(lowercasedId, lowercasedNormalizedVersion);
+        var packagePath = PackagePath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
+        var nuspecPath = NuspecPath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
+        var readmePath = ReadmePath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
+        var iconPath = IconPath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
 
         _logger.LogInformation(
             "Storing package {PackageId} {PackageVersion} at {Path}...",
@@ -140,35 +142,35 @@ public class PackageStorageService : IPackageStorageService
             lowercasedNormalizedVersion);
     }
 
-    public async Task<Stream> GetPackageStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream> GetPackageStreamAsync(string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        return await GetStreamAsync(id, version, PackagePath, cancellationToken);
+        return await GetStreamAsync(feedSlug, id, version, PackagePath, cancellationToken);
     }
 
-    public async Task<Stream> GetNuspecStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream> GetNuspecStreamAsync(string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        return await GetStreamAsync(id, version, NuspecPath, cancellationToken);
+        return await GetStreamAsync(feedSlug, id, version, NuspecPath, cancellationToken);
     }
 
-    public async Task<Stream> GetReadmeStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream> GetReadmeStreamAsync(string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        return await GetStreamAsync(id, version, ReadmePath, cancellationToken);
+        return await GetStreamAsync(feedSlug, id, version, ReadmePath, cancellationToken);
     }
 
-    public async Task<Stream> GetIconStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream> GetIconStreamAsync(string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
-        return await GetStreamAsync(id, version, IconPath, cancellationToken);
+        return await GetStreamAsync(feedSlug, id, version, IconPath, cancellationToken);
     }
 
-    public async Task DeleteAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task DeleteAsync(string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         var lowercasedId = id.ToLowerInvariant();
         var lowercasedNormalizedVersion = version.ToNormalizedString().ToLowerInvariant();
 
-        var packagePath = PackagePath(lowercasedId, lowercasedNormalizedVersion);
-        var nuspecPath = NuspecPath(lowercasedId, lowercasedNormalizedVersion);
-        var readmePath = ReadmePath(lowercasedId, lowercasedNormalizedVersion);
-        var iconPath = IconPath(lowercasedId, lowercasedNormalizedVersion);
+        var packagePath = PackagePath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
+        var nuspecPath = NuspecPath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
+        var readmePath = ReadmePath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
+        var iconPath = IconPath(feedSlug, lowercasedId, lowercasedNormalizedVersion);
 
         await _storage.DeleteAsync(packagePath, cancellationToken);
         await _storage.DeleteAsync(nuspecPath, cancellationToken);
@@ -177,25 +179,44 @@ public class PackageStorageService : IPackageStorageService
     }
 
     private async Task<Stream> GetStreamAsync(
+        string feedSlug,
         string id,
         NuGetVersion version,
-        Func<string, string, string> pathFunc,
+        Func<string, string, string, string> pathFunc,
         CancellationToken cancellationToken)
     {
         var lowercasedId = id.ToLowerInvariant();
         var lowercasedNormalizedVersion = version.ToNormalizedString().ToLowerInvariant();
-        var path = pathFunc(lowercasedId, lowercasedNormalizedVersion);
+        var path = pathFunc(feedSlug, lowercasedId, lowercasedNormalizedVersion);
 
         try
         {
             return await _storage.GetAsync(path, cancellationToken);
         }
+        catch (DirectoryNotFoundException) when (feedSlug == Feed.DefaultSlug)
+        {
+            // Legacy fallback: before multi-feed support, the default feed stored packages
+            // directly under "packages/" without a feed prefix. Try the legacy path.
+            var legacyPath = pathFunc(null, lowercasedId, lowercasedNormalizedVersion);
+            try
+            {
+                return await _storage.GetAsync(legacyPath, cancellationToken);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // The "packages" prefix was lowercased, which was a breaking change
+                // on filesystems that are case sensitive. Handle this case to help
+                // users migrate to the latest version of BaGetter.
+                // See https://github.com/loic-sharma/BaGet/issues/298
+                _logger.LogError(
+                    $"Unable to find the '{PackagesPathPrefix}' folder. " +
+                    "If you've recently upgraded BaGet, please make sure this folder starts with a lowercased letter. " +
+                    "For more information, please see https://github.com/loic-sharma/BaGet/issues/298");
+                throw;
+            }
+        }
         catch (DirectoryNotFoundException)
         {
-            // The "packages" prefix was lowercased, which was a breaking change
-            // on filesystems that are case sensitive. Handle this case to help
-            // users migrate to the latest version of BaGetter.
-            // See https://github.com/loic-sharma/BaGet/issues/298
             _logger.LogError(
                 $"Unable to find the '{PackagesPathPrefix}' folder. " +
                 "If you've recently upgraded BaGet, please make sure this folder starts with a lowercased letter. " +
@@ -204,39 +225,31 @@ public class PackageStorageService : IPackageStorageService
         }
     }
 
-    private string PackagePath(string lowercasedId, string lowercasedNormalizedVersion)
+    private string PackagePath(string feedSlug, string lowercasedId, string lowercasedNormalizedVersion)
     {
-        return Path.Combine(
-            PackagesPathPrefix,
-            lowercasedId,
-            lowercasedNormalizedVersion,
-            $"{lowercasedId}.{lowercasedNormalizedVersion}.nupkg");
+        return feedSlug != null
+            ? Path.Combine(PackagesPathPrefix, feedSlug, lowercasedId, lowercasedNormalizedVersion, $"{lowercasedId}.{lowercasedNormalizedVersion}.nupkg")
+            : Path.Combine(PackagesPathPrefix, lowercasedId, lowercasedNormalizedVersion, $"{lowercasedId}.{lowercasedNormalizedVersion}.nupkg");
     }
 
-    private string NuspecPath(string lowercasedId, string lowercasedNormalizedVersion)
+    private string NuspecPath(string feedSlug, string lowercasedId, string lowercasedNormalizedVersion)
     {
-        return Path.Combine(
-            PackagesPathPrefix,
-            lowercasedId,
-            lowercasedNormalizedVersion,
-            $"{lowercasedId}.nuspec");
+        return feedSlug != null
+            ? Path.Combine(PackagesPathPrefix, feedSlug, lowercasedId, lowercasedNormalizedVersion, $"{lowercasedId}.nuspec")
+            : Path.Combine(PackagesPathPrefix, lowercasedId, lowercasedNormalizedVersion, $"{lowercasedId}.nuspec");
     }
 
-    private string ReadmePath(string lowercasedId, string lowercasedNormalizedVersion)
+    private string ReadmePath(string feedSlug, string lowercasedId, string lowercasedNormalizedVersion)
     {
-        return Path.Combine(
-            PackagesPathPrefix,
-            lowercasedId,
-            lowercasedNormalizedVersion,
-            "readme");
+        return feedSlug != null
+            ? Path.Combine(PackagesPathPrefix, feedSlug, lowercasedId, lowercasedNormalizedVersion, "readme")
+            : Path.Combine(PackagesPathPrefix, lowercasedId, lowercasedNormalizedVersion, "readme");
     }
 
-    private string IconPath(string lowercasedId, string lowercasedNormalizedVersion)
+    private string IconPath(string feedSlug, string lowercasedId, string lowercasedNormalizedVersion)
     {
-        return Path.Combine(
-            PackagesPathPrefix,
-            lowercasedId,
-            lowercasedNormalizedVersion,
-            "icon");
+        return feedSlug != null
+            ? Path.Combine(PackagesPathPrefix, feedSlug, lowercasedId, lowercasedNormalizedVersion, "icon")
+            : Path.Combine(PackagesPathPrefix, lowercasedId, lowercasedNormalizedVersion, "icon");
     }
 }

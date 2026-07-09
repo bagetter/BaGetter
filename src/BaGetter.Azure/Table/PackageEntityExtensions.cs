@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using BaGetter.Core;
+using BaGetter.Core.Entities;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Table
 {
     public static class PackageEntityExtensions
     {

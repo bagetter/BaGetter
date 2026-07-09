@@ -1,10 +1,10 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGetter.Core;
+using BaGetter.Core.Extensions;
 using Microsoft.AspNetCore.Http;
 
-namespace BaGetter.Web;
+namespace BaGetter.Web.Extensions;
 
 public static class HttpRequestExtensions
 {

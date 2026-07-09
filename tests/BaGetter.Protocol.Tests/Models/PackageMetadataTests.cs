@@ -1,5 +1,4 @@
 using System.Text.Json;
-using BaGetter.Protocol.Models;
 using Xunit;
 
 namespace BaGetter.Protocol.Tests.Models;
@@ -39,7 +38,7 @@ public class PackageMetadataTests
         """;
 
         // Act
-        var result = JsonSerializer.Deserialize<PackageMetadata>(stringToDeserialize, _serializerOptions);
+        var result = JsonSerializer.Deserialize<Protocol.Models.PackageMetadata>(stringToDeserialize, _serializerOptions);
 
         // Assert
         Assert.NotNull(result.Tags);
@@ -72,7 +71,7 @@ public class PackageMetadataTests
         """;
 
         // Act
-        var result = JsonSerializer.Deserialize<PackageMetadata>(stringToDeserialize, _serializerOptions);
+        var result = JsonSerializer.Deserialize<Protocol.Models.PackageMetadata>(stringToDeserialize, _serializerOptions);
 
         // Assert
         Assert.NotNull(result.Tags);
@@ -105,7 +104,7 @@ public class PackageMetadataTests
         """;
 
         // Act
-        var result = JsonSerializer.Deserialize<PackageMetadata>(stringToDeserialize, _serializerOptions);
+        var result = JsonSerializer.Deserialize<Protocol.Models.PackageMetadata>(stringToDeserialize, _serializerOptions);
 
         // Assert
         Assert.NotNull(result.Tags);
@@ -138,7 +137,7 @@ public class PackageMetadataTests
         """;
 
         // Act
-        var result = JsonSerializer.Deserialize<PackageMetadata>(stringToDeserialize, _serializerOptions);
+        var result = JsonSerializer.Deserialize<Protocol.Models.PackageMetadata>(stringToDeserialize, _serializerOptions);
 
         // Assert
         Assert.NotNull(result.Tags);

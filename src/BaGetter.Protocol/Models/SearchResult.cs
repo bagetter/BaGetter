@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using BaGetter.Protocol.Internal;
+using BaGetter.Protocol.Converters;
 
 namespace BaGetter.Protocol.Models;
 
@@ -90,6 +90,13 @@ public class SearchResult
     /// </summary>
     [JsonPropertyName("totalDownloads")]
     public long TotalDownloads { get; set; }
+
+    /// <summary>
+    /// Whether the package has any listed version. <c>null</c> unless the search was asked to
+    /// include unlisted packages; <c>false</c> marks a package whose versions are all unlisted.
+    /// </summary>
+    [JsonPropertyName("listed")]
+    public bool? Listed { get; set; }
 
     /// <summary>
     /// The versions of the matched package.

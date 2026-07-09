@@ -4,14 +4,27 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using BaGetter.Core.Authentication;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Content;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Feeds;
+using BaGetter.Core.Indexing;
+using BaGetter.Core.Metadata;
+using BaGetter.Core.Search;
+using BaGetter.Core.ServiceIndex;
 using BaGetter.Core.Statistics;
+using BaGetter.Core.Storage;
+using BaGetter.Core.Upstream;
+using BaGetter.Core.Upstream.Clients;
+using BaGetter.Core.Validation;
 using BaGetter.Protocol;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Extensions;
 
 public static partial class DependencyInjectionExtensions
 {
@@ -72,6 +85,7 @@ public static partial class DependencyInjectionExtensions
         services.AddBaGetterOptions<SearchOptions>(nameof(BaGetterOptions.Search));
         services.AddBaGetterOptions<StorageOptions>(nameof(BaGetterOptions.Storage));
         services.AddBaGetterOptions<StatisticsOptions>(nameof(BaGetterOptions.Statistics));
+        services.AddBaGetterOptions<NugetAuthenticationOptions>(nameof(BaGetterOptions.Authentication));
     }
 
     private static void AddBaGetServices(this IServiceCollection services)
@@ -92,7 +106,18 @@ public static partial class DependencyInjectionExtensions
 
         services.TryAddScoped<DownloadsImporter>();
 
+        services.TryAddScoped<IFeedService, FeedService>();
+        services.TryAddScoped<FeedContext>();
+        services.TryAddScoped<IFeedContext>(provider => provider.GetRequiredService<FeedContext>());
+        services.TryAddScoped<IFeedSettingsResolver, FeedSettingsResolver>();
+        services.TryAddScoped<IUpstreamClientFactory, UpstreamClientFactory>();
+
         services.TryAddTransient<IAuthenticationService, ApiKeyAuthenticationService>();
+        services.TryAddTransient<IUserService, UserService>();
+        services.TryAddTransient<IGroupService, GroupService>();
+        services.TryAddTransient<IPermissionService, PermissionService>();
+        services.TryAddTransient<ITokenService, TokenService>();
+        services.TryAddTransient<IFeedAuthenticationService, FeedAuthenticationService>();
         services.TryAddTransient<IPackageContentService, DefaultPackageContentService>();
         services.TryAddTransient<IPackageDeletionService, PackageDeletionService>();
         services.TryAddTransient<IPackageIndexingService, PackageIndexingService>();
@@ -112,8 +137,6 @@ public static partial class DependencyInjectionExtensions
         services.TryAddTransient<DisabledUpstreamClient>();
         services.TryAddSingleton<NullStorageService>();
         services.TryAddTransient<PackageDatabase>();
-
-        services.TryAddTransient(UpstreamClientFactory);
     }
 
     private static void AddDefaultProviders(this IServiceCollection services)
@@ -221,17 +244,5 @@ public static partial class DependencyInjectionExtensions
         return new NuGetClientFactory(
             httpClient,
             options.PackageSource.ToString());
-    }
-
-    private static IUpstreamClient UpstreamClientFactory(IServiceProvider provider)
-    {
-        var options = provider.GetRequiredService<IOptionsSnapshot<MirrorOptions>>();
-
-        return options.Value.Enabled switch
-        {
-            false => provider.GetRequiredService<DisabledUpstreamClient>(),
-            true when options.Value.Legacy => provider.GetRequiredService<V2UpstreamClient>(),
-            _ => provider.GetRequiredService<V3UpstreamClient>()
-        };
     }
 }

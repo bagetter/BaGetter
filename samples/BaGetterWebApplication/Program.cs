@@ -1,5 +1,7 @@
-using BaGetter;
+using BaGetter.Core.Extensions;
+using BaGetter.Database.Sqlite;
 using BaGetter.Web;
+using BaGetter.Web.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 

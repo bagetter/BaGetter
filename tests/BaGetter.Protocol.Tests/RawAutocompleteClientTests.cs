@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
-using BaGetter.Protocol.Internal;
+using BaGetter.Protocol.Search;
+using BaGetter.Protocol.Tests.Support;
 using Xunit;
 
 namespace BaGetter.Protocol.Tests;

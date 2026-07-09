@@ -1,4 +1,4 @@
-﻿namespace BaGetter.Core;
+﻿namespace BaGetter.Core.Configuration;
 
 public enum MirrorAuthenticationType
 {

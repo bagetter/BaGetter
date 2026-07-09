@@ -1,4 +1,4 @@
-namespace BaGetter.Core;
+namespace BaGetter.Core.Configuration;
 
 /// <summary>
 /// How BaGetter should interpret package deletion requests.

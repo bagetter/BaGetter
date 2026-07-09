@@ -1,7 +1,7 @@
-using Azure;
 using System.Net;
+using Azure;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Extensions
 {
 
     internal static class StorageExceptionExtensions

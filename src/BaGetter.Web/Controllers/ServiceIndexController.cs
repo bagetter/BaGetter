@@ -1,19 +1,17 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGetter.Authentication;
-using BaGetter.Core;
+using BaGetter.Core.ServiceIndex;
 using BaGetter.Protocol.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BaGetter.Web;
+namespace BaGetter.Web.Controllers;
 
 /// <summary>
 /// The NuGet Service Index. This aids NuGet client to discover this server's services.
+/// This is an unauthenticated endpoint, as it is used by clients to discover the endpoint URLs for this server.
 /// </summary>
 
-[Authorize(AuthenticationSchemes = AuthenticationConstants.NugetBasicAuthenticationScheme, Policy = AuthenticationConstants.NugetUserPolicy)]
 public class ServiceIndexController : Controller
 {
     private readonly IServiceIndexService _serviceIndex;

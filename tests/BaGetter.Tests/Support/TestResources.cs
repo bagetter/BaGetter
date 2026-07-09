@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace BaGetter.Tests;
+namespace BaGetter.Tests.Support;
 
 public static class TestResources
 {

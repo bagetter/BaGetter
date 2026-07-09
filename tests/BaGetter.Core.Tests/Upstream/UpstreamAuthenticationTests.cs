@@ -12,12 +12,14 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Extensions;
 using Xunit;
 
 namespace BaGetter.Core.Tests.Upstream;
 public class UpstreamAuthenticationTests
 {
-    private static readonly ServiceIndexResponse TestServices = new()
+    private static readonly ServiceIndexResponse _testServices = new()
     {
         Version = "3.0.0",
         Resources = [
@@ -144,7 +146,7 @@ public class UpstreamAuthenticationTests
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = JsonContent.Create(TestServices)
+                Content = JsonContent.Create(_testServices)
             })
             .Callback<HttpRequestMessage, CancellationToken>((r, c) =>
             {

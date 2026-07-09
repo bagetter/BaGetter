@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using BaGetter.Core;
+using BaGetter.Core.Entities;
 using BaGetter.Database.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,19 +10,20 @@ namespace BaGetter.Tests;
 
 public class HostIntegrationTests
 {
-    private readonly string DatabaseTypeKey = "Database:Type";
-    private readonly string ConnectionStringKey = "Database:ConnectionString";
+    private readonly string _databaseTypeKey = "Database:Type";
+    private readonly string _connectionStringKey = "Database:ConnectionString";
 
     [Fact]
     public void ThrowsIfDatabaseTypeInvalid()
     {
         var provider = BuildServiceProvider(new Dictionary<string, string>
         {
-            { DatabaseTypeKey, "InvalidType" }
+            { _databaseTypeKey, "InvalidType" }
         });
 
+        using var scope = provider.CreateScope();
         Assert.Throws<InvalidOperationException>(
-            () => provider.GetRequiredService<IContext>());
+            () => scope.ServiceProvider.GetRequiredService<IContext>());
     }
 
     [Fact]
@@ -30,11 +31,12 @@ public class HostIntegrationTests
     {
         var provider = BuildServiceProvider(new Dictionary<string, string>
         {
-            { DatabaseTypeKey, "Sqlite" },
-            { ConnectionStringKey, "..." }
+            { _databaseTypeKey, "Sqlite" },
+            { _connectionStringKey, "..." }
         });
 
-        Assert.NotNull(provider.GetRequiredService<IContext>());
+        using var scope = provider.CreateScope();
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<IContext>());
     }
 
     [Fact]
@@ -42,11 +44,12 @@ public class HostIntegrationTests
     {
         var provider = BuildServiceProvider(new Dictionary<string, string>
         {
-            { DatabaseTypeKey, "Sqlite" },
-            { ConnectionStringKey, "..." }
+            { _databaseTypeKey, "Sqlite" },
+            { _connectionStringKey, "..." }
         });
 
-        Assert.NotNull(provider.GetRequiredService<SqliteContext>());
+        using var scope = provider.CreateScope();
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<SqliteContext>());
     }
 
     [Fact]
@@ -54,7 +57,8 @@ public class HostIntegrationTests
     {
         var provider = BuildServiceProvider();
 
-        var context = provider.GetRequiredService<IContext>();
+        using var scope = provider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<IContext>();
 
         Assert.IsType<SqliteContext>(context);
     }

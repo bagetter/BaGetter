@@ -1,4 +1,4 @@
-namespace BaGetter.Core;
+namespace BaGetter.Core.Configuration;
 
 /// <summary>
 /// How BaGetter should react to a package being pushed that already exists.

@@ -7,13 +7,13 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 
-namespace BaGetter.Tests;
+namespace BaGetter.Tests.Support;
 
 public class TestableHttpSource : HttpSource
 {
     public static TestableHttpSource Create(SourceRepository source, HttpClient client)
     {
-        Func<Task<HttpHandlerResource>> factory = () => source.GetResourceAsync<HttpHandlerResource>();
+        var factory = () => source.GetResourceAsync<HttpHandlerResource>();
 
         var httpCacheDirectory = Path.Combine(
             Path.GetTempPath(),

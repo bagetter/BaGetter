@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using BaGetter.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -35,7 +36,7 @@ public class ApiIntegrationTests : IDisposable
         var content = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(TestData.ServiceIndex, content);
+        Assert.Equal(TestData.TestData.ServiceIndex, content);
     }
 
     [Fact]

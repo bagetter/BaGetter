@@ -5,13 +5,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace BaGetter.Core.Extensions;
 
 public static class HealthCheckExtensions
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
+    private static readonly JsonSerializerOptions _serializerOptions = new()
     {
         WriteIndented = true,
         Converters = { new JsonStringEnumConverter() }
@@ -41,7 +42,7 @@ public static class HealthCheckExtensions
         await JsonSerializer.SerializeAsync(
             stream,
             entries.ToDictionary(entry => entry.Key, entry => entry.Value),
-            SerializerOptions,
+            _serializerOptions,
             cancellationToken);
     }
 

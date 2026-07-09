@@ -1,8 +1,9 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Indexing;
 
 /// <summary>
 /// The result of attempting to index a symbol package.
@@ -34,8 +35,10 @@ public interface ISymbolIndexingService
     /// <summary>
     /// Attempt to index a new symbol package.
     /// </summary>
+    /// <param name="feedId">The feed's id.</param>
+    /// <param name="feedSlug">The feed's slug, used to prefix storage paths.</param>
     /// <param name="stream">The stream containing the symbol package's content.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>The result of the attempted indexing operation.</returns>
-    Task<SymbolIndexingResult> IndexAsync(Stream stream, CancellationToken cancellationToken);
+    Task<SymbolIndexingResult> IndexAsync(Guid feedId, string feedSlug, Stream stream, CancellationToken cancellationToken);
 }

@@ -1,0 +1,161 @@
+@page
+@model BaGetter.Web.Pages.ConnectModel
+@using BaGetter.Core
+@using BaGetter.Core.Configuration
+@using BaGetter.Core.Feeds
+@using Microsoft.Extensions.Options
+@inject IUrlGenerator URL
+@inject IOptionsSnapshot<NugetAuthenticationOptions> AuthOptions
+@inject IFeedContext FeedContext
+
+@{
+    ViewData["Title"] = "Connect — " + FeedContext.CurrentFeed.Name;
+
+    var serviceIndexUrl = URL.GetServiceIndexUrl();
+    var feedSlug = FeedContext.CurrentFeed.Slug;
+
+    var authMode = AuthOptions.Value.Mode;
+    var hasEntra = authMode is AuthenticationMode.Entra or AuthenticationMode.Hybrid;
+    var hasLocal = authMode is AuthenticationMode.Local or AuthenticationMode.Hybrid;
+    var requiresAuth = authMode != AuthenticationMode.Config;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+
+@if (requiresAuth && !isAuthenticated)
+{
+    <div class="text-center" style="margin-top: 60px;">
+        <h2>Sign in required</h2>
+        <p>You need to sign in to view connection instructions.</p>
+        <a asp-page="/Login" class="btn btn-primary">Sign in</a>
+    </div>
+    return;
+}
+
+<div class="col-sm-12">
+    <h1>Connect</h1>
+    <hr class="breadcrumb-divider" />
+
+    <div>Add this feed as a NuGet source using the service index below.</div>
+
+    <div class="feed-url" x-data="{ copied: false }" style="margin-top:12px">
+        <span class="feed-url-label">Service index:</span>
+        <code id="feed-service-index-url">@serviceIndexUrl</code>
+        <button class="btn btn-default btn-sm"
+                type="button"
+                title="Copy feed URL"
+                @@click="window.baget.copyTextToClipboard(document.getElementById('feed-service-index-url').textContent, $el); copied = true; setTimeout(() => copied = false, 2000)">
+            <span x-show="!copied"><i class="ms-Icon ms-Icon--Copy"></i> Copy</span>
+            <span x-show="copied" x-cloak>Copied!</span>
+        </button>
+    </div>
+
+    @if (hasEntra || hasLocal)
+    {
+        <div class="alert alert-warning" style="margin-top:16px">
+            <strong>Authentication required.</strong>
+            <br />
+            @if (hasEntra && hasLocal)
+            {
+                <span>
+                    Entra (Microsoft) users: sign in to the web UI to generate a personal access token (PAT), then use it as the password / API key below.
+                </span>
+                <br />
+                <span>
+                    Local accounts: use your username and password.
+                </span>
+            }
+            else if (hasEntra)
+            {
+                <span>
+                    Sign in with your Microsoft account to generate a personal access token (PAT), then use it as the password / API key below.
+                </span>
+            }
+            else
+            {
+                <span>
+                    Use your local account username and password below.
+                </span>
+            }
+        </div>
+    }
+
+    <div class="tabbed-info" x-data="{ tabs: tabs, active: tabs[0] }">
+        <ul class="nav">
+            <template x-for="tab in tabs" :key="tab.name">
+                <li x-bind:class="{ 'active': active.name === tab.name }">
+                    <a href="#" x-text="tab.name" @@click="active = tab"></a>
+                </li>
+            </template>
+        </ul>
+
+        <div class="content">
+            <div class="script" x-bind:class="{ 'script-file': active.file }">
+                <template x-for="line in active.content">
+                    <div class="script-line" x-text="line"></div>
+                </template>
+            </div>
+
+            <div class="copy-button">
+                <button class="btn btn-default btn-warning"
+                        type="button"
+                        data-toggle="popover"
+                        data-placement="bottom"
+                        data-content="Copied"
+                        @@click="window.baget.copyTextToClipboard(active.content.join('\n'), $el)">
+                    <i class="ms-Icon ms-Icon--Copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="icon-text alert alert-warning">
+            For more information, please refer to
+            <a target="_blank"
+               rel="noopener noreferrer"
+               x-bind:href="active.documentation"
+               x-text="`${active.name}'s documentation`">
+            </a>.
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    let tabs = [
+        {
+            name: ".NET CLI",
+            content: ['dotnet nuget add source @serviceIndexUrl --name "@feedSlug" --username USERNAME --password API_KEY --store-password-in-clear-text'],
+            documentation: "https://learn.microsoft.com/dotnet/core/tools/dotnet-nuget-add-source",
+        },
+
+        {
+            name: "NuGet",
+            content: ['nuget sources Add -Name "@feedSlug" -Source @serviceIndexUrl -Username USERNAME -Password API_KEY'],
+            documentation: "https://learn.microsoft.com/nuget/reference/cli-reference/cli-ref-sources",
+        },
+
+        {
+            name: "nuget.config",
+            file: true,
+            content: [
+                '<?xml version="1.0" encoding="utf-8"?>',
+                '<configuration>',
+                '  <packageSources>',
+                '    <add key="@feedSlug" value="@serviceIndexUrl" />',
+                '  </packageSources>',
+                '  <packageSourceCredentials>',
+                '    <@feedSlug>',
+                '      <add key="Username" value="USERNAME" />',
+                '      <add key="ClearTextPassword" value="API_KEY" />',
+                '    </@feedSlug>',
+                '  </packageSourceCredentials>',
+                '</configuration>',
+            ],
+            documentation: "https://learn.microsoft.com/nuget/reference/nuget-config-file",
+        },
+
+        {
+            name: "Paket",
+            content: ['source @serviceIndexUrl username: "USERNAME" password: "API_KEY"'],
+            documentation: "https://fsprojects.github.io/Paket/nuget-dependencies.html",
+        },
+    ];
+</script>

@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BaGetter.Protocol;
+namespace BaGetter.Protocol.Extensions;
 
 internal static class HttpClientExtensions
 {

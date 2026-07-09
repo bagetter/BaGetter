@@ -1,10 +1,12 @@
 using System;
 using BaGetter.Core;
-using BaGetter.Gcp;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Extensions;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace BaGetter;
+namespace BaGetter.Gcp;
 
 public static class GoogleCloudApplicationExtensions
 {

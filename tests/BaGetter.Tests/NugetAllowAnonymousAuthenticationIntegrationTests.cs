@@ -1,13 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using BaGetter.Core;
-using Microsoft.AspNetCore.Http;
+using BaGetter.Tests.Support;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 using Xunit.Abstractions;

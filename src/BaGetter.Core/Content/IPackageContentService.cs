@@ -1,10 +1,11 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Content;
 
 /// <summary>
 /// The Package Content resource, used to download NuGet packages and to fetch other metadata.
@@ -17,10 +18,14 @@ public interface IPackageContentService
     /// Get a package's versions, or null if the package does not exist.
     /// See: https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource#enumerate-package-versions
     /// </summary>
+    /// <param name="feedId">The feed's id.</param>
+    /// <param name="feedSlug">The feed's slug, used to prefix storage paths.</param>
     /// <param name="packageId">The package ID.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package's versions, or null if the package does not exist.</returns>
     Task<PackageVersionsResponse> GetPackageVersionsOrNullAsync(
+        Guid feedId,
+        string feedSlug,
         string packageId,
         CancellationToken cancellationToken);
 
@@ -28,6 +33,8 @@ public interface IPackageContentService
     /// Download a package, or null if the package does not exist.
     /// See: https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource#download-package-content-nupkg
     /// </summary>
+    /// <param name="feedId">The feed's id.</param>
+    /// <param name="feedSlug">The feed's slug, used to prefix storage paths.</param>
     /// <param name="packageId">The package ID, e.g. "BaGetter.Protocol".</param>
     /// <param name="packageVersion">The package's version, e.g. "1.2.0".</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
@@ -35,6 +42,8 @@ public interface IPackageContentService
     /// The package's content stream, or null if the package does not exist. The stream may not be seekable.
     /// </returns>
     Task<Stream> GetPackageContentStreamOrNullAsync(
+        Guid feedId,
+        string feedSlug,
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken);
@@ -43,6 +52,8 @@ public interface IPackageContentService
     /// Download a package's manifest (nuspec), or null if the package does not exist.
     /// See: https://docs.microsoft.com/en-us/nuget/api/package-base-address-resource#download-package-manifest-nuspec
     /// </summary>
+    /// <param name="feedId">The feed's id.</param>
+    /// <param name="feedSlug">The feed's slug, used to prefix storage paths.</param>
     /// <param name="packageId">The package id.</param>
     /// <param name="packageVersion">The package's version.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
@@ -50,6 +61,8 @@ public interface IPackageContentService
     /// The package's manifest stream, or null if the package does not exist. The stream may not be seekable.
     /// </returns>
     Task<Stream> GetPackageManifestStreamOrNullAsync(
+        Guid feedId,
+        string feedSlug,
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken);
@@ -57,6 +70,8 @@ public interface IPackageContentService
     /// <summary>
     /// Download a package's readme, or null if the package or readme does not exist.
     /// </summary>
+    /// <param name="feedId">The feed's id.</param>
+    /// <param name="feedSlug">The feed's slug, used to prefix storage paths.</param>
     /// <param name="id">The package id.</param>
     /// <param name="version">The package's version.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
@@ -64,6 +79,8 @@ public interface IPackageContentService
     /// The package's readme stream, or null if the package or readme does not exist. The stream may not be seekable.
     /// </returns>
     Task<Stream> GetPackageReadmeStreamOrNullAsync(
+        Guid feedId,
+        string feedSlug,
         string id,
         NuGetVersion version,
         CancellationToken cancellationToken);
@@ -71,6 +88,8 @@ public interface IPackageContentService
     /// <summary>
     /// Download a package's icon, or null if the package or icon does not exist.
     /// </summary>
+    /// <param name="feedId">The feed's id.</param>
+    /// <param name="feedSlug">The feed's slug, used to prefix storage paths.</param>
     /// <param name="id">The package id.</param>
     /// <param name="version">The package's version.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
@@ -78,6 +97,8 @@ public interface IPackageContentService
     /// The package's icon stream, or null if the package or icon does not exist. The stream may not be seekable.
     /// </returns>
     Task<Stream> GetPackageIconStreamOrNullAsync(
+        Guid feedId,
+        string feedSlug,
         string id,
         NuGetVersion version,
         CancellationToken cancellationToken);

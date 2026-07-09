@@ -1,10 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using BaGetter.Web;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Constraints;
 
-namespace BaGetter;
+namespace BaGetter.Web;
 
 [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Would be a breaking change since it's part of the public API")]
 public class BaGetterEndpointBuilder
@@ -12,6 +11,7 @@ public class BaGetterEndpointBuilder
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapRazorPages();
+        endpoints.MapControllers();
 
         MapServiceIndexRoutes(endpoints);
         MapPackagePublishRoutes(endpoints);

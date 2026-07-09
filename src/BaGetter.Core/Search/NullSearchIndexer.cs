@@ -1,7 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Search;
 
 /// <summary>
 /// A no-op indexer, used when search does not need to index packages.

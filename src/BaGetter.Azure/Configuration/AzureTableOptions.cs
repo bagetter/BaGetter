@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Configuration
 {
     public class AzureTableOptions
     {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Storage;
 
 /// <summary>
 /// A low-level storage abstraction.

@@ -1,8 +1,8 @@
 using System.Text.Json;
-using BaGetter.Protocol.Internal;
+using BaGetter.Protocol.Converters;
 using Xunit;
 
-namespace BaGetter.Protocol.Tests;
+namespace BaGetter.Protocol.Tests.Converters;
 
 public class PackageDependencyRangeJsonConverterTests
 {

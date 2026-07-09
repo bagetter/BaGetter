@@ -1,19 +1,83 @@
 ﻿@page
-@inject IUrlGenerator _url
+@using BaGetter.Core
+@using BaGetter.Core.Configuration
+@using BaGetter.Core.Feeds
+@using Microsoft.Extensions.Options
+@inject IUrlGenerator URL
+@inject IOptionsSnapshot<NugetAuthenticationOptions> AuthOptions
+@inject IFeedContext FeedContext
 
 @{
-    ViewData["Title"] = "Upload package";
+    ViewData["Title"] = "Upload \u2014 " + FeedContext.CurrentFeed.Name;
 
     var baseUrl = Url.PageLink("/Index");
-    var publishUrl = _url.GetPackagePublishResourceUrl();
-    var serviceIndexUrl = _url.GetServiceIndexUrl();
+    var publishUrl = URL.GetPackagePublishResourceUrl();
+    var serviceIndexUrl = URL.GetServiceIndexUrl();
+
+    var authMode = AuthOptions.Value.Mode;
+    var hasEntra = authMode is AuthenticationMode.Entra or AuthenticationMode.Hybrid;
+    var hasLocal = authMode is AuthenticationMode.Local or AuthenticationMode.Hybrid;
+    var requiresAuth = authMode != AuthenticationMode.Config;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+
+@if (requiresAuth && !isAuthenticated)
+{
+    <div class="text-center" style="margin-top: 60px;">
+        <h2>Sign in required</h2>
+        <p>You need to sign in to view upload instructions.</p>
+        <a asp-page="/Login" class="btn btn-primary">Sign in</a>
+    </div>
+    return;
 }
 
 <div class="col-sm-12">
     <h1>Upload</h1>
     <hr class="breadcrumb-divider" />
 
-    <div>You can push packages using the service index <code>@serviceIndexUrl</code>.</div>
+    <div>You can push packages using the service index below.</div>
+
+    <div class="feed-url" x-data="{ copied: false }" style="margin-top:12px">
+        <span class="feed-url-label">Service index:</span>
+        <code id="feed-service-index-url">@serviceIndexUrl</code>
+        <button class="btn btn-default btn-sm"
+                type="button"
+                title="Copy feed URL"
+                @@click="window.baget.copyTextToClipboard(document.getElementById('feed-service-index-url').textContent, $el); copied = true; setTimeout(() => copied = false, 2000)">
+            <span x-show="!copied"><i class="ms-Icon ms-Icon--Copy"></i> Copy</span>
+            <span x-show="copied" x-cloak>Copied!</span>
+        </button>
+    </div>
+
+    @if (hasEntra || hasLocal)
+    {
+        <div class="alert alert-warning" style="margin-top:16px">
+            <strong>Authentication required.</strong>
+            <br />
+            @if (hasEntra && hasLocal)
+            {
+                <span>
+                    Entra (Microsoft) users: sign in to the web UI to generate a personal access token (PAT), then use it as the API key.
+                </span>
+                <br />
+                <span>
+                    Local accounts: use your username and password with basic authentication.
+                </span>
+            }
+            else if (hasEntra)
+            {
+                <span>
+                    Sign in with your Microsoft account to generate a personal access token (PAT), then use it as the API key when pushing packages.
+                </span>
+            }
+            else
+            {
+                <span>
+                    Use your local account username and password with basic authentication when pushing packages.
+                </span>
+            }
+        </div>
+    }
 
     <div class="tabbed-info" x-data="{ tabs: tabs, active: tabs[0] }">
         <ul class="nav">
@@ -58,13 +122,13 @@
     let tabs = [
         {
             name: ".NET CLI",
-            content: ["dotnet nuget push -s @serviceIndexUrl package.nupkg"],
+            content: ["dotnet nuget push -s @serviceIndexUrl -k YOUR_API_KEY package.nupkg"],
             documentation: "https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-push",
         },
 
         {
             name: "NuGet",
-            content: ["nuget push -Source @serviceIndexUrl package.nupkg"],
+            content: ["nuget push -Source @serviceIndexUrl -ApiKey YOUR_API_KEY package.nupkg"],
             documentation: "https://docs.microsoft.com/en-us/nuget/tools/cli-ref-push",
         },
 

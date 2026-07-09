@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BaGetter.Protocol.Internal;
-using BaGetter.Protocol.Models;
+using BaGetter.Protocol.Catalog;
+using BaGetter.Protocol.Tests.Support;
 using Xunit;
 
 namespace BaGetter.Protocol.Tests;

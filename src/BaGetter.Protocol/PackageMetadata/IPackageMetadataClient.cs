@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Protocol;
+namespace BaGetter.Protocol.PackageMetadata;
 
 /// <summary>
 /// The Package Metadata client, used to fetch packages' metadata.

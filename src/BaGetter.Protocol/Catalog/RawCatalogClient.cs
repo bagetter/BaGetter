@@ -3,9 +3,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Protocol.Extensions;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Protocol.Internal;
+namespace BaGetter.Protocol.Catalog;
 
 public class RawCatalogClient : ICatalogClient
 {

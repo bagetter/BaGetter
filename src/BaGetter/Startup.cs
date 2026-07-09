@@ -1,16 +1,27 @@
 using System;
-using BaGetter.Authentication;
+using BaGetter.Aliyun;
+using BaGetter.Aws;
+using BaGetter.Azure;
+using BaGetter.DataProtection;
 using BaGetter.Core;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Entities;
 using BaGetter.Core.Extensions;
+using BaGetter.Core.Search;
+using BaGetter.Core.Storage;
+using BaGetter.Database.MySql;
+using BaGetter.Database.PostgreSql;
+using BaGetter.Database.Sqlite;
+using BaGetter.Database.SqlServer;
+using BaGetter.Gcp;
 using BaGetter.Tencent;
 using BaGetter.Web;
-using BaGetter.Web.Authentication;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Authorization;
+using BaGetter.Web.Extensions;
+using BaGetter.Web.Middleware;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,10 +33,12 @@ namespace BaGetter;
 public class Startup
 {
     private IConfiguration Configuration { get; }
+    private IWebHostEnvironment Environment { get; }
 
-    public Startup(IConfiguration configuration)
+    public Startup(IConfiguration configuration, IWebHostEnvironment environment)
     {
         Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        Environment = environment ?? throw new ArgumentNullException(nameof(environment));
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -45,11 +58,26 @@ public class Startup
         services.AddTransient(DependencyInjectionExtensions.GetServiceFromProviders<ISearchService>);
         services.AddTransient(DependencyInjectionExtensions.GetServiceFromProviders<ISearchIndexer>);
 
-        services.AddSingleton<IConfigureOptions<MvcRazorRuntimeCompilationOptions>, ConfigureRazorRuntimeCompilation>();
-
         services.AddHealthChecks();
 
         services.AddCors();
+
+        ConfigureDataProtection(services);
+    }
+
+    private void ConfigureDataProtection(IServiceCollection services)
+    {
+        // Persist the Data Protection key ring through BaGetter's storage abstraction so it survives
+        // container restarts and new revisions, for every storage backend (FileSystem, Azure Blob,
+        // S3, GCS, OSS, COS). Without persistence the key ring lives in the container's ephemeral
+        // filesystem and is regenerated on every restart, invalidating all existing antiforgery and
+        // auth cookies — form POSTs then fail with HTTP 400 until users clear their cookies.
+        services
+            .AddDataProtection()
+            .SetApplicationName("BaGetter");
+
+        services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(
+            sp => new ConfigureStorageXmlRepository(sp));
     }
 
     private void ConfigureBaGetterApplication(BaGetterApplication app)
@@ -57,6 +85,9 @@ public class Startup
         //Add base authentication and authorization
         app.AddNugetBasicHttpAuthentication();
         app.AddNugetBasicHttpAuthorization();
+
+        // Add Entra ID (OIDC) authentication when configured
+        app.AddEntraAuthentication(Configuration, Environment);
 
         // Add database providers.
         app.AddAzureTableDatabase();
@@ -91,8 +122,14 @@ public class Startup
         app.UseForwardedHeaders();
         app.UsePathBase(options.PathBase);
 
+        // Liveness probe
+        // registered before FeedResolutionMiddleware so it never resolves the DbContext or other services.
+        app.UseHealthChecks("/livez", new HealthCheckOptions { Predicate = _ => false });
+
+        app.UseMiddleware<FeedStaticFilePathMiddleware>();
         app.UseStaticFiles();
         app.UseAuthentication();
+        app.UseMiddleware<FeedResolutionMiddleware>();
         app.UseRouting();
         app.UseAuthorization();
 

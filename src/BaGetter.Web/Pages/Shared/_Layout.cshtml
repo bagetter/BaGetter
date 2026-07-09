@@ -1,10 +1,24 @@
+@using BaGetter.Core.Authentication
+@using BaGetter.Core.Configuration
+@using BaGetter.Core.Entities
+@using BaGetter.Core.Feeds
+@using BaGetter.Web.Authentication
 @using BaGetter.Web.Extensions
 @using BaGetter.Web.Helper
-@using Microsoft.AspNetCore.Mvc.TagHelpers
 @using Microsoft.Extensions.Options
 
 @inject IOptions<StatisticsOptions> StatisticsOptions
+@inject IOptions<NugetAuthenticationOptions> AuthOptions
 @inject ApplicationVersion Version
+@inject IFeedService FeedService
+@inject IFeedContext FeedContext
+@inject IPermissionService PermissionService
+
+@{
+    var requiresAuth = AuthOptions.Value.Mode != AuthenticationMode.Config;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var showContent = !requiresAuth || isAuthenticated;
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -17,9 +31,9 @@
 
     <link rel="shortcut icon" href="~/_content/BaGetter.Web/favicon.ico">
 
-    <link rel="stylesheet" href="~/_content/BaGetter.Web/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/_content/BaGetter.Web/lib/office-ui-fabric-core/dist/css/fabric.min.css" />
-    <link rel="stylesheet" href="~/_content/BaGetter.Web/css/site.css" />
+    <link rel="stylesheet" href="~/_content/BaGetter.Web/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/_content/BaGetter.Web/lib/office-ui-fabric-core/dist/css/fabric.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/_content/BaGetter.Web/css/site.css" asp-append-version="true" />
 
     <title>@ViewData["Title"] - BaGetter</title>
 </head>
@@ -30,11 +44,50 @@
                 <div class="row">
                     <div id="navbar" class="col-sm-12">
                         <ul class="nav navbar-nav" role="tablist">
-                            <li role="presentation"><a asp-area="" asp-page="/Index" role="tab" nav-link><span>Packages</span></a></li>
-                            <li role="presentation"><a asp-area="" asp-page="/Upload" role="tab" nav-link><span>Upload</span></a></li>
-                            @if (StatisticsOptions.Value.EnableStatisticsPage)
+                            @if (showContent)
                             {
-                                <li role="presentation"><a asp-area="" asp-page="/Statistics" role="tab" nav-link><span>Statistics</span></a></li>
+                                var allFeeds = await FeedService.GetAllFeedsAsync(Context.RequestAborted);
+                                var accessibleFeeds = await FeedAccessGuard.FilterAccessibleFeedsAsync(
+                                    Context, allFeeds, PermissionService, AuthOptions.Value.Mode, Context.RequestAborted);
+                                var currentSlug = FeedContext.CurrentFeed?.Slug ?? Feed.DefaultSlug;
+                                var canPush = await FeedAccessGuard.CanPushToCurrentFeedAsync(
+                                    Context, FeedContext, PermissionService, AuthOptions.Value.Mode, Context.RequestAborted);
+                                // The current feed is pullable iff it survived the accessible-feeds filter above.
+                                var canPull = FeedContext.CurrentFeed != null
+                                    && accessibleFeeds.Any(f => f.Id == FeedContext.CurrentFeed.Id);
+
+                                @if (accessibleFeeds.Count > 1)
+                                {
+                                    <li role="presentation" class="dropdown">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                            <span>Feed: @(FeedContext.CurrentFeed?.Name ?? "—")</span>
+                                            <span class="caret"></span>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            @foreach (var feed in accessibleFeeds)
+                                            {
+                                                var feedHref = feed.Slug == Feed.DefaultSlug ? "/" : "/feeds/" + feed.Slug;
+                                                var isActive = feed.Slug == currentSlug;
+                                                <li class="@(isActive ? "active" : "")">
+                                                    <a href="@feedHref">@feed.Name</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </li>
+                                }
+                                <li role="presentation"><a asp-area="" asp-page="/Index" role="tab" nav-link><span>Packages</span></a></li>
+                                @if (canPull)
+                                {
+                                    <li role="presentation"><a asp-area="" asp-page="/Connect" role="tab" nav-link><span>Connect</span></a></li>
+                                }
+                                @if (canPush)
+                                {
+                                    <li role="presentation"><a asp-area="" asp-page="/Upload" role="tab" nav-link><span>Upload</span></a></li>
+                                }
+                                @if (StatisticsOptions.Value.EnableStatisticsPage && canPull)
+                                {
+                                    <li role="presentation"><a asp-area="" asp-page="/Statistics" role="tab" nav-link><span>Statistics</span></a></li>
+                                }
                             }
                             <li role="presentation">
                                 <a role="tab" href="https://www.bagetter.com/docs" target="_blank" rel="noopener noreferrer">
@@ -42,33 +95,37 @@
                                 </a>
                             </li>
                         </ul>
+                        @await Html.PartialAsync("_LoginPartial")
                     </div>
                 </div>
             </div>
-            <div class="container search-container">
-                <div class="row">
-                    <form class="col-sm-12" action="@Url.Page("/Index")" method="get">
-                        <div class="input-group">
-                            <input type="text"
-                                   name="q"
-                                   value="@ViewData["SearchQuery"]"
-                                   class="form-control"
-                                   autoComplete="off"
-                                   placeholder="Search packages..." />
+            @if (showContent)
+            {
+                <div class="container search-container">
+                    <div class="row">
+                        <form class="col-sm-12" action="@Url.Page("/Index")" method="get">
+                            <div class="input-group">
+                                <input type="text"
+                                       name="q"
+                                       value="@ViewData["SearchQuery"]"
+                                       class="form-control"
+                                       autoComplete="off"
+                                       placeholder="Search packages..." />
 
-                            <span class="input-group-btn">
-                                <button type="submit"
-                                        class="btn btn-default"
-                                        title="Search for packages">
-                                    <span class="ms-Icon ms-Icon--Search" aria-hidden="true"></span>
-                                </button>
-                            </span>
-                        </div>
+                                <span class="input-group-btn">
+                                    <button type="submit"
+                                            class="btn btn-default"
+                                            title="Search for packages">
+                                        <span class="ms-Icon ms-Icon--Search" aria-hidden="true"></span>
+                                    </button>
+                                </span>
+                            </div>
 
-                        @await RenderSectionAsync("SearchForm", required: false)
-                    </form>
+                            @await RenderSectionAsync("SearchForm", required: false)
+                        </form>
+                    </div>
                 </div>
-            </div>
+            }
         </nav>
     </header>
 
@@ -83,10 +140,10 @@
         @Html.AddReleaseInformationAsComment()
     </footer>
 
-    <script src="~/_content/BaGetter.Web/lib/alpinejs/dist/alpine.js"></script>
+    <script src="~/_content/BaGetter.Web/lib/alpinejs/dist/alpine.js" asp-append-version="true"></script>
 
-    <script src="~/_content/BaGetter.Web/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/_content/BaGetter.Web/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="~/_content/BaGetter.Web/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/_content/BaGetter.Web/lib/bootstrap/dist/js/bootstrap.min.js" asp-append-version="true"></script>
     <script src="~/_content/BaGetter.Web/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)

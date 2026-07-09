@@ -4,10 +4,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Protocol.Extensions;
 using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 
-namespace BaGetter.Protocol.Internal;
+namespace BaGetter.Protocol.PackageContent;
 
 /// <summary>
 /// The client to interact with an upstream source's Package Content resource.

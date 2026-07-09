@@ -5,11 +5,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
-using BaGetter.Core;
+using BaGetter.Azure.Configuration;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Metadata;
+using BaGetter.Core.Search;
 using BaGetter.Protocol.Models;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Table
 {
     public class TableSearchService : ISearchService
     {
@@ -72,7 +75,7 @@ namespace BaGetter.Azure
             return Task.FromResult(response);
         }
 
-        public Task<DependentsResponse> FindDependentsAsync(string packageId, CancellationToken cancellationToken)
+        public Task<DependentsResponse> FindDependentsAsync(Guid feedId, string packageId, CancellationToken cancellationToken)
         {
             var response = _responseBuilder.BuildDependents(new List<PackageDependent>());
 

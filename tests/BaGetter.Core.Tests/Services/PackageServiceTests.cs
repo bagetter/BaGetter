@@ -4,15 +4,22 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Feeds;
+using BaGetter.Core.Indexing;
+using BaGetter.Core.Upstream;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Versioning;
 using Xunit;
 
-namespace BaGetter.Core.Tests;
+namespace BaGetter.Core.Tests.Services;
 
 public class PackageServiceTests
 {
+    private static readonly Guid _feedId = Guid.Empty;
+    private const string FeedSlug = "default";
+
     public class FindPackageVersionsAsync : FactsBase
     {
         [Fact]
@@ -20,9 +27,10 @@ public class PackageServiceTests
         {
             Setup();
 
-            var results = await _target.FindPackageVersionsAsync(
+            var results = await Target.FindPackageVersionsAsync(
+                _feedId,
                 "MyPackage",
-                _cancellationToken);
+                CancellationToken);
 
             Assert.Empty(results);
         }
@@ -36,9 +44,10 @@ public class PackageServiceTests
                 new Package { Version = new NuGetVersion("2.0.0") },
             });
 
-            var results = await _target.FindPackageVersionsAsync(
+            var results = await Target.FindPackageVersionsAsync(
+                _feedId,
                 "MyPackage",
-                _cancellationToken);
+                CancellationToken);
 
             Assert.Equal(2, results.Count);
             Assert.Equal("1.0.0", results[0].OriginalVersion);
@@ -54,9 +63,10 @@ public class PackageServiceTests
                 new NuGetVersion("2.0.0"),
             });
 
-            var results = await _target.FindPackageVersionsAsync(
+            var results = await Target.FindPackageVersionsAsync(
+                _feedId,
                 "MyPackage",
-                _cancellationToken);
+                CancellationToken);
 
             Assert.Equal(2, results.Count);
             Assert.Equal("1.0.0", results[0].OriginalVersion);
@@ -78,9 +88,10 @@ public class PackageServiceTests
                     new NuGetVersion("3.0.0"),
                 });
 
-            var results = await _target.FindPackageVersionsAsync(
+            var results = await Target.FindPackageVersionsAsync(
+                _feedId,
                 "MyPackage",
-                _cancellationToken);
+                CancellationToken);
 
             var ordered = results.OrderBy(v => v).ToList();
 
@@ -94,20 +105,21 @@ public class PackageServiceTests
             IReadOnlyList<Package> localPackages = null,
             IReadOnlyList<NuGetVersion> upstreamPackages = null)
         {
-            localPackages = localPackages ?? new List<Package>();
-            upstreamPackages = upstreamPackages ?? new List<NuGetVersion>();
+            localPackages ??= new List<Package>();
+            upstreamPackages ??= new List<NuGetVersion>();
 
-            _db
+            DB
                 .Setup(p => p.FindAsync(
+                    It.IsAny<Guid>(),
                     "MyPackage",
                     /*includeUnlisted: */ true,
-                    _cancellationToken))
+                    CancellationToken))
                 .ReturnsAsync(localPackages);
 
-            _upstream
+            Upstream
                 .Setup(u => u.ListPackageVersionsAsync(
                     "MyPackage",
-                    _cancellationToken))
+                    CancellationToken))
                 .ReturnsAsync(upstreamPackages);
         }
     }
@@ -119,7 +131,7 @@ public class PackageServiceTests
         {
             Setup();
 
-            var results = await _target.FindPackagesAsync("MyPackage", _cancellationToken);
+            var results = await Target.FindPackagesAsync(_feedId, "MyPackage", CancellationToken);
 
             Assert.Empty(results);
         }
@@ -133,7 +145,7 @@ public class PackageServiceTests
                 new Package { Version = new NuGetVersion("2.0.0") },
             });
 
-            var results = await _target.FindPackagesAsync("MyPackage", _cancellationToken);
+            var results = await Target.FindPackagesAsync(_feedId, "MyPackage", CancellationToken);
 
             Assert.Equal(2, results.Count);
             Assert.Equal("1.0.0", results[0].Version.OriginalVersion);
@@ -149,7 +161,7 @@ public class PackageServiceTests
                 new Package { Version = new NuGetVersion("2.0.0") },
             });
 
-            var results = await _target.FindPackagesAsync("MyPackage", _cancellationToken);
+            var results = await Target.FindPackagesAsync(_feedId, "MyPackage", CancellationToken);
 
             Assert.Equal(2, results.Count);
             Assert.Equal("1.0.0", results[0].Version.OriginalVersion);
@@ -171,7 +183,7 @@ public class PackageServiceTests
                     new Package { Version = new NuGetVersion("3.0.0") },
                 });
 
-            var results = await _target.FindPackagesAsync("MyPackage", _cancellationToken);
+            var results = await Target.FindPackagesAsync(_feedId, "MyPackage", CancellationToken);
             var ordered = results.OrderBy(p => p.Version).ToList();
 
             Assert.Equal(3, ordered.Count);
@@ -184,20 +196,21 @@ public class PackageServiceTests
             IReadOnlyList<Package> localPackages = null,
             IReadOnlyList<Package> upstreamPackages = null)
         {
-            localPackages = localPackages ?? new List<Package>();
-            upstreamPackages = upstreamPackages ?? new List<Package>();
+            localPackages ??= new List<Package>();
+            upstreamPackages ??= new List<Package>();
 
-            _db
+            DB
                 .Setup(p => p.FindAsync(
+                    It.IsAny<Guid>(),
                     "MyPackage",
                     /*includeUnlisted: */ true,
-                    _cancellationToken))
+                    CancellationToken))
                 .ReturnsAsync(localPackages);
 
-            _upstream
+            Upstream
                 .Setup(u => u.ListPackagesAsync(
                     "MyPackage",
-                    _cancellationToken))
+                    CancellationToken))
                 .ReturnsAsync(upstreamPackages);
         }
     }
@@ -205,21 +218,21 @@ public class PackageServiceTests
     public class FindPackageOrNullAsync : MirrorAsync
     {
         protected override async Task TargetAsync()
-            => await _target.FindPackageOrNullAsync(_id, _version, _cancellationToken);
+            => await Target.FindPackageOrNullAsync(_feedId, FeedSlug, ID, Version, CancellationToken);
 
         [Fact]
         public async Task ExistsInDatabase()
         {
             var expected = new Package();
 
-            _db
-                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+            DB
+                .Setup(p => p.ExistsAsync(It.IsAny<Guid>(), ID, Version, CancellationToken))
                 .ReturnsAsync(true);
-            _db
-                .Setup(p => p.FindOrNullAsync(_id, _version,  /*includeUnlisted:*/ true, _cancellationToken))
+            DB
+                .Setup(p => p.FindOrNullAsync(It.IsAny<Guid>(), ID, Version, /*includeUnlisted:*/ true, CancellationToken))
                 .ReturnsAsync(expected);
 
-            var result = await _target.FindPackageOrNullAsync(_id, _version, _cancellationToken);
+            var result = await Target.FindPackageOrNullAsync(_feedId, FeedSlug, ID, Version, CancellationToken);
 
             Assert.Same(expected, result);
         }
@@ -227,11 +240,11 @@ public class PackageServiceTests
         [Fact]
         public async Task DoesNotExistInDatabase()
         {
-            _db
-                .Setup(p => p.FindOrNullAsync(_id, _version,  /*includeUnlisted:*/ true, _cancellationToken))
+            DB
+                .Setup(p => p.FindOrNullAsync(It.IsAny<Guid>(), ID, Version, /*includeUnlisted:*/ true, CancellationToken))
                 .ReturnsAsync((Package)null);
 
-            var result = await _target.FindPackageOrNullAsync(_id, _version, _cancellationToken);
+            var result = await Target.FindPackageOrNullAsync(_feedId, FeedSlug, ID, Version, CancellationToken);
 
             Assert.Null(result);
         }
@@ -239,16 +252,16 @@ public class PackageServiceTests
 
     public class ExistsAsync : MirrorAsync
     {
-        protected override async Task TargetAsync() => await _target.ExistsAsync(_id, _version, _cancellationToken);
+        protected override async Task TargetAsync() => await Target.ExistsAsync(_feedId, FeedSlug, ID, Version, CancellationToken);
 
         [Fact]
         public async Task ExistsInDatabase()
         {
-            _db
-                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+            DB
+                .Setup(p => p.ExistsAsync(It.IsAny<Guid>(), ID, Version, CancellationToken))
                 .ReturnsAsync(true);
 
-            var result = await _target.ExistsAsync(_id, _version, _cancellationToken);
+            var result = await Target.ExistsAsync(_feedId, FeedSlug, ID, Version, CancellationToken);
 
             Assert.True(result);
         }
@@ -256,11 +269,11 @@ public class PackageServiceTests
         [Fact]
         public async Task DoesNotExistInDatabase()
         {
-            _db
-                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+            DB
+                .Setup(p => p.ExistsAsync(It.IsAny<Guid>(), ID, Version, CancellationToken))
                 .ReturnsAsync(false);
 
-            var result = await _target.ExistsAsync(_id, _version, _cancellationToken);
+            var result = await Target.ExistsAsync(_feedId, FeedSlug, ID, Version, CancellationToken);
 
             Assert.False(result);
         }
@@ -268,77 +281,77 @@ public class PackageServiceTests
 
     public abstract class MirrorAsync : FactsBase
     {
-        protected readonly string _id = "MyPackage";
-        protected readonly NuGetVersion _version = new NuGetVersion("1.0.0");
+        protected readonly string ID = "MyPackage";
+        protected readonly NuGetVersion Version = new NuGetVersion("1.0.0");
 
         protected abstract Task TargetAsync();
 
         [Fact]
         public async Task SkipsIfAlreadyMirrored()
         {
-            _db
-                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+            DB
+                .Setup(p => p.ExistsAsync(It.IsAny<Guid>(), ID, Version, CancellationToken))
                 .ReturnsAsync(true);
 
             await TargetAsync();
 
-            _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
+            Indexer.Verify(
+                i => i.IndexAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<string>(), CancellationToken),
                 Times.Never);
         }
 
         [Fact]
         public async Task SkipsIfUpstreamDoesntHavePackage()
         {
-            _db
-                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+            DB
+                .Setup(p => p.ExistsAsync(It.IsAny<Guid>(), ID, Version, CancellationToken))
                 .ReturnsAsync(false);
 
-            _upstream
-                .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
+            Upstream
+                .Setup(u => u.DownloadPackageOrNullAsync(ID, Version, CancellationToken))
                 .ReturnsAsync((Stream)null);
 
             await TargetAsync();
 
-            _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
+            Indexer.Verify(
+                i => i.IndexAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<string>(), CancellationToken),
                 Times.Never);
         }
 
         [Fact]
         public async Task SkipsIfUpstreamThrows()
         {
-            _db
-                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+            DB
+                .Setup(p => p.ExistsAsync(It.IsAny<Guid>(), ID, Version, CancellationToken))
                 .ReturnsAsync(false);
 
-            _upstream
-                .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
+            Upstream
+                .Setup(u => u.DownloadPackageOrNullAsync(ID, Version, CancellationToken))
                 .ThrowsAsync(new InvalidOperationException("Hello world"));
 
             await TargetAsync();
 
-            _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
+            Indexer.Verify(
+                i => i.IndexAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<string>(), CancellationToken),
                 Times.Never);
         }
 
         [Fact]
         public async Task MirrorsPackage()
         {
-            _db
-                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+            DB
+                .Setup(p => p.ExistsAsync(It.IsAny<Guid>(), ID, Version, CancellationToken))
                 .ReturnsAsync(false);
 
             using var downloadStream = new MemoryStream();
-            _upstream
-                .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
+            Upstream
+                .Setup(u => u.DownloadPackageOrNullAsync(ID, Version, CancellationToken))
                 .ReturnsAsync(downloadStream);
 
             await TargetAsync();
 
-            _indexer.Verify(
-                i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
+            Indexer.Verify(
+                i => i.IndexAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<string>(), CancellationToken),
                 Times.Once);
         }
     }
@@ -351,33 +364,43 @@ public class PackageServiceTests
             var id = "Hello";
             var version = new NuGetVersion("1.2.3");
 
-            await _target.AddDownloadAsync(id, version, _cancellationToken);
+            await Target.AddDownloadAsync(_feedId, id, version, CancellationToken);
 
-            _db.Verify(
-                db => db.AddDownloadAsync(id, version, _cancellationToken),
+            DB.Verify(
+                db => db.AddDownloadAsync(It.IsAny<Guid>(), id, version, CancellationToken),
                 Times.Once);
         }
     }
 
     public class FactsBase
     {
-        protected readonly Mock<IPackageDatabase> _db;
-        protected readonly Mock<IUpstreamClient> _upstream;
-        protected readonly Mock<IPackageIndexingService> _indexer;
+        protected readonly Mock<IPackageDatabase> DB;
+        protected readonly Mock<IUpstreamClient> Upstream;
+        protected readonly Mock<IPackageIndexingService> Indexer;
 
-        protected readonly CancellationToken _cancellationToken = CancellationToken.None;
-        protected readonly PackageService _target;
+        protected readonly CancellationToken CancellationToken = CancellationToken.None;
+        protected readonly PackageService Target;
 
         protected FactsBase()
         {
-            _db = new Mock<IPackageDatabase>();
-            _upstream = new Mock<IUpstreamClient>();
-            _indexer = new Mock<IPackageIndexingService>();
+            DB = new Mock<IPackageDatabase>();
+            Upstream = new Mock<IUpstreamClient>();
+            Indexer = new Mock<IPackageIndexingService>();
 
-            _target = new PackageService(
-                _db.Object,
-                _upstream.Object,
-                _indexer.Object,
+            var defaultFeed = new Feed { Id = Guid.Empty, Slug = Feed.DefaultSlug };
+            var feedService = new Mock<IFeedService>();
+            feedService
+                .Setup(s => s.GetFeedByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(defaultFeed);
+
+            var upstreamFactory = new Mock<IUpstreamClientFactory>();
+            upstreamFactory.Setup(f => f.CreateForFeed(It.IsAny<Feed>())).Returns(Upstream.Object);
+
+            Target = new PackageService(
+                DB.Object,
+                upstreamFactory.Object,
+                feedService.Object,
+                Indexer.Object,
                 Mock.Of<ILogger<PackageService>>());
         }
     }

@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using BaGetter.Core;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.HttpOverrides;
+using BaGetter.Core.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace BaGetter;
@@ -16,7 +12,7 @@ namespace BaGetter;
 public class ValidateBaGetterOptions
     : IValidateOptions<BaGetterOptions>
 {
-    private static readonly HashSet<string> ValidDatabaseTypes
+    private static readonly HashSet<string> _validDatabaseTypes
         = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "AzureTable",
@@ -26,7 +22,7 @@ public class ValidateBaGetterOptions
             "SqlServer",
         };
 
-    private static readonly HashSet<string> ValidStorageTypes
+    private static readonly HashSet<string> _validStorageTypes
         = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "AliyunOss",
@@ -38,7 +34,7 @@ public class ValidateBaGetterOptions
             "Null"
         };
 
-    private static readonly HashSet<string> ValidSearchTypes
+    private static readonly HashSet<string> _validSearchTypes
         = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "AzureSearch",
@@ -55,29 +51,71 @@ public class ValidateBaGetterOptions
         if (options.Search == null) failures.Add($"The '{nameof(BaGetterOptions.Search)}' config is required");
         if (options.Storage == null) failures.Add($"The '{nameof(BaGetterOptions.Storage)}' config is required");
 
-        if (!ValidDatabaseTypes.Contains(options.Database?.Type))
+        if (!_validDatabaseTypes.Contains(options.Database?.Type))
         {
             failures.Add(
                 $"The '{nameof(BaGetterOptions.Database)}:{nameof(DatabaseOptions.Type)}' config is invalid. " +
-                $"Allowed values: {string.Join(", ", ValidDatabaseTypes)}");
+                $"Allowed values: {string.Join(", ", _validDatabaseTypes)}");
         }
 
-        if (!ValidStorageTypes.Contains(options.Storage?.Type))
+        if (!_validStorageTypes.Contains(options.Storage?.Type))
         {
             failures.Add(
                 $"The '{nameof(BaGetterOptions.Storage)}:{nameof(StorageOptions.Type)}' config is invalid. " +
-                $"Allowed values: {string.Join(", ", ValidStorageTypes)}");
+                $"Allowed values: {string.Join(", ", _validStorageTypes)}");
         }
 
-        if (!ValidSearchTypes.Contains(options.Search?.Type))
+        if (!_validSearchTypes.Contains(options.Search?.Type))
         {
             failures.Add(
                 $"The '{nameof(BaGetterOptions.Search)}:{nameof(SearchOptions.Type)}' config is invalid. " +
-                $"Allowed values: {string.Join(", ", ValidSearchTypes)}");
+                $"Allowed values: {string.Join(", ", _validSearchTypes)}");
         }
+
+        ValidateAuthentication(options, failures);
 
         if (failures.Count != 0) return ValidateOptionsResult.Fail(failures);
 
         return ValidateOptionsResult.Success;
+    }
+
+    private static void ValidateAuthentication(BaGetterOptions options, List<string> failures)
+    {
+        var auth = options.Authentication;
+        if (auth == null)
+            return;
+
+        var mode = auth.Mode;
+
+        if (mode == AuthenticationMode.Config)
+            return;
+
+        if (mode is AuthenticationMode.Entra or AuthenticationMode.Hybrid)
+        {
+            if (auth.Entra == null)
+            {
+                failures.Add($"The '{nameof(NugetAuthenticationOptions.Entra)}' config is required when Authentication Mode is '{mode}'");
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(auth.Entra.TenantId))
+                    failures.Add($"The '{nameof(EntraOptions.TenantId)}' config is required for Entra authentication");
+
+                if (string.IsNullOrEmpty(auth.Entra.ClientId))
+                    failures.Add($"The '{nameof(EntraOptions.ClientId)}' config is required for Entra authentication");
+
+                if (string.IsNullOrEmpty(auth.Entra.Instance))
+                    failures.Add($"The '{nameof(EntraOptions.Instance)}' config is required for Entra authentication");
+            }
+        }
+
+        if (auth.MaxTokenExpiryDays < 1)
+            failures.Add($"The '{nameof(NugetAuthenticationOptions.MaxTokenExpiryDays)}' config must be at least 1");
+
+        if (auth.MaxFailedAttempts < 1)
+            failures.Add($"The '{nameof(NugetAuthenticationOptions.MaxFailedAttempts)}' config must be at least 1");
+
+        if (auth.LockoutMinutes < 1)
+            failures.Add($"The '{nameof(NugetAuthenticationOptions.LockoutMinutes)}' config must be at least 1");
     }
 }

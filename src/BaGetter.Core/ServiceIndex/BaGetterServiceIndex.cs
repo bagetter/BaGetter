@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.ServiceIndex;
 
 public class BaGetterServiceIndex : IServiceIndexService
 {

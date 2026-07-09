@@ -1,8 +1,11 @@
-using System.Net;
 using System.Net.Http;
-using BaGetter.Protocol.Internal;
+using BaGetter.Protocol.Catalog;
+using BaGetter.Protocol.PackageContent;
+using BaGetter.Protocol.PackageMetadata;
+using BaGetter.Protocol.Search;
+using BaGetter.Protocol.ServiceIndex;
 
-namespace BaGetter.Protocol.Tests;
+namespace BaGetter.Protocol.Tests.Support;
 
 public class ProtocolFixture
 {

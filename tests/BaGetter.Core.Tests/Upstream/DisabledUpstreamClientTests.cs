@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using BaGetter.Core.Upstream.Clients;
 using Xunit;
 
 namespace BaGetter.Core.Tests.Upstream;

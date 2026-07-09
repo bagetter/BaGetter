@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BaGetter.Core.Metadata;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Search;
 
 public class SearchResponseBuilder : ISearchResponseBuilder
 {
@@ -16,14 +17,20 @@ public class SearchResponseBuilder : ISearchResponseBuilder
         _url = url;
     }
 
-    public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations)
+    public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations, bool includeUnlistedState = false)
     {
         var result = new List<SearchResult>();
 
         foreach (var packageRegistration in packageRegistrations)
         {
             var versions = packageRegistration.Packages.OrderByDescending(p => p.Version).ToList();
-            var latest = versions.First();
+
+            // When unlisted packages are included, surface the latest *listed* version and only
+            // fall back to the latest overall (marking the package unlisted) if none are listed.
+            var latestListed = includeUnlistedState ? versions.FirstOrDefault(p => p.Listed) : null;
+            var latest = latestListed ?? versions.First();
+            bool? listed = includeUnlistedState ? latestListed != null : null;
+
             var iconUrl = latest.HasEmbeddedIcon
                 ? _url.GetPackageIconDownloadUrl(latest.Id, latest.Version)
                 : latest.IconUrlString;
@@ -41,6 +48,7 @@ public class SearchResponseBuilder : ISearchResponseBuilder
                 Summary = latest.Summary,
                 Tags = latest.Tags,
                 Title = latest.Title,
+                Listed = listed,
                 TotalDownloads = versions.Sum(p => p.Downloads),
                 Versions = versions
                     .Select(p => new SearchResultVersion

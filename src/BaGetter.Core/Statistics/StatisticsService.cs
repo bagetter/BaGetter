@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,18 +19,23 @@ public class StatisticsService : IStatisticsService
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<int> GetPackagesTotalAmount()
+    public async Task<int> GetPackagesTotalAmount(Guid feedId)
     {
         var (scope, dbContext) = GetDbContext();
-        var packagesCount = await dbContext.Packages.GroupBy(p => p.Id).CountAsync();
+        var packagesCount = await dbContext.Packages
+            .Where(p => p.FeedId == feedId)
+            .GroupBy(p => p.Id)
+            .CountAsync();
         scope.Dispose();
         return packagesCount;
     }
 
-    public async Task<int> GetVersionsTotalAmount()
+    public async Task<int> GetVersionsTotalAmount(Guid feedId)
     {
         var (scope, dbContext) = GetDbContext();
-        var packagesVersionsCount = await dbContext.Packages.CountAsync();
+        var packagesVersionsCount = await dbContext.Packages
+            .Where(p => p.FeedId == feedId)
+            .CountAsync();
         scope.Dispose();
         return packagesVersionsCount;
     }

@@ -4,12 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Extensions;
 using BaGetter.Protocol;
+using BaGetter.Protocol.Extensions;
 using BaGetter.Protocol.Models;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Upstream.Clients;
 
 /// <summary>
 /// The mirroring client for a NuGet server that uses the V3 protocol.
@@ -18,8 +21,8 @@ public class V3UpstreamClient : IUpstreamClient
 {
     private readonly NuGetClient _client;
     private readonly ILogger<V3UpstreamClient> _logger;
-    private static readonly char[] AuthorSeparator = [',', ';', '\t', '\n', '\r'];
-    private static readonly char[] TagSeparator = [' '];
+    private static readonly char[] _authorSeparator = [',', ';', '\t', '\n', '\r'];
+    private static readonly char[] _tagSeparator = [' '];
 
     public V3UpstreamClient(NuGetClient client, ILogger<V3UpstreamClient> logger)
     {
@@ -140,7 +143,7 @@ public class V3UpstreamClient : IUpstreamClient
             return Array.Empty<string>();
         }
 
-        return authors.Split(AuthorSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return authors.Split(_authorSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     private static string[] ParseTags(IEnumerable<string> tags)
@@ -151,7 +154,7 @@ public class V3UpstreamClient : IUpstreamClient
         }
 
         return tags
-            .SelectMany(t => t.Split(TagSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .SelectMany(t => t.Split(_tagSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             .ToArray();
     }
 

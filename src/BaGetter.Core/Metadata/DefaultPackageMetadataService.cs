@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BaGetter.Protocol.Models;
 using NuGet.Versioning;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Metadata;
 
 /// <inheritdoc/>
 public class DefaultPackageMetadataService : IPackageMetadataService
@@ -23,9 +23,9 @@ public class DefaultPackageMetadataService : IPackageMetadataService
     }
 
     /// <inheritdoc/>
-    public async Task<BaGetterRegistrationIndexResponse> GetRegistrationIndexOrNullAsync(string packageId, CancellationToken cancellationToken = default)
+    public async Task<BaGetterRegistrationIndexResponse> GetRegistrationIndexOrNullAsync(Guid feedId, string feedSlug, string packageId, CancellationToken cancellationToken = default)
     {
-        var packages = await _packages.FindPackagesAsync(packageId, cancellationToken);
+        var packages = await _packages.FindPackagesAsync(feedId, packageId, cancellationToken);
         if (!packages.Any())
         {
             return null;
@@ -38,9 +38,9 @@ public class DefaultPackageMetadataService : IPackageMetadataService
     }
 
     /// <inheritdoc/>
-    public async Task<RegistrationLeafResponse> GetRegistrationLeafOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken = default)
+    public async Task<RegistrationLeafResponse> GetRegistrationLeafOrNullAsync(Guid feedId, string feedSlug, string id, NuGetVersion version, CancellationToken cancellationToken = default)
     {
-        var package = await _packages.FindPackageOrNullAsync(id, version, cancellationToken);
+        var package = await _packages.FindPackageOrNullAsync(feedId, feedSlug, id, version, cancellationToken);
         if (package == null)
         {
             return null;

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Metadata;
 using Moq;
 using NuGet.Versioning;
 using Xunit;
@@ -41,13 +43,13 @@ public class DefaultPackageMetadataServiceTests
     {
         // Arrange
         var packageService = new Mock<IPackageService>();
-        packageService.Setup(x => x.FindPackagesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        packageService.Setup(x => x.FindPackagesAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(() => Task.FromResult<IReadOnlyList<Package>>(new List<Package>()));
 
         var packageMetadataService = new DefaultPackageMetadataService(packageService.Object, _registrationBuilder);
 
         // Act
-        var result = await packageMetadataService.GetRegistrationIndexOrNullAsync("dummy");
+        var result = await packageMetadataService.GetRegistrationIndexOrNullAsync(Guid.Empty, "default", "dummy");
 
         // Assert
         Assert.Null(result);
@@ -60,13 +62,13 @@ public class DefaultPackageMetadataServiceTests
         var nugetVersion = new NuGetVersion("0.0.42");
 
         var packageService = new Mock<IPackageService>();
-        packageService.Setup(x => x.FindPackageOrNullAsync(It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()))
+        packageService.Setup(x => x.FindPackageOrNullAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<CancellationToken>()))
             .Returns(() => Task.FromResult<Package>(null));
 
         var packageMetadataService = new DefaultPackageMetadataService(packageService.Object, _registrationBuilder);
 
         // Act
-        var result = await packageMetadataService.GetRegistrationLeafOrNullAsync("dummy", nugetVersion);
+        var result = await packageMetadataService.GetRegistrationLeafOrNullAsync(Guid.Empty, "default", "dummy", nugetVersion);
 
         // Assert
         Assert.Null(result);

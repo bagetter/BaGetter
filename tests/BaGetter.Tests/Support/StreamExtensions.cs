@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Newtonsoft.Json;
 
-namespace BaGetter.Tests;
+namespace BaGetter.Tests.Support;
 
 public static class StreamExtensions
 {

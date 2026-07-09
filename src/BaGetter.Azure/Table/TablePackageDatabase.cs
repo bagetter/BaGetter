@@ -6,12 +6,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
+using BaGetter.Azure.Configuration;
+using BaGetter.Azure.Extensions;
 using BaGetter.Core;
+using BaGetter.Core.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Versioning;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Table
 {
     /// <summary>
     /// Stores the metadata of packages using Azure Table Storage.
@@ -52,6 +55,7 @@ namespace BaGetter.Azure
         }
 
         public async Task AddDownloadAsync(
+            Guid feedId,
             string id,
             NuGetVersion version,
             CancellationToken cancellationToken)
@@ -99,7 +103,7 @@ namespace BaGetter.Azure
             }
         }
 
-        public async Task<bool> ExistsAsync(string id, CancellationToken cancellationToken)
+        public async Task<bool> ExistsAsync(Guid feedId, string id, CancellationToken cancellationToken)
         {
             var query = _table.QueryAsync<PackageEntity>(p =>
                             p.PartitionKey.Equals(id, StringComparison.InvariantCultureIgnoreCase),
@@ -116,6 +120,7 @@ namespace BaGetter.Azure
         }
 
         public async Task<bool> ExistsAsync(
+            Guid feedId,
             string id,
             NuGetVersion version,
             CancellationToken cancellationToken)
@@ -135,7 +140,7 @@ namespace BaGetter.Azure
             return false;
         }
 
-        public async Task<IReadOnlyList<Package>> FindAsync(string id, bool includeUnlisted, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<Package>> FindAsync(Guid feedId, string id, bool includeUnlisted, CancellationToken cancellationToken)
         {
             const int maxPerPage = 500;
             var query =
@@ -153,6 +158,7 @@ namespace BaGetter.Azure
         }
 
         public async Task<Package> FindOrNullAsync(
+            Guid feedId,
             string id,
             NuGetVersion version,
             bool includeUnlisted,
@@ -176,13 +182,13 @@ namespace BaGetter.Azure
             return entity.AsPackage();
         }
 
-        public async Task<bool> HardDeletePackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+        public async Task<bool> HardDeletePackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
         {
             var result = await _table.DeleteEntityAsync(id, version.ToNormalizedString().ToLowerInvariant(), cancellationToken: cancellationToken);
             return !result.IsError;
         }
 
-        public async Task<bool> RelistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+        public async Task<bool> RelistPackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
         {
             var result = await _table.GetEntityIfExistsAsync<PackageListingEntity>(id, version.ToNormalizedString().ToLowerInvariant(), cancellationToken: cancellationToken);
 
@@ -200,7 +206,7 @@ namespace BaGetter.Azure
             return true;
         }
 
-        public async Task<bool> UnlistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+        public async Task<bool> UnlistPackageAsync(Guid feedId, string id, NuGetVersion version, CancellationToken cancellationToken)
         {
             var result = await _table.GetEntityIfExistsAsync<PackageListingEntity>(id, version.ToNormalizedString().ToLowerInvariant(), cancellationToken: cancellationToken);
 

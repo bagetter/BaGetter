@@ -2,7 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Protocol.Models;
+using BaGetter.Protocol.ServiceIndex;
 
+// ReSharper disable once CheckNamespace
 namespace BaGetter.Protocol;
 
 public partial class NuGetClientFactory

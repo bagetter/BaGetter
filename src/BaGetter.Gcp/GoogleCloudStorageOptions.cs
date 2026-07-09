@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using BaGetter.Core;
+using BaGetter.Core.Configuration;
 
 namespace BaGetter.Gcp;
 

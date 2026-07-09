@@ -3,13 +3,21 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Entities;
 
 public interface IContext
 {
     DatabaseFacade Database { get; }
 
+    DbSet<Feed> Feeds { get; set; }
     DbSet<Package> Packages { get; set; }
+    DbSet<PackageDependency> PackageDependencies { get; set; }
+    DbSet<TargetFramework> TargetFrameworks { get; set; }
+    DbSet<User> Users { get; set; }
+    DbSet<PersonalAccessToken> PersonalAccessTokens { get; set; }
+    DbSet<Group> Groups { get; set; }
+    DbSet<UserGroup> UserGroups { get; set; }
+    DbSet<FeedPermission> FeedPermissions { get; set; }
 
     /// <summary>
     /// Check whether a <see cref="DbUpdateException"/> is due to a SQL unique constraint violation.

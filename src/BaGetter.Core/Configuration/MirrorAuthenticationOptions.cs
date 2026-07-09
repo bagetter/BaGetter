@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Configuration;
 
 public class MirrorAuthenticationOptions
 {

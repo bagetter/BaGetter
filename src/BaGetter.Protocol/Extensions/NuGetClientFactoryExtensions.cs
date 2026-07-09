@@ -1,7 +1,7 @@
 using BaGetter.Protocol.Catalog;
 using Microsoft.Extensions.Logging;
 
-namespace BaGetter.Protocol;
+namespace BaGetter.Protocol.Extensions;
 
 public static class NuGetClientFactoryExtensions
 {

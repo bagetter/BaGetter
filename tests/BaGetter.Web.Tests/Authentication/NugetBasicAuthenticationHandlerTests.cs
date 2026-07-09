@@ -3,7 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using BaGetter.Core;
+using BaGetter.Core.Authentication;
+using BaGetter.Core.Configuration;
 using BaGetter.Web.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit;
 
-namespace BaGetter.Web.Tests;
+namespace BaGetter.Web.Tests.Authentication;
 
 public class NugetBasicAuthenticationHandlerTests
 {
@@ -24,6 +25,7 @@ public class NugetBasicAuthenticationHandlerTests
     private readonly Mock<HttpResponse> _httpResponse;
     private readonly Mock<ILoggerFactory> _loggerFactory;
     private readonly Mock<IOptionsMonitor<AuthenticationSchemeOptions>> _options;
+    private readonly Mock<IFeedAuthenticationService> _feedAuthService;
 
     public NugetBasicAuthenticationHandlerTests()
     {
@@ -40,6 +42,8 @@ public class NugetBasicAuthenticationHandlerTests
         _httpContext = new Mock<HttpContext>();
         _httpRequest = new Mock<HttpRequest>();
         _httpResponse = new Mock<HttpResponse>();
+
+        _feedAuthService = new Mock<IFeedAuthenticationService>();
 
         _httpContext.SetupGet(x => x.Request).Returns(_httpRequest.Object);
         _httpContext.SetupGet(x => x.Response).Returns(_httpResponse.Object);
@@ -164,7 +168,8 @@ public class NugetBasicAuthenticationHandlerTests
             _options.Object,
             _loggerFactory.Object,
             _encoder,
-            _bagetterOptions.Object);
+            _bagetterOptions.Object,
+            _feedAuthService.Object);
 
         handler.InitializeAsync(new AuthenticationScheme("Basic", null, typeof(NugetBasicAuthenticationHandler)), _httpContext.Object).GetAwaiter().GetResult();
 

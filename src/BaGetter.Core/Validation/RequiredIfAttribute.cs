@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Validation;
 
 /// <summary>
 /// Provides conditional validation based on related property value.

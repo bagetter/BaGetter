@@ -4,9 +4,10 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Protocol.Extensions;
 using BaGetter.Protocol.Models;
 
-namespace BaGetter.Protocol.Internal;
+namespace BaGetter.Protocol.Search;
 
 /// <summary>
 /// The client used to search for packages.

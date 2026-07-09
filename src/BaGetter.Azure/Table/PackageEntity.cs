@@ -1,9 +1,9 @@
 using System;
 using Azure;
 using Azure.Data.Tables;
-using BaGetter.Core;
+using BaGetter.Core.Entities;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Table
 {
     /// <summary>
     /// The Azure Table Storage entity that maps to a <see cref="Package"/>.

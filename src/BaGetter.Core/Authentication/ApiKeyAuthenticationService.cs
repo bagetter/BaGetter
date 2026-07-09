@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BaGetter.Core.Configuration;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Authentication;
 
 public class ApiKeyAuthenticationService : IAuthenticationService
 {

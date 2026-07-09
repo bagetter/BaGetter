@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Aliyun.OSS;
-using BaGetter.Core;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.Options;
 
 namespace BaGetter.Aliyun;

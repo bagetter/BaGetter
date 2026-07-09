@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using BaGetter.Core.Upstream;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;

@@ -6,9 +6,11 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
-using BaGetter.Core;
+using BaGetter.Azure.Extensions;
+using BaGetter.Core.Extensions;
+using BaGetter.Core.Storage;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Storage
 {
     // See: https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery.Core/Services/CloudBlobCoreFileStorageService.cs
     public class BlobStorageService : IStorageService

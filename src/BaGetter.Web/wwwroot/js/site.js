@@ -27,6 +27,20 @@
         return false;
     }
 
+    // Filter the items of a scrollable tag dropdown as the user types. Items carry their
+    // value in a data-tag attribute; the "Any" reset item has none and always stays visible.
+    baget.filterTags = function (input) {
+        var query = input.value.trim().toLowerCase();
+        var menu = input.closest('.tag-dropdown-menu');
+        if (!menu) return;
+
+        var items = menu.querySelectorAll('li[data-tag]');
+        for (var i = 0; i < items.length; i++) {
+            var tag = items[i].getAttribute('data-tag').toLowerCase();
+            items[i].style.display = (query === '' || tag.indexOf(query) !== -1) ? '' : 'none';
+        }
+    };
+
     // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     // enhancement with special case for IEs, otherwise the temp textarea will be visible
     baget.copyTextToClipboard = function (text, elementToFocus) {

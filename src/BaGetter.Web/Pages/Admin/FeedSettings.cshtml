@@ -1,0 +1,221 @@
+@page "/Admin/Feeds/{slug}/Settings"
+@model BaGetter.Web.Pages.Admin.FeedSettingsModel
+@using BaGetter.Core.Configuration
+
+@{
+    ViewData["Title"] = "Feed Settings \u2014 " + Model.Feed?.Slug;
+}
+
+<div class="col-sm-12">
+    <h1>Feed Settings &mdash; <code>@Model.Feed?.Slug</code></h1>
+    <p><a asp-page="/Admin/Feeds">&larr; Back to feeds</a></p>
+    <hr class="breadcrumb-divider" />
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success" role="alert">@Model.SuccessMessage</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+    }
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <div class="col-sm-8" style="padding-left:0">
+
+            <h3>General</h3>
+            <div class="form-group">
+                <label asp-for="Name">Display Name</label>
+                <input asp-for="Name" class="form-control" required maxlength="256" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Description">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3" maxlength="4000"></textarea>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="UseGlobalReadOnly" data-controls="IsReadOnlyMode" />
+                        Use global default for read-only mode
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="IsReadOnlyMode" />
+                        Read-only mode (packages cannot be pushed to this feed)
+                    </label>
+                </div>
+                <small class="text-muted">Global default: @(Model.GlobalOptions.IsReadOnlyMode ? "Enabled" : "Disabled")</small>
+            </div>
+
+            <h3>Package Behavior</h3>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="UseGlobalOverwrite" data-controls="AllowPackageOverwrites" />
+                        Use global default for overwrite policy
+                    </label>
+                </div>
+                <label asp-for="AllowPackageOverwrites">Package overwrite policy</label>
+                <select asp-for="AllowPackageOverwrites" class="form-control">
+                    <option value="@PackageOverwriteAllowed.False">Disallow (recommended)</option>
+                    <option value="@PackageOverwriteAllowed.PrereleaseOnly">Prerelease only</option>
+                    <option value="@PackageOverwriteAllowed.True">Allow all</option>
+                </select>
+                <small class="text-muted">Global default: @(Model.GlobalOptions.AllowPackageOverwrites switch {
+                    PackageOverwriteAllowed.False => "Disallow",
+                    PackageOverwriteAllowed.PrereleaseOnly => "Prerelease only",
+                    _ => "Allow all"
+                })</small>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="UseGlobalDeletion" data-controls="PackageDeletionBehavior" />
+                        Use global default for deletion behavior
+                    </label>
+                </div>
+                <label asp-for="PackageDeletionBehavior">Deletion behavior</label>
+                <select asp-for="PackageDeletionBehavior" class="form-control">
+                    <option value="@PackageDeletionBehavior.Unlist">Unlist (recommended)</option>
+                    <option value="@PackageDeletionBehavior.HardDelete">Hard delete</option>
+                </select>
+                <small class="text-muted">Global default: @(Model.GlobalOptions.PackageDeletionBehavior == PackageDeletionBehavior.HardDelete ? "Hard delete" : "Unlist")</small>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="UseGlobalMaxSize" data-controls="MaxPackageSizeGiB" />
+                        Use global default for max package size
+                    </label>
+                </div>
+                <label asp-for="MaxPackageSizeGiB">Max package size (GiB)</label>
+                <input asp-for="MaxPackageSizeGiB" type="number" min="1" class="form-control" style="max-width:160px" placeholder="@Model.GlobalOptions.MaxPackageSizeGiB" />
+                <small class="text-muted">Global default: @Model.GlobalOptions.MaxPackageSizeGiB GiB</small>
+            </div>
+
+            <h3>Retention</h3>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label><input asp-for="UseGlobalRetentionMajor" data-controls="RetentionMaxMajorVersions" /> Use global default</label>
+                </div>
+                <label asp-for="RetentionMaxMajorVersions">Max major versions to keep</label>
+                <input asp-for="RetentionMaxMajorVersions" type="number" min="0" class="form-control" style="max-width:160px" placeholder="@(Model.GlobalOptions.Retention?.MaxMajorVersions?.ToString() ?? "Unlimited")" />
+                <small class="text-muted">Global default: @(Model.GlobalOptions.Retention?.MaxMajorVersions?.ToString() ?? "Unlimited")</small>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label><input asp-for="UseGlobalRetentionMinor" data-controls="RetentionMaxMinorVersions" /> Use global default</label>
+                </div>
+                <label asp-for="RetentionMaxMinorVersions">Max minor versions per major</label>
+                <input asp-for="RetentionMaxMinorVersions" type="number" min="0" class="form-control" style="max-width:160px" placeholder="@(Model.GlobalOptions.Retention?.MaxMinorVersions?.ToString() ?? "Unlimited")" />
+                <small class="text-muted">Global default: @(Model.GlobalOptions.Retention?.MaxMinorVersions?.ToString() ?? "Unlimited")</small>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label><input asp-for="UseGlobalRetentionPatch" data-controls="RetentionMaxPatchVersions" /> Use global default</label>
+                </div>
+                <label asp-for="RetentionMaxPatchVersions">Max patch versions per minor</label>
+                <input asp-for="RetentionMaxPatchVersions" type="number" min="0" class="form-control" style="max-width:160px" placeholder="@(Model.GlobalOptions.Retention?.MaxPatchVersions?.ToString() ?? "Unlimited")" />
+                <small class="text-muted">Global default: @(Model.GlobalOptions.Retention?.MaxPatchVersions?.ToString() ?? "Unlimited")</small>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label><input asp-for="UseGlobalRetentionPrerelease" data-controls="RetentionMaxPrereleaseVersions" /> Use global default</label>
+                </div>
+                <label asp-for="RetentionMaxPrereleaseVersions">Max prerelease versions per patch</label>
+                <input asp-for="RetentionMaxPrereleaseVersions" type="number" min="0" class="form-control" style="max-width:160px" placeholder="@(Model.GlobalOptions.Retention?.MaxPrereleaseVersions?.ToString() ?? "Unlimited")" />
+                <small class="text-muted">Global default: @(Model.GlobalOptions.Retention?.MaxPrereleaseVersions?.ToString() ?? "Unlimited")</small>
+            </div>
+
+            <h3>Mirror</h3>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="MirrorEnabled" />
+                        Enable upstream mirroring
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="MirrorPackageSource">Package source URL</label>
+                <input asp-for="MirrorPackageSource" type="url" class="form-control" placeholder="https://api.nuget.org/v3/index.json" />
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input asp-for="MirrorLegacy" />
+                        Use NuGet V2 (legacy) protocol
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="MirrorDownloadTimeoutSeconds">Download timeout (seconds)</label>
+                <input asp-for="MirrorDownloadTimeoutSeconds" type="number" min="1" class="form-control" style="max-width:160px" />
+            </div>
+            <div class="form-group">
+                <label asp-for="MirrorAuthType">Authentication type</label>
+                <select asp-for="MirrorAuthType" class="form-control" style="max-width:240px">
+                    <option value="">None</option>
+                    <option value="@MirrorAuthenticationType.Basic">Basic</option>
+                    <option value="@MirrorAuthenticationType.Bearer">Bearer token</option>
+                    <option value="@MirrorAuthenticationType.Custom">Custom headers</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="MirrorAuthUsername">Username (Basic auth)</label>
+                <input asp-for="MirrorAuthUsername" class="form-control" autocomplete="off" />
+            </div>
+            <div class="form-group">
+                <label asp-for="MirrorAuthPasswordNew">Password (leave blank to keep existing)</label>
+                <input asp-for="MirrorAuthPasswordNew" type="password" class="form-control" autocomplete="new-password" />
+                @if (Model.Feed?.MirrorAuthPassword != null)
+                {
+                    <small class="text-muted">A password is currently set.</small>
+                }
+            </div>
+            <div class="form-group">
+                <label asp-for="MirrorAuthTokenNew">Bearer token (leave blank to keep existing)</label>
+                <input asp-for="MirrorAuthTokenNew" type="password" class="form-control" autocomplete="new-password" />
+                @if (Model.Feed?.MirrorAuthToken != null)
+                {
+                    <small class="text-muted">A token is currently set.</small>
+                }
+            </div>
+            <div class="form-group">
+                <label asp-for="MirrorAuthCustomHeaders">Custom headers (JSON, e.g. {"X-Header":"value"})</label>
+                <textarea asp-for="MirrorAuthCustomHeaders" class="form-control" rows="3" style="font-family:monospace"></textarea>
+            </div>
+
+            <div style="margin-top: 24px">
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+                <a asp-page="/Admin/Feeds" class="btn btn-default" style="margin-left:8px">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    function applyGlobalDefault(checkbox) {
+        var targetId = checkbox.dataset.controls;
+        if (!targetId) return;
+        var target = document.getElementById(targetId);
+        if (!target) return;
+        target.disabled = checkbox.checked;
+        if (checkbox.checked) {
+            target.dataset.savedValue = target.value;
+            target.value = '';
+        } else {
+            target.value = target.dataset.savedValue || '';
+        }
+    }
+
+    document.querySelectorAll('input[data-controls]').forEach(function (cb) {
+        applyGlobalDefault(cb);
+        cb.addEventListener('change', function () { applyGlobalDefault(cb); });
+    });
+})();
+</script>

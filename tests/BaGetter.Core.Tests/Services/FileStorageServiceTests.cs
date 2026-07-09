@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -17,20 +19,20 @@ public class FileStorageServiceTests
         public async Task ThrowsIfStorePathDoesNotExist()
         {
             await Assert.ThrowsAsync<DirectoryNotFoundException>(() =>
-                _target.GetAsync("hello.txt"));
+                Target.GetAsync("hello.txt"));
         }
 
         [Fact]
         public async Task ThrowsIfFileDoesNotExist()
         {
             // Ensure the store path exists.
-            Directory.CreateDirectory(_storePath);
+            Directory.CreateDirectory(StorePath);
 
             await Assert.ThrowsAsync<FileNotFoundException>(() =>
-                _target.GetAsync("hello.txt"));
+                Target.GetAsync("hello.txt"));
 
             await Assert.ThrowsAsync<DirectoryNotFoundException>(() =>
-                _target.GetAsync("hello/world.txt"));
+                Target.GetAsync("hello/world.txt"));
         }
 
         [Fact]
@@ -39,11 +41,11 @@ public class FileStorageServiceTests
             // Arrange
             using (var content = StringStream("Hello world"))
             {
-                await _target.PutAsync("hello.txt", content, "text/plain");
+                await Target.PutAsync("hello.txt", content, "text/plain");
             }
 
             // Act
-            var result = await _target.GetAsync("hello.txt");
+            var result = await Target.GetAsync("hello.txt");
 
             // Assert
             Assert.Equal("Hello world", await ToStringAsync(result));
@@ -55,7 +57,7 @@ public class FileStorageServiceTests
             foreach (var path in OutsideStorePathData)
             {
                 await Assert.ThrowsAsync<ArgumentException>(async () =>
-                    await _target.GetAsync(path));
+                    await Target.GetAsync(path));
             }
         }
     }
@@ -65,8 +67,8 @@ public class FileStorageServiceTests
         [Fact]
         public async Task CreatesUriEvenIfDoesntExist()
         {
-            var result = await _target.GetDownloadUriAsync("test.txt");
-            var expected = new Uri(Path.Combine(_storePath, "test.txt"));
+            var result = await Target.GetDownloadUriAsync("test.txt");
+            var expected = new Uri(Path.Combine(StorePath, "test.txt"));
 
             Assert.Equal(expected, result);
         }
@@ -77,7 +79,7 @@ public class FileStorageServiceTests
             foreach (var path in OutsideStorePathData)
             {
                 await Assert.ThrowsAsync<ArgumentException>(async () =>
-                    await _target.GetDownloadUriAsync(path));
+                    await Target.GetDownloadUriAsync(path));
             }
         }
     }
@@ -90,10 +92,10 @@ public class FileStorageServiceTests
             StoragePutResult result;
             using (var content = StringStream("Hello world"))
             {
-                result = await _target.PutAsync("test.txt", content, "text/plain");
+                result = await Target.PutAsync("test.txt", content, "text/plain");
             }
 
-            var path = Path.Combine(_storePath, "test.txt");
+            var path = Path.Combine(StorePath, "test.txt");
 
             Assert.True(File.Exists(path));
             Assert.Equal(StoragePutResult.Success, result);
@@ -104,7 +106,7 @@ public class FileStorageServiceTests
         public async Task ReturnsAlreadyExistsIfContentAlreadyExists()
         {
             // Arrange
-            var path = Path.Combine(_storePath, "test.txt");
+            var path = Path.Combine(StorePath, "test.txt");
 
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, "Hello world");
@@ -113,7 +115,7 @@ public class FileStorageServiceTests
             using (var content = StringStream("Hello world"))
             {
                 // Act
-                result = await _target.PutAsync("test.txt", content, "text/plain");
+                result = await Target.PutAsync("test.txt", content, "text/plain");
             }
 
             // Assert
@@ -124,7 +126,7 @@ public class FileStorageServiceTests
         public async Task ReturnsConflictIfContentAlreadyExistsButContentsDoNotMatch()
         {
             // Arrange
-            var path = Path.Combine(_storePath, "test.txt");
+            var path = Path.Combine(StorePath, "test.txt");
 
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, "Hello world");
@@ -133,7 +135,7 @@ public class FileStorageServiceTests
             using (var content = StringStream("foo bar"))
             {
                 // Act
-                result = await _target.PutAsync("test.txt", content, "text/plain");
+                result = await Target.PutAsync("test.txt", content, "text/plain");
             }
 
             // Assert
@@ -147,7 +149,7 @@ public class FileStorageServiceTests
             {
                 using var content = StringStream("Hello world");
                 await Assert.ThrowsAsync<ArgumentException>(async () =>
-                    await _target.PutAsync(path, content, "text/plain"));
+                    await Target.PutAsync(path, content, "text/plain"));
             }
         }
     }
@@ -157,20 +159,20 @@ public class FileStorageServiceTests
         [Fact]
         public async Task DoesNotThrowIfPathDoesNotExist()
         {
-            await _target.DeleteAsync("test.txt");
+            await Target.DeleteAsync("test.txt");
         }
 
         [Fact]
         public async Task Deletes()
         {
             // Arrange
-            var path = Path.Combine(_storePath, "test.txt");
+            var path = Path.Combine(StorePath, "test.txt");
 
-            Directory.CreateDirectory(_storePath);
+            Directory.CreateDirectory(StorePath);
             await File.WriteAllTextAsync(path, "Hello world");
 
             // Act & Assert
-            await _target.DeleteAsync("test.txt");
+            await Target.DeleteAsync("test.txt");
 
             Assert.False(File.Exists(path));
         }
@@ -181,34 +183,34 @@ public class FileStorageServiceTests
             foreach (var path in OutsideStorePathData)
             {
                 await Assert.ThrowsAsync<ArgumentException>(async () =>
-                    await _target.DeleteAsync(path));
+                    await Target.DeleteAsync(path));
             }
         }
     }
 
     public class FactsBase : IDisposable
     {
-        protected readonly string _storePath;
-        protected readonly Mock<IOptionsSnapshot<FileSystemStorageOptions>> _options;
-        protected readonly FileStorageService _target;
+        protected readonly string StorePath;
+        protected readonly Mock<IOptionsSnapshot<FileSystemStorageOptions>> Options;
+        protected readonly FileStorageService Target;
 
         public FactsBase()
         {
-            _storePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-            _options = new Mock<IOptionsSnapshot<FileSystemStorageOptions>>();
+            StorePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+            Options = new Mock<IOptionsSnapshot<FileSystemStorageOptions>>();
 
-            _options
+            Options
                 .Setup(o => o.Value)
-                .Returns(() => new FileSystemStorageOptions { Path = _storePath });
+                .Returns(() => new FileSystemStorageOptions { Path = StorePath });
 
-            _target = new FileStorageService(_options.Object);
+            Target = new FileStorageService(Options.Object);
         }
 
         public void Dispose()
         {
             try
             {
-                Directory.Delete(_storePath, recursive: true);
+                Directory.Delete(StorePath, recursive: true);
             }
             catch (DirectoryNotFoundException)
             {
@@ -232,18 +234,18 @@ public class FileStorageServiceTests
         {
             get
             {
-                var fullPath = Path.GetFullPath(_storePath);
+                var fullPath = Path.GetFullPath(StorePath);
                 yield return "../file";
                 yield return ".";
-                yield return $"../{Path.GetFileName(_storePath)}";
-                yield return $"../{Path.GetFileName(_storePath)}suffix";
-                yield return $"../{Path.GetFileName(_storePath)}suffix/file";
+                yield return $"../{Path.GetFileName(StorePath)}";
+                yield return $"../{Path.GetFileName(StorePath)}suffix";
+                yield return $"../{Path.GetFileName(StorePath)}suffix/file";
                 yield return fullPath;
                 yield return fullPath + Path.DirectorySeparatorChar;
                 yield return fullPath + Path.DirectorySeparatorChar + "..";
                 yield return fullPath + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar + "file";
-                yield return Path.GetPathRoot(_storePath);
-                yield return Path.Combine(Path.GetPathRoot(_storePath), "file");
+                yield return Path.GetPathRoot(StorePath);
+                yield return Path.Combine(Path.GetPathRoot(StorePath), "file");
             }
         }
     }

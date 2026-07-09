@@ -1,10 +1,27 @@
 @page "/packages/{id}/{version?}"
+@using BaGetter.Core.Configuration
+@using Humanizer
+@using Microsoft.AspNetCore.Html
+@using Microsoft.Extensions.Options
 @model PackageModel
+@inject IOptions<NugetAuthenticationOptions> AuthOptions
 
 @{
     ViewData["Title"] = Model.Found
         ? Model.Package.Id + " " + Model.Package.NormalizedVersionString
         : Model.Package.Id;
+    var requiresAuth = AuthOptions.Value.Mode != AuthenticationMode.Config;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+
+@if (requiresAuth && !isAuthenticated)
+{
+    <div class="text-center" style="margin-top: 60px;">
+        <h2>Sign in required</h2>
+        <p>You need to sign in to view package details.</p>
+        <a asp-page="/Login" class="btn btn-primary">Sign in</a>
+    </div>
+    return;
 }
 
 @if (!Model.Found)
@@ -177,7 +194,24 @@ else
                                 var alwaysShow = Json.Serialize(i < DefaultVisibleVersions);
 
                                 <tr class="@(version.Selected ? "bg-info" : "")" x-show="showAll || @alwaysShow">
-                                    <td><a asp-page="Package" asp-route-version="@version.Version">@version.Version.ToNormalizedString()</a></td>
+                                    <td>
+                                        <a asp-page="Package" asp-route-version="@version.Version"
+                                           style="@(version.Listed ? null : "text-decoration: line-through;")">@version.Version.ToNormalizedString()</a>
+                                        @if (!version.Listed)
+                                        {
+                                            <span class="text-muted" style="margin-left:6px;">(unlisted)</span>
+                                            @if (Model.CanDelete)
+                                            {
+                                                <form method="post" asp-page-handler="Relist"
+                                                      asp-route-id="@Model.Package.Id"
+                                                      asp-route-version="@version.Version.ToNormalizedString()"
+                                                      style="display:inline; margin-left:6px;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="link-button" title="Relist this version">Relist</button>
+                                                </form>
+                                            }
+                                        }
+                                    </td>
                                     <td>@version.Downloads.ToString("N0")</td>
                                     <td>@version.LastUpdated.ToShortDateString()</td>
                                 </tr>
@@ -207,7 +241,7 @@ else
                         Last updated @Model.LastUpdated.Humanize()
                     </li>
 
-                    @if (Model.Package.ProjectUrlString != null)
+                    @if (!string.IsNullOrEmpty(Model.Package.ProjectUrlString))
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Globe"></i>
@@ -215,15 +249,15 @@ else
                         </li>
                     }
 
-                    @if (Model.Package.RepositoryUrlString != null)
+                    @if (!string.IsNullOrEmpty(Model.Package.RepositoryUrlString))
                     {
                         <li>
-                            <img class="icon" aria-hidden="true" alt="GitHub logo" src="@Url.Content("~/_content/BaGetter.Web/images/github-32x32.png")" />
+                            <span class="icon github-icon" aria-hidden="true"></span>
                             <a href="@Model.Package.RepositoryUrlString">Source code</a>
                         </li>
                     }
 
-                    @if (Model.LicenseUrl != null)
+                    @if (!string.IsNullOrEmpty(Model.LicenseUrl))
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Certificate"></i>
@@ -276,6 +310,42 @@ else
                     </p>
                 </div>
             }
+
+            @if (Model.CanDelete)
+            {
+                <div>
+                    <h2>Manage</h2>
+
+                    <p class="text-muted">
+                        Unlist hides this version from search and listings but keeps the file.
+                        Delete permanently removes the package and its files.
+                    </p>
+
+                    <form method="post" asp-page-handler="Unlist"
+                          asp-route-id="@Model.Package.Id"
+                          asp-route-version="@Model.Package.NormalizedVersionString"
+                          style="display:inline"
+                          onsubmit="return confirm('Unlist @Model.Package.Id @Model.Package.NormalizedVersionString? It will be hidden from search and listings. You can relist it later.');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-default">
+                            <i class="ms-Icon ms-Icon--Hide" aria-hidden="true"></i>
+                            Unlist
+                        </button>
+                    </form>
+
+                    <form method="post" asp-page-handler="Delete"
+                          asp-route-id="@Model.Package.Id"
+                          asp-route-version="@Model.Package.NormalizedVersionString"
+                          style="display:inline"
+                          onsubmit="return confirm('Permanently delete @Model.Package.Id @Model.Package.NormalizedVersionString? This removes the package and its files and cannot be undone.');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            }
         </aside>
     </div>
 }
@@ -326,7 +396,7 @@ else
                     name: "Package Manager",
                     prefix: "PM>",
                     content: ["Install-Package @Model.Package.Id -Version @Model.Package.NormalizedVersionString"]
-                }
+                },
                 </text>
             }
         ];

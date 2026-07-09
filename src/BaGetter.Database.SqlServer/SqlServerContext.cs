@@ -1,5 +1,6 @@
 using System.Linq;
-using BaGetter.Core;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -36,6 +37,23 @@ public class SqlServerContext : AbstractContext<SqlServerContext>
         }
 
         return false;
+    }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        // SQL Server only allows one NULL in a standard unique index.
+        // Use filtered indexes so multiple NULLs are permitted.
+        builder.Entity<User>()
+            .HasIndex(u => u.EntraObjectId)
+            .IsUnique()
+            .HasFilter("[EntraObjectId] IS NOT NULL");
+
+        builder.Entity<Group>()
+            .HasIndex(g => g.AppRoleValue)
+            .IsUnique()
+            .HasFilter("[AppRoleValue] IS NOT NULL");
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using BaGetter.Core;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Validation;
 
 /// <summary>
 /// A configuration that validates options using data annotations.

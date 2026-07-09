@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using BaGetter.Core;
+using BaGetter.Core.Entities;
 using Newtonsoft.Json;
 
-namespace BaGetter.Azure
+namespace BaGetter.Azure.Table
 {
     public class TableOperationBuilder
     {

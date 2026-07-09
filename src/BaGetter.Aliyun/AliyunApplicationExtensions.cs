@@ -1,12 +1,14 @@
 using System;
 using Aliyun.OSS;
-using BaGetter.Aliyun;
 using BaGetter.Core;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Extensions;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter;
+namespace BaGetter.Aliyun;
 
 public static class AliyunApplicationExtensions
 {

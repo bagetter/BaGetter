@@ -1,8 +1,9 @@
 using System;
+using BaGetter.Core.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Validation;
 
 /// <summary>
 /// Validates BaGetter's options, used at startup.

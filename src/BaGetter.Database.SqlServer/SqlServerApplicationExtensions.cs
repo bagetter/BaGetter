@@ -1,9 +1,10 @@
 using System;
 using BaGetter.Core;
-using BaGetter.Database.SqlServer;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BaGetter;
+namespace BaGetter.Database.SqlServer;
 
 public static class SqlServerApplicationExtensions
 {

@@ -1,19 +1,22 @@
 using System;
 using System.Collections.Generic;
+using BaGetter.Core.Configuration;
+using BaGetter.Core.Entities;
+using BaGetter.Core.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace BaGetter.Core;
+namespace BaGetter.Core.Extensions;
 
 public static partial class DependencyInjectionExtensions
 {
-    private static readonly string DatabaseTypeKey = $"{nameof(BaGetterOptions.Database)}:{nameof(DatabaseOptions.Type)}";
-    private static readonly string SearchTypeKey = $"{nameof(BaGetterOptions.Search)}:{nameof(SearchOptions.Type)}";
-    private static readonly string StorageTypeKey = $"{nameof(BaGetterOptions.Storage)}:{nameof(StorageOptions.Type)}";
+    private static readonly string _databaseTypeKey = $"{nameof(BaGetterOptions.Database)}:{nameof(DatabaseOptions.Type)}";
+    private static readonly string _searchTypeKey = $"{nameof(BaGetterOptions.Search)}:{nameof(SearchOptions.Type)}";
+    private static readonly string _storageTypeKey = $"{nameof(BaGetterOptions.Storage)}:{nameof(StorageOptions.Type)}";
 
-    private static readonly string DatabaseSearchType = "Database";
+    private static readonly string _databaseSearchType = "Database";
 
     /// <summary>
     /// Add a new provider to the dependency injection container. The provider may
@@ -41,7 +44,7 @@ public static partial class DependencyInjectionExtensions
     /// <returns>Whether the database type is active.</returns>
     public static bool HasDatabaseType(this IConfiguration config, string value)
     {
-        return config[DatabaseTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
+        return config[_databaseTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -52,7 +55,7 @@ public static partial class DependencyInjectionExtensions
     /// <returns>Whether the search type is active.</returns>
     public static bool HasSearchType(this IConfiguration config, string value)
     {
-        return config[SearchTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
+        return config[_searchTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -63,7 +66,7 @@ public static partial class DependencyInjectionExtensions
     /// <returns>Whether the database type is active.</returns>
     public static bool HasStorageType(this IConfiguration config, string value)
     {
-        return config[StorageTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
+        return config[_storageTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     public static IServiceCollection AddBaGetDbContextProvider<TContext>(
@@ -92,7 +95,7 @@ public static partial class DependencyInjectionExtensions
 
         services.AddProvider<ISearchIndexer>((provider, config) =>
         {
-            if (!config.HasSearchType(DatabaseSearchType)) return null;
+            if (!config.HasSearchType(_databaseSearchType)) return null;
             if (!config.HasDatabaseType(databaseType)) return null;
 
             return provider.GetRequiredService<NullSearchIndexer>();
@@ -100,7 +103,7 @@ public static partial class DependencyInjectionExtensions
 
         services.AddProvider<ISearchService>((provider, config) =>
         {
-            if (!config.HasSearchType(DatabaseSearchType)) return null;
+            if (!config.HasSearchType(_databaseSearchType)) return null;
             if (!config.HasDatabaseType(databaseType)) return null;
 
             return provider.GetRequiredService<DatabaseSearchService>();

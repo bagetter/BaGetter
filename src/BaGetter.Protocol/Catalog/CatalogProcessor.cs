@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BaGetter.Protocol.Extensions;
 using BaGetter.Protocol.Models;
 using Microsoft.Extensions.Logging;
 
@@ -188,8 +189,7 @@ public class CatalogProcessor
     {
         var minCommitTimestamp = await _cursor.GetAsync(cancellationToken);
 
-        minCommitTimestamp = minCommitTimestamp
-            ?? _options.DefaultMinCommitTimestamp
+        minCommitTimestamp ??= _options.DefaultMinCommitTimestamp
             ?? _options.MinCommitTimestamp;
 
         if (minCommitTimestamp.Value < _options.MinCommitTimestamp)

@@ -1,4 +1,4 @@
-using BaGetter.Core;
+using BaGetter.Core.Storage;
 using Microsoft.Extensions.Options;
 
 namespace BaGetter.Tencent;
