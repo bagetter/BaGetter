@@ -171,7 +171,10 @@ public class PackageIndexingService : IPackageIndexingService
 
         await _search.IndexAsync(package, cancellationToken);
 
-        if (_retentionOptions.Value.MaxMajorVersions.HasValue)
+        if (_retentionOptions.Value.MaxMajorVersions.HasValue ||
+            _retentionOptions.Value.MaxMinorVersions.HasValue ||
+            _retentionOptions.Value.MaxPatchVersions.HasValue ||
+            _retentionOptions.Value.MaxPrereleaseVersions.HasValue)
         {
             try
             {
