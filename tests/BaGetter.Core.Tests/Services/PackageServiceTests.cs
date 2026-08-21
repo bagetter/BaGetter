@@ -235,6 +235,29 @@ public class PackageServiceTests
 
             Assert.Null(result);
         }
+
+        [Fact]
+        public async Task ReturnsPackageWhenConcurrentlyIndexed()
+        {
+            var expected = new Package();
+
+            _db
+                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+                .ReturnsAsync(false);
+            _upstream
+                .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
+                .ReturnsAsync(new MemoryStream());
+            _indexer
+                .Setup(i => i.IndexAsync(It.IsAny<Stream>(), It.IsAny<string>(), _cancellationToken))
+                .ReturnsAsync(PackageIndexingResult.PackageAlreadyExists);
+            _db
+                .Setup(p => p.FindOrNullAsync(_id, _version, /*includeUnlisted:*/ true, _cancellationToken))
+                .ReturnsAsync(expected);
+
+            var result = await _target.FindPackageOrNullAsync(_id, _version, _cancellationToken);
+
+            Assert.Same(expected, result);
+        }
     }
 
     public class ExistsAsync : MirrorAsync
@@ -263,6 +286,24 @@ public class PackageServiceTests
             var result = await _target.ExistsAsync(_id, _version, _cancellationToken);
 
             Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ReturnsTrueWhenConcurrentlyIndexed()
+        {
+            _db
+                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+                .ReturnsAsync(false);
+            _upstream
+                .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
+                .ReturnsAsync(new MemoryStream());
+            _indexer
+                .Setup(i => i.IndexAsync(It.IsAny<Stream>(), It.IsAny<string>(), _cancellationToken))
+                .ReturnsAsync(PackageIndexingResult.PackageAlreadyExists);
+
+            var result = await _target.ExistsAsync(_id, _version, _cancellationToken);
+
+            Assert.True(result);
         }
     }
 
@@ -339,6 +380,50 @@ public class PackageServiceTests
 
             _indexer.Verify(
                 i => i.IndexAsync(It.IsAny<Stream>(), _upstream.Object.GetServiceIndexUrl(), _cancellationToken),
+                Times.Once);
+        }
+    }
+
+    public class CoalescesConcurrentMirrors : FactsBase
+    {
+        private readonly string _id = "ConcurrentPackage";
+        private readonly NuGetVersion _version = new NuGetVersion("1.0.0");
+
+        [Fact]
+        public async Task IndexesOnlyOnceAndAllRequestsSucceed()
+        {
+            var indexed = 0;
+
+            _db
+                .Setup(p => p.ExistsAsync(_id, _version, _cancellationToken))
+                .ReturnsAsync(() => Volatile.Read(ref indexed) == 1);
+
+            _upstream
+                .Setup(u => u.DownloadPackageOrNullAsync(_id, _version, _cancellationToken))
+                .Returns(async () =>
+                {
+                    // Widen the race window so every request piles up on the per-package lock.
+                    await Task.Delay(50);
+                    return (Stream)new MemoryStream();
+                });
+
+            _indexer
+                .Setup(i => i.IndexAsync(It.IsAny<Stream>(), It.IsAny<string>(), _cancellationToken))
+                .Returns(async () =>
+                {
+                    await Task.Delay(10);
+                    Interlocked.Exchange(ref indexed, 1);
+                    return PackageIndexingResult.Success;
+                });
+
+            var results = await Task.WhenAll(
+                Enumerable
+                    .Range(0, 32)
+                    .Select(_ => _target.ExistsAsync(_id, _version, _cancellationToken)));
+
+            Assert.All(results, Assert.True);
+            _indexer.Verify(
+                i => i.IndexAsync(It.IsAny<Stream>(), It.IsAny<string>(), _cancellationToken),
                 Times.Once);
         }
     }
