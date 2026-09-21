@@ -24,6 +24,12 @@ configMaps:
       #Mirror__Enabled: "true"
       #Mirror__PackageSource: "https://api.nuget.org/v3/index.json"
       #PackageDeletionBehavior: "HardDelete"
+      #
+      # Multi-mirror (read-through caching) is configured via the `bagetter-mirror`
+      # Secret (see mirror-secret.example.yaml), wired through envFrom below. The
+      # DevExpress feed key lives in the PackageSource URL, so it must NOT be put
+      # here in the (committed) ConfigMap. Mirrors[i] keys: Enabled, PackageSource,
+      # Legacy (true for v2/OData feeds like DevExpress), PackageDownloadTimeoutSeconds.
 
 # -- Configures containers for the chart.
 # @default -- See values.yaml
@@ -41,6 +47,11 @@ controllers:
         envFrom:
           - configMapRef:
               name: bagetter-bagetter-env
+          # Read-through mirror config (incl. the DevExpress feed key in PackageSource).
+          # optional: pod still starts if the Secret is absent (mirroring simply stays off).
+          - secretRef:
+              name: bagetter-mirror
+              optional: true
         resources:
           requests:
             cpu: 100m

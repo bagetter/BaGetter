@@ -1,0 +1,270 @@
+@page "/admin"
+@model BaGetter.Web.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Admin dashboard";
+    var query = Request.Query["q"].ToString();
+    var status = Request.Query["status"].ToString();
+}
+
+<div class="admin-shell">
+    <div class="admin-heading">
+        <div>
+            <span class="admin-eyebrow">PACKAGE OPERATIONS</span>
+            <h1>Admin dashboard</h1>
+            <p>Manage package visibility, identity, copies, permanent deletion, and audit history.</p>
+        </div>
+        <div class="admin-user">
+            <span class="ms-Icon ms-Icon--Contact" aria-hidden="true"></span>
+            <span>@User.Identity?.Name</span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div id="adminStatus"
+             class="alert @(Model.StatusSucceeded ? "alert-success" : "alert-danger")"
+             role="@(Model.StatusSucceeded ? "status" : "alert")"
+             tabindex="-1">
+            @Model.StatusMessage
+        </div>
+    }
+
+    @if (Model.IsReadOnly)
+    {
+        <div class="alert alert-warning" role="alert">
+            Package mutations are disabled because the server is in read-only mode.
+        </div>
+    }
+
+    <section class="admin-metrics" aria-label="Package summary">
+        <article class="admin-metric">
+            <span>Total versions</span>
+            <strong>@Model.TotalPackages</strong>
+            <small>All indexed package versions</small>
+        </article>
+        <article class="admin-metric admin-metric-listed">
+            <span>Listed</span>
+            <strong>@Model.ListedPackages</strong>
+            <small>Visible to package clients</small>
+        </article>
+        <article class="admin-metric admin-metric-unlisted">
+            <span>Unlisted</span>
+            <strong>@Model.UnlistedPackages</strong>
+            <small>Hidden but still downloadable</small>
+        </article>
+        <article class="admin-metric">
+            <span>Audit events</span>
+            <strong>@Model.AuditEntries.Count</strong>
+            <small>Latest recorded operations</small>
+        </article>
+    </section>
+
+    <section class="admin-panel">
+        <div class="admin-panel-header">
+            <div>
+                <h2>Packages</h2>
+                <p>@Model.FilteredCount matching versions</p>
+            </div>
+            <form method="get" class="admin-filters">
+                <label class="sr-only" for="admin-search">Search package ID</label>
+                <input id="admin-search" name="q" value="@query" class="form-control" placeholder="Search package ID" />
+                <label class="sr-only" for="admin-status">Listing status</label>
+                <select id="admin-status" name="status" class="form-control">
+                    <option value="" selected="@(string.IsNullOrEmpty(status) ? "selected" : null)">All statuses</option>
+                    <option value="listed" selected="@(status == "listed" ? "selected" : null)">Listed</option>
+                    <option value="unlisted" selected="@(status == "unlisted" ? "selected" : null)">Unlisted</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Filter</button>
+                @if (!string.IsNullOrWhiteSpace(query) || !string.IsNullOrWhiteSpace(status))
+                {
+                    <a asp-page="/Admin/Index" class="btn btn-default">Clear</a>
+                }
+            </form>
+        </div>
+
+        <div class="table-responsive" tabindex="0" aria-label="Package versions table; scroll horizontally for more columns">
+            <table class="table admin-table">
+                <thead>
+                    <tr>
+                        <th>Package</th>
+                        <th>Version</th>
+                        <th>Status</th>
+                        <th>Published</th>
+                        <th>Downloads</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Packages.Count == 0)
+                    {
+                        <tr><td colspan="6" class="admin-empty">No package versions match the current filters.</td></tr>
+                    }
+                    @foreach (var package in Model.Packages)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@package.Id</strong>
+                                @if (!string.IsNullOrWhiteSpace(package.Description))
+                                {
+                                    <small title="@package.Description">@package.Description</small>
+                                }
+                            </td>
+                            <td><code>@package.Version</code></td>
+                            <td>
+                                <span class="admin-status @(package.Listed ? "is-listed" : "is-unlisted")">
+                                    @(package.Listed ? "Listed" : "Unlisted")
+                                </span>
+                            </td>
+                            <td><time datetime="@package.Published.ToString("O")">@package.Published.ToString("yyyy-MM-dd HH:mm")</time></td>
+                            <td class="text-right">@package.Downloads.ToString("N0")</td>
+                            <td class="text-right">
+                                <div class="admin-actions">
+                                <form method="post" asp-page-handler="Manage" class="admin-inline-form">
+                                    <input type="hidden" name="operation" value="@(package.Listed ? "unlist" : "relist")" />
+                                    <input type="hidden" name="id" value="@package.Id" />
+                                    <input type="hidden" name="version" value="@package.Version" />
+                                    <input type="hidden" name="q" value="@query" />
+                                    <input type="hidden" name="status" value="@status" />
+                                    <input type="hidden" name="page" value="@Model.CurrentPage" />
+                                    <button type="submit"
+                                            class="btn btn-sm btn-default js-direct-operation"
+                                            title="@(package.Listed ? "Hide from package search; existing downloads remain available." : "Make this version visible to package clients.")"
+                                            data-progress-label="@(package.Listed ? "Unlisting..." : "Relisting...")"
+                                            aria-disabled="@(Model.IsReadOnly ? "true" : "false")"
+                                            disabled="@(Model.IsReadOnly ? "disabled" : null)">
+                                        @(package.Listed ? "Unlist" : "Relist")
+                                    </button>
+                                </form>
+                                <button type="button"
+                                        class="btn btn-sm btn-default js-package-operation"
+                                        data-toggle="modal"
+                                        data-target="#packageOperationModal"
+                                        data-operation="copy"
+                                        data-id="@package.Id"
+                                        data-version="@package.Version"
+                                        title="Create the same version under another package ID."
+                                        aria-disabled="@(Model.IsReadOnly ? "true" : "false")"
+                                        disabled="@(Model.IsReadOnly ? "disabled" : null)">Copy</button>
+                                <button type="button"
+                                        class="btn btn-sm btn-default js-package-operation"
+                                        data-toggle="modal"
+                                        data-target="#packageOperationModal"
+                                        data-operation="rename"
+                                        data-id="@package.Id"
+                                        data-version="@package.Version"
+                                        title="Create a new ID and permanently remove the source."
+                                        aria-disabled="@(Model.IsReadOnly ? "true" : "false")"
+                                        disabled="@(Model.IsReadOnly ? "disabled" : null)">Rename</button>
+                                <button type="button"
+                                        class="btn btn-sm btn-danger js-package-operation"
+                                        data-toggle="modal"
+                                        data-target="#packageOperationModal"
+                                        data-operation="delete"
+                                        data-id="@package.Id"
+                                        data-version="@package.Version"
+                                        title="Permanently remove metadata and stored content."
+                                        aria-disabled="@(Model.IsReadOnly ? "true" : "false")"
+                                        disabled="@(Model.IsReadOnly ? "disabled" : null)">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Package pages" class="admin-pagination">
+                <a class="btn btn-default @(Model.CurrentPage <= 1 ? "disabled" : string.Empty)"
+                   asp-page="/Admin/Index" asp-route-q="@query" asp-route-status="@status" asp-route-page="@(Model.CurrentPage - 1)">Previous</a>
+                <span>Page @Model.CurrentPage of @Model.TotalPages</span>
+                <a class="btn btn-default @(Model.CurrentPage >= Model.TotalPages ? "disabled" : string.Empty)"
+                   asp-page="/Admin/Index" asp-route-q="@query" asp-route-status="@status" asp-route-page="@(Model.CurrentPage + 1)">Next</a>
+            </nav>
+        }
+    </section>
+
+    <section class="admin-panel">
+        <div class="admin-panel-header">
+            <div>
+                <h2>Activity log</h2>
+                <p>Who changed what, when, and from which address.</p>
+            </div>
+        </div>
+        <div class="admin-audit-list">
+            @if (Model.AuditEntries.Count == 0)
+            {
+                <p class="admin-empty">No administrative operations have been recorded.</p>
+            }
+            @foreach (var entry in Model.AuditEntries)
+            {
+                <article class="admin-audit-entry">
+                    <div class="admin-audit-icon @(entry.Result == "Succeeded" ? "is-success" : "is-failed")">
+                        <span class="ms-Icon @(entry.Result == "Succeeded" ? "ms-Icon--CheckMark" : "ms-Icon--StatusErrorFull")" aria-hidden="true"></span>
+                    </div>
+                    <div>
+                        <strong>@entry.Actor</strong>
+                        <span>@BaGetter.Web.Pages.Admin.IndexModel.GetActionLabel(entry.Action)</span>
+                        <code>@entry.PackageId @entry.PackageVersion</code>
+                        @if (!string.IsNullOrWhiteSpace(entry.Details))
+                        {
+                            <small>@entry.Details</small>
+                        }
+                    </div>
+                    <div class="admin-audit-meta">
+                        <span class="admin-audit-result">@entry.Result</span>
+                        <time datetime="@entry.TimestampUtc.ToString("O")">@entry.TimestampUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</time>
+                        <small>@entry.IpAddress</small>
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+</div>
+
+<div class="modal fade"
+     id="packageOperationModal"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="packageOperationTitle"
+     aria-describedby="packageOperationSummary packageOperationWarning">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Manage">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h2 class="modal-title" id="packageOperationTitle">Package operation</h2>
+                </div>
+                <div class="modal-body">
+                    <p id="packageOperationSummary"></p>
+                    <div id="packageOperationWarning" class="alert alert-warning" role="note"></div>
+                    <input type="hidden" id="packageOperation" name="operation" />
+                    <input type="hidden" id="packageId" name="id" />
+                    <input type="hidden" id="packageVersion" name="version" />
+                    <input type="hidden" name="q" value="@query" />
+                    <input type="hidden" name="status" value="@status" />
+                    <input type="hidden" name="page" value="@Model.CurrentPage" />
+                    <div class="form-group" id="targetIdGroup">
+                        <label for="targetId">New package ID</label>
+                        <input type="text" id="targetId" name="targetId" class="form-control" autocomplete="off" required />
+                        <p id="targetIdHelp" class="help-block"></p>
+                    </div>
+                    <div class="form-group" id="confirmationGroup">
+                        <label id="confirmationLabel" for="confirmation">Type the package ID to permanently delete it</label>
+                        <input type="text" id="confirmation" name="confirmation" class="form-control" autocomplete="off" />
+                        <p class="help-block">This removes metadata and stored package content and cannot be undone.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" id="packageOperationSubmit" class="btn btn-primary">Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/_content/BaGetter.Web/js/admin.js" asp-append-version="true"></script>
+}

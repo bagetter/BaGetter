@@ -152,6 +152,60 @@ namespace BaGetter.Azure
             return results.OrderBy(p => p.Version).ToList();
         }
 
+        public async Task<IReadOnlyList<Package>> SearchAsync(
+            string query,
+            bool? listed,
+            int skip,
+            int take,
+            CancellationToken cancellationToken)
+        {
+            var packages = new List<Package>();
+            await foreach (var entity in _table.QueryAsync<PackageEntity>(cancellationToken: cancellationToken))
+            {
+                if (!string.IsNullOrWhiteSpace(query) &&
+                    !entity.PartitionKey.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (listed.HasValue && entity.Listed != listed.Value)
+                {
+                    continue;
+                }
+
+                packages.Add(entity.AsPackage());
+            }
+
+            return packages
+                .OrderBy(p => p.Id, StringComparer.OrdinalIgnoreCase)
+                .ThenByDescending(p => p.Published)
+                .Skip(skip)
+                .Take(take)
+                .ToList();
+        }
+
+        public async Task<int> CountAsync(string query, bool? listed, CancellationToken cancellationToken)
+        {
+            var count = 0;
+            await foreach (var entity in _table.QueryAsync<PackageEntity>(
+                select: ["PartitionKey", "Listed"],
+                cancellationToken: cancellationToken))
+            {
+                if (!string.IsNullOrWhiteSpace(query) &&
+                    !entity.PartitionKey.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (!listed.HasValue || entity.Listed == listed.Value)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         public async Task<Package> FindOrNullAsync(
             string id,
             NuGetVersion version,

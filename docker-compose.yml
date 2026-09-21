@@ -1,0 +1,22 @@
+services:
+  bagetter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NuGetSource: ${NUGET_SOURCE:-https://api.nuget.org/v3/index.json}
+    image: bagetter-admin:local
+    container_name: bagetter
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Authentication__Credentials__0__Username: ${BAGETTER_ADMIN_USERNAME:-admin}
+      Authentication__Credentials__0__Password: ${BAGETTER_ADMIN_PASSWORD:?Set BAGETTER_ADMIN_PASSWORD}
+      Authentication__Credentials__0__Roles__0: Admin
+    volumes:
+      - bagetter-data:/data
+
+volumes:
+  bagetter-data:

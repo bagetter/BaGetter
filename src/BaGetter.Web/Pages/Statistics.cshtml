@@ -9,17 +9,18 @@
 @inject IOptionsSnapshot<StatisticsOptions> Options
 @inject IStatisticsService StatisticsService
 @inject ApplicationVersion Version
+@inject Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<BaGetter.Web.SharedResource> Localizer
 
 @{
-    ViewData["Title"] = "Stats";
+    ViewData["Title"] = Localizer["Statistics"];
 }
 
 <div class="col-sm-12">
-    <h1>Statistics</h1>
+    <h1>@Localizer["Statistics"]</h1>
     <hr class="breadcrumb-divider" />
     <div class="row">
         <article class="col-sm-4">
-            <h4>Current version</h4>
+            <h4>@Localizer["CurrentVersion"]</h4>
         </article>
         <div class="col-sm-8">
             <h4>@Version.InformationalVersion</h4>
@@ -27,7 +28,7 @@
     </div>
     <div class="row">
         <article class="col-sm-4">
-            <h4>Total amount of packages</h4>
+            <h4>@Localizer["TotalAmountOfPackages"]</h4>
         </article>
         <div class="col-sm-8">
             <h4>@await StatisticsService.GetPackagesTotalAmount()</h4>
@@ -35,7 +36,7 @@
     </div>
     <div class="row">
         <article class="col-sm-4">
-            <h4>Total amount of package versions</h4>
+            <h4>@Localizer["TotalAmountOfPackageVersions"]</h4>
         </article>
         <div class="col-sm-8">
             <h4>@await StatisticsService.GetVersionsTotalAmount()</h4>
@@ -45,7 +46,7 @@
     {
         <div class="row">
             <article class="col-sm-4">
-                <h4>Services in use</h4>
+                <h4>@Localizer["ServicesInUse"]</h4>
             </article>
             <div class="col-sm-8">
                 <h4>@string.Join(", ", StatisticsService.GetKnownServices())</h4>

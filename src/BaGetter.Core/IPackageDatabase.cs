@@ -43,6 +43,21 @@ public interface IPackageDatabase
     Task<IReadOnlyList<Package>> FindAsync(string id, bool includeUnlisted, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Find package versions for administrative management.
+    /// </summary>
+    Task<IReadOnlyList<Package>> SearchAsync(
+        string query,
+        bool? listed,
+        int skip,
+        int take,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Count package versions for administrative management.
+    /// </summary>
+    Task<int> CountAsync(string query, bool? listed, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Determine whether a package exists in the database (even if the package is unlisted).
     /// </summary>
     /// <param name="id">The package id to search.</param>

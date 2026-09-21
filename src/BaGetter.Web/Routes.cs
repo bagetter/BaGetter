@@ -11,6 +11,7 @@ public class Routes
     public const string AutocompleteRouteName = "autocomplete";
     public const string DependentsRouteName = "dependents";
     public const string RegistrationIndexRouteName = "registration-index";
+    public const string RegistrationPageRouteName = "registration-page";
     public const string RegistrationLeafRouteName = "registration-leaf";
     public const string PackageVersionsRouteName = "package-versions";
     public const string PackageDownloadRouteName = "package-download";

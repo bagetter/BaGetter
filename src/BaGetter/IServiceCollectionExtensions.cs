@@ -35,6 +35,13 @@ internal static class IServiceCollectionExtensions
                 policy.RequireAuthenticatedUser();
                 configurePolicy?.Invoke(policy);
             });
+            options.AddPolicy(AuthenticationConstants.AdminPolicy, policy =>
+            {
+                policy
+                    .AddAuthenticationSchemes(AuthenticationConstants.NugetBasicAuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .RequireRole(AuthenticationConstants.AdminRole);
+            });
         });
 
         return app;

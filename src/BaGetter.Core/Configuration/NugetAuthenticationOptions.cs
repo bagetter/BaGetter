@@ -13,4 +13,9 @@ public sealed class NugetAuthenticationOptions
     /// Api keys for pushing packages into the feed.
     /// </summary>
     public ApiKey[] ApiKeys { get; set; }
+
+    /// <summary>
+    /// LDAP authentication settings for downloading packages.
+    /// </summary>
+    public LdapAuthenticationOptions Ldap { get; set; }
 }

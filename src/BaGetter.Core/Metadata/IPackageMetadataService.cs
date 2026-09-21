@@ -21,6 +21,16 @@ public interface IPackageMetadataService
     Task<BaGetterRegistrationIndexResponse> GetRegistrationIndexOrNullAsync(string packageId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get the metadata for several versions of a package, if the package exists.
+    /// </summary>
+    /// <param name="packageId">The package's id.</param>
+    /// <param name="lower">The inclusive lower version in the page.</param>
+    /// <param name="upper">The inclusive upper version in the page.</param>
+    /// <param name="cancellationToken">A token to cancel the task.</param>
+    /// <returns>The <see cref="BaGetterRegistrationPageResponse">registration page</see>, or <see langword="null"/> if the package does not exist or no packages exist in the range.</returns>
+    Task<BaGetterRegistrationPageResponse> GetRegistrationPageOrNullAsync(string packageId, NuGetVersion lower, NuGetVersion upper, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get the metadata for a single package version, if the package exists.
     /// </summary>
     /// <param name="packageId">The package's id.</param>

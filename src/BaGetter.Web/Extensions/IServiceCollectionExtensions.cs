@@ -5,6 +5,7 @@ using BaGetter.Core;
 using BaGetter.Web;
 using BaGetter.Web.Authentication;
 using BaGetter.Web.Helper;
+using BaGetter.Web.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,10 +26,16 @@ public static class IServiceCollectionExtensions
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
 
-        services.AddRazorPages();
+        services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+        services
+            .AddRazorPages()
+            .AddViewLocalization();
 
         services.AddHttpContextAccessor();
         services.AddTransient<IUrlGenerator, BaGetterUrlGenerator>();
+        services.AddTransient<IAdminPackageService, AdminPackageService>();
+        services.AddSingleton<IAdminAuditLog, FileAdminAuditLog>();
 
         services.AddSingleton(ApplicationVersionHelper.GetVersion());
 

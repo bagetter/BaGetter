@@ -51,3 +51,4 @@
 *.sln text=auto eol=crlf
 
 *.sh eol=lf
+Dockerfile text eol=lf

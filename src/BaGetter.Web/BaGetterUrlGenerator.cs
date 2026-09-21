@@ -78,8 +78,15 @@ public class BaGetterUrlGenerator : IUrlGenerator
 
     public string GetRegistrationPageUrl(string id, NuGetVersion lower, NuGetVersion upper)
     {
-        // BaGetter does not support paging the registration resource.
-        throw new NotImplementedException();
+        return _linkGenerator.GetUriByRouteValues(
+            _httpContextAccessor.HttpContext,
+            Routes.RegistrationPageRouteName,
+            values: new
+            {
+                Id = id.ToLowerInvariant(),
+                Lower = lower.ToNormalizedString().ToLowerInvariant(),
+                Upper = upper.ToNormalizedString().ToLowerInvariant(),
+            });
     }
 
     public string GetRegistrationLeafUrl(string id, NuGetVersion version)

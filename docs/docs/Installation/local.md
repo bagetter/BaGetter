@@ -11,6 +11,11 @@
 
 You can modify BaGetter's configurations by editing the `appsettings.json` file. For the full list of configurations, please refer to [BaGetter's configuration](../configuration.md) guide.
 
+If you want to secure package restore/download access, BaGetter supports both local
+`Authentication.Credentials` users and LDAP / Active Directory through
+`Authentication.Ldap`. See the [Private feeds](../configuration.md#private-feeds) section
+for examples.
+
 ## Publish packages
 
 Publish your first package with:

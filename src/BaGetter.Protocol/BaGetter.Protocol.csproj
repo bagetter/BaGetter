@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
 
     <PackageTags>NuGet;Protocol</PackageTags>
     <Description>Libraries to interact with NuGet server APIs.</Description>
+    <TargetFrameworks>netstandard2.1;net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

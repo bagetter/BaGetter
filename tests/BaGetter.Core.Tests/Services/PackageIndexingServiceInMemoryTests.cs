@@ -104,6 +104,45 @@ public class PackageIndexingServiceInMemoryTests
     }
 
     [Fact]
+    public async Task IndexIMAsync_WhenPackageIsUnlisted_AndOverwriteForbidden_ReindexesPackage()
+    {
+        // Arrange
+        _options.AllowPackageOverwrites = PackageOverwriteAllowed.False;
+
+        var builder = new PackageBuilder
+        {
+            Id = "bagetter-test",
+            Version = NuGetVersion.Parse("1.0.0"),
+            Description = "Test Description",
+        };
+        builder.Authors.Add("Test Author");
+        var assemblyFile = GetType().Assembly.Location;
+        builder.Files.Add(new PhysicalPackageFile
+        {
+            SourcePath = assemblyFile,
+            TargetPath = "lib/Test.dll"
+        });
+
+        _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
+
+        var firstPush = new MemoryStream();
+        builder.Save(firstPush);
+
+        // Act
+        var firstResult = await _target.IndexAsync(firstPush, default);
+        var unlisted = await _packages.UnlistPackageAsync(builder.Id, builder.Version, default);
+
+        var secondPush = new MemoryStream();
+        builder.Save(secondPush);
+        var secondResult = await _target.IndexAsync(secondPush, default);
+
+        // Assert
+        Assert.Equal(PackageIndexingResult.Success, firstResult);
+        Assert.True(unlisted);
+        Assert.Equal(PackageIndexingResult.Success, secondResult);
+    }
+
+    [Fact]
     public async Task IndexIMAsync_WhenPackageAlreadyExists_AndOverwriteAllowed_IndexesPackage()
     {
         // Arrange

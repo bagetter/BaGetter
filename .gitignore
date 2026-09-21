@@ -219,6 +219,9 @@ UpgradeLog*.htm
 *.mdf
 *.ldf
 
+# Runtime administrative audit logs
+**/App_Data/
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout

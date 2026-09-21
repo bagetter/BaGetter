@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Actions" xml:space="preserve">
+    <value>Aðgerðir</value>
+  </data>
+  <data name="Authors" xml:space="preserve">
+    <value>Höfundar</value>
+  </data>
+  <data name="Any" xml:space="preserve">
+    <value>Allt</value>
+  </data>
+  <data name="BaGetter documentation" xml:space="preserve">
+    <value>BaGetter skjölun</value>
+  </data>
+  <data name="BaGetter issues" xml:space="preserve">
+    <value>BaGetter villur</value>
+  </data>
+  <data name="by" xml:space="preserve">
+    <value>eftir</value>
+  </data>
+  <data name="CouldNotFindPackage" xml:space="preserve">
+    <value>Gat ekki fundið pakkann '{0}'.</value>
+  </data>
+  <data name="CurrentVersion" xml:space="preserve">
+    <value>Núverandi útgáfa</value>
+  </data>
+  <data name="Delete package" xml:space="preserve">
+    <value>Eyða pakka</value>
+  </data>
+  <data name="DeletePackageVersion" xml:space="preserve">
+    <value>Eyða pakkaútgáfu</value>
+  </data>
+  <data name="Dependencies" xml:space="preserve">
+    <value>Háðir pakkar</value>
+  </data>
+  <data name="Dependency" xml:space="preserve">
+    <value>Háðni</value>
+  </data>
+  <data name=".NET tool" xml:space="preserve">
+    <value>.NET tól</value>
+  </data>
+  <data name=".NET template" xml:space="preserve">
+    <value>.NET sniðmát</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Skjölun</value>
+  </data>
+  <data name="DownloadPackage" xml:space="preserve">
+    <value>Sækja pakka</value>
+  </data>
+  <data name="Downloads" xml:space="preserve">
+    <value>Niðurhöl</value>
+  </data>
+  <data name="DownloadsOfCurrentVersion" xml:space="preserve">
+    <value>niðurhal núverandi útgáfu</value>
+  </data>
+  <data name="ForMoreInformationReferTo" xml:space="preserve">
+    <value>Nánari upplýsingar má finna í</value>
+  </data>
+  <data name="Framework" xml:space="preserve">
+    <value>Vinnsluumhverfi</value>
+  </data>
+  <data name="Include prerelease" xml:space="preserve">
+    <value>Sýna forskoðunarútgáfur</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Upplýsingar</value>
+  </data>
+  <data name="It looks like there's no package here to see. Take a look below for useful links." xml:space="preserve">
+    <value>Það virðist ekki vera neinn pakki hér. Skoðaðu gagnlega tengla hér að neðan.</value>
+  </data>
+  <data name="LastUpdated" xml:space="preserve">
+    <value>Síðast uppfært</value>
+  </data>
+  <data name="Latest version" xml:space="preserve">
+    <value>Nýjasta útgáfa</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>Leyfi</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Næsti</value>
+  </data>
+  <data name="NoDependencies" xml:space="preserve">
+    <value>Engir háðir pakkar.</value>
+  </data>
+  <data name="NoPackagesDependOn" xml:space="preserve">
+    <value>Engir pakkar eru háðir {0}.</value>
+  </data>
+  <data name="Oops, nothing here..." xml:space="preserve">
+    <value>Úps, ekkert hér...</value>
+  </data>
+  <data name="OopsPackageNotFound" xml:space="preserve">
+    <value>Úps, pakki fannst ekki...</value>
+  </data>
+  <data name="OrAskingForHelpOn" xml:space="preserve">
+    <value>eða fáðu aðstoð á</value>
+  </data>
+  <data name="Package type" xml:space="preserve">
+    <value>Pakkatýpa</value>
+  </data>
+  <data name="Packages" xml:space="preserve">
+    <value>Pakkar</value>
+  </data>
+  <data name="PackageSuffix" xml:space="preserve">
+    <value>pakkanum.</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Fyrri</value>
+  </data>
+  <data name="ProjectUrl" xml:space="preserve">
+    <value>Verkefnisslóð</value>
+  </data>
+  <data name="PushPackagesUsingServiceIndex" xml:space="preserve">
+    <value>Þú getur hlaðið upp pökkum með þjónustuvísinum</value>
+  </data>
+  <data name="Readme" xml:space="preserve">
+    <value>Lesmál</value>
+  </data>
+  <data name="ReleaseNotes" xml:space="preserve">
+    <value>Útgáfuskýringar</value>
+  </data>
+  <data name="SearchForPackages" xml:space="preserve">
+    <value>Leita að pökkum</value>
+  </data>
+  <data name="SearchPackagesPlaceholder" xml:space="preserve">
+    <value>Leita að pökkum...</value>
+  </data>
+  <data name="ServicesInUse" xml:space="preserve">
+    <value>Þjónustur í notkun</value>
+  </data>
+  <data name="ShowingTop20PackagesThatDependOn" xml:space="preserve">
+    <value>Sýni 20 efstu pakkana sem eru háðir {0}.</value>
+  </data>
+  <data name="ShowLess" xml:space="preserve">
+    <value>Sýna minna</value>
+  </data>
+  <data name="ShowMore" xml:space="preserve">
+    <value>Sýna meira</value>
+  </data>
+  <data name="SourceCode" xml:space="preserve">
+    <value>Kóði</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>Tölfræði</value>
+  </data>
+  <data name="Tags" xml:space="preserve">
+    <value>Merki</value>
+  </data>
+  <data name="ThinkTheresAProblemPrefix" xml:space="preserve">
+    <value>Heldurðu að eitthvað sé að? Skoðaðu</value>
+  </data>
+  <data name="ThisPackageHasNoDependencies" xml:space="preserve">
+    <value>Þessi pakki hefur enga háða pakka.</value>
+  </data>
+  <data name="total downloads" xml:space="preserve">
+    <value>niðurhal alls</value>
+  </data>
+  <data name="TotalAmountOfPackages" xml:space="preserve">
+    <value>Heildarfjöldi pakka</value>
+  </data>
+  <data name="TotalAmountOfPackageVersions" xml:space="preserve">
+    <value>Heildarfjöldi pakkaútgáfa</value>
+  </data>
+  <data name="TotalDownloads" xml:space="preserve">
+    <value>niðurhal alls</value>
+  </data>
+  <data name="TrySearchingOn" xml:space="preserve">
+    <value>Þú getur reynt að leita á</value>
+  </data>
+  <data name="unknown" xml:space="preserve">
+    <value>óþekktur</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Hlaða upp</value>
+  </data>
+  <data name="Upload a package" xml:space="preserve">
+    <value>Hlaða upp pakka</value>
+  </data>
+  <data name="UploadPackageTitle" xml:space="preserve">
+    <value>Hlaða upp pakka</value>
+  </data>
+  <data name="UsedBy" xml:space="preserve">
+    <value>Notað af</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Útgáfa</value>
+  </data>
+  <data name="VersionLabel" xml:space="preserve">
+    <value>Útgáfa</value>
+  </data>
+  <data name="Versions" xml:space="preserve">
+    <value>Útgáfur</value>
+  </data>
+  <data name="LanguageAuto" xml:space="preserve">
+    <value>Automatic (Browser)</value>
+  </data>
+  <data name="LanguageName_da-DK" xml:space="preserve">
+    <value>Danish</value>
+  </data>
+  <data name="LanguageName_is-IS" xml:space="preserve">
+    <value>Icelandic</value>
+  </data>
+  <data name="LanguageName_sv-SE" xml:space="preserve">
+    <value>Swedish</value>
+  </data>
+  <data name="LanguageName_pl-PL" xml:space="preserve">
+    <value>Polish</value>
+  </data>
+  <data name="LanguageName_en-US" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageName_fi-FI" xml:space="preserve">
+    <value>Finnish</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="LanguageName_nb-NO" xml:space="preserve">
+    <value>Norwegian</value>
+  </data>
+  <data name="LanguageName_zh-CN" xml:space="preserve">
+    <value>Chinese</value>
+  </data>
+  <data name="LanguageName_es-ES" xml:space="preserve">
+    <value>Spanish</value>
+  </data>
+  <data name="LanguageName_pt-PT" xml:space="preserve">
+    <value>Portuguese</value>
+  </data>
+  <data name="LanguageName_fr-FR" xml:space="preserve">
+    <value>French</value>
+  </data>
+  <data name="LanguageName_it-IT" xml:space="preserve">
+    <value>Italian</value>
+  </data>
+</root>

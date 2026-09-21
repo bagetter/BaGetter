@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using BaGetter.Authentication;
 using BaGetter.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Constraints;
@@ -11,7 +13,13 @@ public class BaGetterEndpointBuilder
 {
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapRazorPages();
+        endpoints
+            .MapRazorPages()
+            .RequireAuthorization(new AuthorizeAttribute
+            {
+                AuthenticationSchemes = AuthenticationConstants.NugetBasicAuthenticationScheme,
+                Policy = AuthenticationConstants.NugetUserPolicy,
+            });
 
         MapServiceIndexRoutes(endpoints);
         MapPackagePublishRoutes(endpoints);
@@ -94,6 +102,11 @@ public class BaGetterEndpointBuilder
            name: Routes.RegistrationIndexRouteName,
            pattern: "v3/registration/{id}/index.json",
            defaults: new { controller = "PackageMetadata", action = "RegistrationIndex" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.RegistrationPageRouteName,
+            pattern: "v3/registration/{id}/page/{lower}/{upper}.json",
+            defaults: new { controller = "PackageMetadata", action = "RegistrationPage" });
 
         endpoints.MapControllerRoute(
             name: Routes.RegistrationLeafRouteName,

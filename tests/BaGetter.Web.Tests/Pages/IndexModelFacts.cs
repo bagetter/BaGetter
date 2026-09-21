@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using BaGetter.Core;
 using BaGetter.Protocol.Models;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -23,7 +24,10 @@ public class IndexModelFacts
             .Callback((SearchRequest r, CancellationToken c) => _capturedRequest = r)
             .ReturnsAsync(_response);
 
-        _target = new IndexModel(search.Object);
+        var options = new Mock<IOptionsSnapshot<BaGetterOptions>>();
+        options.Setup(o => o.Value).Returns(new BaGetterOptions());
+
+        _target = new IndexModel(search.Object, options.Object);
     }
 
     [Fact]

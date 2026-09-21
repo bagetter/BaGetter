@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Versioning;
 using Xunit;
@@ -16,7 +17,7 @@ public class DefaultPackageMetadataServiceTests
     public DefaultPackageMetadataServiceTests()
     {
         _urlGenerator = new Mock<IUrlGenerator>();
-        _registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
+        _registrationBuilder = new RegistrationBuilder(_urlGenerator.Object, Options.Create(new BaGetterOptions()));
     }
 
     [Fact]
@@ -67,6 +68,26 @@ public class DefaultPackageMetadataServiceTests
 
         // Act
         var result = await packageMetadataService.GetRegistrationLeafOrNullAsync("dummy", nugetVersion);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetRegistrationPageOrNullAsync_PackageFindsNoPackages_ShouldReturnNullAsync()
+    {
+        // Arrange
+        var lowerVersion = new NuGetVersion("1.0.0");
+        var upperVersion = new NuGetVersion("2.0.0");
+
+        var packageService = new Mock<IPackageService>();
+        packageService.Setup(x => x.FindPackagesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(() => Task.FromResult<IReadOnlyList<Package>>(new List<Package>()));
+
+        var packageMetadataService = new DefaultPackageMetadataService(packageService.Object, _registrationBuilder);
+
+        // Act
+        var result = await packageMetadataService.GetRegistrationPageOrNullAsync("dummy", lowerVersion, upperVersion);
 
         // Assert
         Assert.Null(result);

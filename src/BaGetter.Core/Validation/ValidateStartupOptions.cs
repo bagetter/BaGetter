@@ -48,6 +48,13 @@ public class ValidateStartupOptions
             _ = _healthCheck.Value;
             _ = _statistics.Value;
 
+            var ldap = _root.Value.Authentication?.Ldap;
+            if (ldap?.Enabled == true && !OperatingSystem.IsWindows())
+            {
+                _logger.LogWarning(
+                    "LDAP authentication is enabled on a non-Windows host. Ensure LDAPS certificate trust and platform LDAP/TLS configuration are set up correctly for this environment.");
+            }
+
             return true;
         }
         catch (OptionsValidationException e)

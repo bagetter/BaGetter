@@ -8,6 +8,7 @@ using BaGetter.Core;
 using Markdig;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 using NuGet.Frameworks;
 using NuGet.Versioning;
 
@@ -21,6 +22,7 @@ public class PackageModel : PageModel
     private readonly IPackageContentService _content;
     private readonly ISearchService _search;
     private readonly IUrlGenerator _url;
+    private readonly IOptionsSnapshot<BaGetterOptions> _options;
 
     static PackageModel()
     {
@@ -33,12 +35,14 @@ public class PackageModel : PageModel
         IPackageService packages,
         IPackageContentService content,
         ISearchService search,
-        IUrlGenerator url)
+        IUrlGenerator url,
+        IOptionsSnapshot<BaGetterOptions> options)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _content = content ?? throw new ArgumentNullException(nameof(content));
         _search = search ?? throw new ArgumentNullException(nameof(search));
         _url = url ?? throw new ArgumentNullException(nameof(url));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     public bool Found { get; private set; }
@@ -61,6 +65,7 @@ public class PackageModel : PageModel
     public string IconUrl { get; private set; }
     public string LicenseUrl { get; private set; }
     public string PackageDownloadUrl { get; private set; }
+    public bool CanDeletePackages => !_options.Value.IsReadOnlyMode && User.IsInRole("Admin");
 
     public async Task OnGetAsync(string id, string version, CancellationToken cancellationToken)
     {

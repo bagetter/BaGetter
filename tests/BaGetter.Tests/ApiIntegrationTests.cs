@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -98,6 +99,18 @@ public class ApiIntegrationTests : IDisposable
   ""totalHits"": 0,
   ""data"": []
 }", json);
+    }
+
+    [Fact]
+    public async Task IndexPageAuthorQueryReturnsOk()
+    {
+        await _app.AddPackageAsync(_packageStream);
+
+        using var response = await _client.GetAsync("/?q=author:%22Test%20author%22%20TestData");
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("TestData", content, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -315,6 +328,34 @@ public class ApiIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task PackageMetadataReturnsNotModifiedWhenIfNoneMatchMatches()
+    {
+        await _app.AddPackageAsync(_packageStream);
+
+        using var firstResponse = await _client.GetAsync("v3/registration/TestData/index.json");
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+
+        var etag = firstResponse.Headers.ETag?.Tag;
+        Assert.False(string.IsNullOrWhiteSpace(etag));
+
+        var firstCacheControl = firstResponse.Headers.CacheControl?.ToString() ?? string.Empty;
+        Assert.Contains("public", firstCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("max-age=0", firstCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("must-revalidate", firstCacheControl, StringComparison.OrdinalIgnoreCase);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "v3/registration/TestData/index.json");
+        request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+
+        using var secondResponse = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.NotModified, secondResponse.StatusCode);
+
+        var secondCacheControl = secondResponse.Headers.CacheControl?.ToString() ?? string.Empty;
+        Assert.Contains("public", secondCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("max-age=0", secondCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("must-revalidate", secondCacheControl, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task PackageMetadataReturnsNotFound()
     {
         using var response = await _client.GetAsync("v3/registration/PackageDoesNotExist/index.json");
@@ -354,6 +395,105 @@ public class ApiIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task PackageMetadataPageReturnsOk()
+    {
+        await _app.AddPackageAsync(_packageStream);
+
+        using var response = await _client.GetAsync("v3/registration/TestData/page/1.2.3/1.2.3.json");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(content);
+
+        Assert.Equal(1, document.RootElement.GetProperty("count").GetInt32());
+        Assert.Equal("1.2.3", document.RootElement.GetProperty("lower").GetString());
+        Assert.Equal("1.2.3", document.RootElement.GetProperty("upper").GetString());
+        Assert.Equal(1, document.RootElement.GetProperty("items").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task PackageMetadataPageReturnsNotFound()
+    {
+        using var response = await _client.GetAsync("v3/registration/PackageDoesNotExist/page/1.0.0/1.0.0.json");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PackageMetadataReturnsPagedIndexWhenRegistrationPageSizeIsSmall()
+    {
+        using var app = new BaGetterApplication(_output, inMemoryConfiguration: config => config["RegistrationPageSize"] = "2");
+        using var client = app.CreateClient();
+
+        await using var package100 = TestResources.GetPackageStreamWithVersion("1.0.0");
+        await using var package110 = TestResources.GetPackageStreamWithVersion("1.1.0");
+        await using var package120 = TestResources.GetPackageStreamWithVersion("1.2.0");
+
+        await app.AddPackageAsync(package100);
+        await app.AddPackageAsync(package110);
+        await app.AddPackageAsync(package120);
+
+        using var response = await client.GetAsync("v3/registration/TestData/index.json");
+        var content = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(2, document.RootElement.GetProperty("count").GetInt32());
+
+        var pages = document.RootElement.GetProperty("items");
+        Assert.Equal(2, pages.GetArrayLength());
+
+        Assert.False(pages[0].TryGetProperty("items", out _));
+        Assert.False(pages[1].TryGetProperty("items", out _));
+
+        var firstPageUrl = GetRegistrationPageUrl(pages[0]);
+        var secondPageUrl = GetRegistrationPageUrl(pages[1]);
+
+        Assert.Contains("/v3/registration/testdata/page/", firstPageUrl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/v3/registration/testdata/page/", secondPageUrl, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PackageMetadataPageReturnsInlinedItemsForPagedRegistration()
+    {
+        using var app = new BaGetterApplication(_output, inMemoryConfiguration: config => config["RegistrationPageSize"] = "2");
+        using var client = app.CreateClient();
+
+        await using var package100 = TestResources.GetPackageStreamWithVersion("1.0.0");
+        await using var package110 = TestResources.GetPackageStreamWithVersion("1.1.0");
+        await using var package120 = TestResources.GetPackageStreamWithVersion("1.2.0");
+
+        await app.AddPackageAsync(package100);
+        await app.AddPackageAsync(package110);
+        await app.AddPackageAsync(package120);
+
+        using var indexResponse = await client.GetAsync("v3/registration/TestData/index.json");
+        var indexContent = await indexResponse.Content.ReadAsStringAsync();
+        using var indexDocument = JsonDocument.Parse(indexContent);
+
+        var firstPageUrl = GetRegistrationPageUrl(indexDocument.RootElement.GetProperty("items")[0]);
+        using var pageResponse = await client.GetAsync(firstPageUrl);
+        var pageContent = await pageResponse.Content.ReadAsStringAsync();
+        using var pageDocument = JsonDocument.Parse(pageContent);
+
+        Assert.Equal(HttpStatusCode.OK, pageResponse.StatusCode);
+        Assert.Equal(2, pageDocument.RootElement.GetProperty("count").GetInt32());
+        Assert.Equal(2, pageDocument.RootElement.GetProperty("items").GetArrayLength());
+        Assert.False(string.IsNullOrWhiteSpace(pageResponse.Headers.ETag?.Tag));
+    }
+
+    private static string GetRegistrationPageUrl(JsonElement pageElement)
+    {
+        if (pageElement.TryGetProperty("@id", out var idProperty))
+        {
+            return idProperty.GetString();
+        }
+
+        return pageElement.GetProperty("registrationPageUrl").GetString();
+    }
+
+    [Fact]
     public async Task PackageDependentsReturnsOk()
     {
         using var response = await _client.GetAsync("v3/dependents?packageId=TestData");
@@ -374,6 +514,34 @@ public class ApiIntegrationTests : IDisposable
         using var response = await _client.GetAsync("v3/dependents");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PackageDownloadReturnsNotModifiedWhenIfNoneMatchMatches()
+    {
+        await _app.AddPackageAsync(_packageStream);
+
+        using var firstResponse = await _client.GetAsync("v3/package/TestData/1.2.3/TestData.1.2.3.nupkg");
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+
+        var etag = firstResponse.Headers.ETag?.Tag;
+        Assert.False(string.IsNullOrWhiteSpace(etag));
+
+        var firstCacheControl = firstResponse.Headers.CacheControl?.ToString() ?? string.Empty;
+        Assert.Contains("public", firstCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("max-age=31536000", firstCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("immutable", firstCacheControl, StringComparison.OrdinalIgnoreCase);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "v3/package/TestData/1.2.3/TestData.1.2.3.nupkg");
+        request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+
+        using var secondResponse = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.NotModified, secondResponse.StatusCode);
+
+        var secondCacheControl = secondResponse.Headers.CacheControl?.ToString() ?? string.Empty;
+        Assert.Contains("public", secondCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("max-age=31536000", secondCacheControl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("immutable", secondCacheControl, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -409,6 +577,64 @@ public class ApiIntegrationTests : IDisposable
             "api/download/symbols/doesnotexist.pdb/16F71ED8DD574AA2AD4A22D29E9C981Bffffffff/doesnotexist.pdb");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RateLimitingReturnsTooManyRequestsWhenEnabled()
+    {
+        using var app = new BaGetterApplication(_output, inMemoryConfiguration: config =>
+        {
+            config["RequestRateLimit:Enabled"] = "true";
+            config["RequestRateLimit:PermitLimit"] = "1";
+            config["RequestRateLimit:WindowSeconds"] = "60";
+            config["RequestRateLimit:QueueLimit"] = "0";
+        });
+        using var client = app.CreateClient();
+
+        using var firstResponse = await client.GetAsync("v3/index.json");
+        using var secondResponse = await client.GetAsync("v3/index.json");
+
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.TooManyRequests, secondResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task SecurityHeadersAreIncludedByDefault()
+    {
+        using var response = await _client.GetAsync("v3/index.json");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(response.Headers.Contains("X-Content-Type-Options"));
+        Assert.True(response.Headers.Contains("X-Frame-Options"));
+        Assert.True(response.Headers.Contains("Referrer-Policy"));
+        Assert.True(response.Headers.Contains("Permissions-Policy"));
+    }
+
+    [Fact]
+    public async Task CorsCanRestrictOrigins()
+    {
+        using var app = new BaGetterApplication(_output, inMemoryConfiguration: config =>
+        {
+            config["Cors:AllowAnyOrigin"] = "false";
+            config["Cors:AllowedOrigins:0"] = "https://allowed.example";
+            config["Cors:AllowAnyMethod"] = "true";
+            config["Cors:AllowAnyHeader"] = "true";
+        });
+        using var client = app.CreateClient();
+
+        using var allowedRequest = new HttpRequestMessage(HttpMethod.Get, "v3/index.json");
+        allowedRequest.Headers.Add("Origin", "https://allowed.example");
+
+        using var allowedResponse = await client.SendAsync(allowedRequest);
+        Assert.Equal(HttpStatusCode.OK, allowedResponse.StatusCode);
+        Assert.Equal("https://allowed.example", string.Join(",", allowedResponse.Headers.GetValues("Access-Control-Allow-Origin")));
+
+        using var blockedRequest = new HttpRequestMessage(HttpMethod.Get, "v3/index.json");
+        blockedRequest.Headers.Add("Origin", "https://blocked.example");
+
+        using var blockedResponse = await client.SendAsync(blockedRequest);
+        Assert.Equal(HttpStatusCode.OK, blockedResponse.StatusCode);
+        Assert.False(blockedResponse.Headers.Contains("Access-Control-Allow-Origin"));
     }
 
     public void Dispose()

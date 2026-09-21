@@ -24,6 +24,7 @@ public class NugetBasicAuthenticationHandlerTests
     private readonly Mock<HttpResponse> _httpResponse;
     private readonly Mock<ILoggerFactory> _loggerFactory;
     private readonly Mock<IOptionsMonitor<AuthenticationSchemeOptions>> _options;
+    private readonly Mock<INugetCredentialValidator> _credentialValidator;
 
     public NugetBasicAuthenticationHandlerTests()
     {
@@ -36,6 +37,7 @@ public class NugetBasicAuthenticationHandlerTests
         _encoder = UrlEncoder.Default;
 
         _bagetterOptions = new Mock<IOptions<BaGetterOptions>>();
+        _credentialValidator = new Mock<INugetCredentialValidator>();
 
         _httpContext = new Mock<HttpContext>();
         _httpRequest = new Mock<HttpRequest>();
@@ -68,7 +70,12 @@ public class NugetBasicAuthenticationHandlerTests
         {
             Authentication = new NugetAuthenticationOptions
             {
-                Credentials = [new NugetCredentials { Username = "user", Password = "pass" }]
+                Ldap = new LdapAuthenticationOptions
+                {
+                    Enabled = true,
+                    Server = "ldap.example.local",
+                    BaseDn = "dc=example,dc=local"
+                }
             }
         });
         _httpRequest.Setup(r => r.Headers).Returns(new HeaderDictionary
@@ -96,6 +103,9 @@ public class NugetBasicAuthenticationHandlerTests
                 Credentials = [new NugetCredentials { Username = "user", Password = "pass" }]
             }
         });
+        _credentialValidator
+            .Setup(x => x.ValidateAsync("invaliduser", "invalidpass", It.IsAny<System.Threading.CancellationToken>()))
+            .ReturnsAsync((NugetCredentialValidationResult)null);
         _httpRequest.Setup(r => r.Headers).Returns(new HeaderDictionary
         {
             { "Authorization", new StringValues($"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes("invaliduser:invalidpass"))}") }
@@ -118,7 +128,12 @@ public class NugetBasicAuthenticationHandlerTests
         {
             Authentication = new NugetAuthenticationOptions
             {
-                Credentials = [new NugetCredentials { Username = "user", Password = "pass" }]
+                Ldap = new LdapAuthenticationOptions
+                {
+                    Enabled = true,
+                    Server = "ldap.example.local",
+                    BaseDn = "dc=example,dc=local"
+                }
             }
         });
         _httpRequest.Setup(r => r.Headers).Returns(new HeaderDictionary());
@@ -144,6 +159,9 @@ public class NugetBasicAuthenticationHandlerTests
                 Credentials = [new NugetCredentials { Username = username, Password = password }]
             }
         });
+        _credentialValidator
+            .Setup(x => x.ValidateAsync(username, password, It.IsAny<System.Threading.CancellationToken>()))
+            .ReturnsAsync(new NugetCredentialValidationResult(username, ["Admin"]));
         _httpRequest.Setup(r => r.Headers).Returns(new HeaderDictionary
         {
             { "Authorization", new StringValues($"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"))}") }
@@ -156,6 +174,7 @@ public class NugetBasicAuthenticationHandlerTests
         // Assert
         Assert.True(result.Succeeded);
         Assert.True(result.Principal.HasClaim(ClaimTypes.Name, username));
+        Assert.True(result.Principal.HasClaim(ClaimTypes.Role, "Admin"));
     }
 
     private NugetBasicAuthenticationHandler CreateHandler()
@@ -164,7 +183,8 @@ public class NugetBasicAuthenticationHandlerTests
             _options.Object,
             _loggerFactory.Object,
             _encoder,
-            _bagetterOptions.Object);
+            _bagetterOptions.Object,
+            [_credentialValidator.Object]);
 
         handler.InitializeAsync(new AuthenticationScheme("Basic", null, typeof(NugetBasicAuthenticationHandler)), _httpContext.Object).GetAwaiter().GetResult();
 

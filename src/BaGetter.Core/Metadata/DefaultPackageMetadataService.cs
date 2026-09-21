@@ -38,6 +38,27 @@ public class DefaultPackageMetadataService : IPackageMetadataService
     }
 
     /// <inheritdoc/>
+    public async Task<BaGetterRegistrationPageResponse> GetRegistrationPageOrNullAsync(
+        string packageId,
+        NuGetVersion lower,
+        NuGetVersion upper,
+        CancellationToken cancellationToken = default)
+    {
+        var packages = await _packages.FindPackagesAsync(packageId, cancellationToken);
+        if (!packages.Any())
+        {
+            return null;
+        }
+
+        return _builder.BuildPage(
+            new PackageRegistration(
+                packageId,
+                packages),
+            lower,
+            upper);
+    }
+
+    /// <inheritdoc/>
     public async Task<RegistrationLeafResponse> GetRegistrationLeafOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken = default)
     {
         var package = await _packages.FindPackageOrNullAsync(id, version, cancellationToken);

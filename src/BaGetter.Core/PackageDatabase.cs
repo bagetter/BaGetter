@@ -67,6 +67,51 @@ public class PackageDatabase : IPackageDatabase
         return (await query.AsSingleQuery().ToListAsync(cancellationToken)).AsReadOnly();
     }
 
+    public async Task<IReadOnlyList<Package>> SearchAsync(
+        string query,
+        bool? listed,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        var packages = _context.Packages.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            packages = packages.Where(p => p.Id.Contains(query));
+        }
+
+        if (listed.HasValue)
+        {
+            packages = packages.Where(p => p.Listed == listed.Value);
+        }
+
+        return (await packages
+            .OrderBy(p => p.Id)
+            .ThenByDescending(p => p.Published)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(cancellationToken))
+            .AsReadOnly();
+    }
+
+    public async Task<int> CountAsync(string query, bool? listed, CancellationToken cancellationToken)
+    {
+        var packages = _context.Packages.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            packages = packages.Where(p => p.Id.Contains(query));
+        }
+
+        if (listed.HasValue)
+        {
+            packages = packages.Where(p => p.Listed == listed.Value);
+        }
+
+        return await packages.CountAsync(cancellationToken);
+    }
+
     public Task<Package> FindOrNullAsync(
         string id,
         NuGetVersion version,

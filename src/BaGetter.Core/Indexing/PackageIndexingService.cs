@@ -96,10 +96,22 @@ public class PackageIndexingService : IPackageIndexingService
         }
 
         // The package is well-formed. Ensure this is a new package.
-        if (await _packages.ExistsAsync(package.Id, package.Version, cancellationToken))
+        var existingPackage = await _packages.FindOrNullAsync(
+            package.Id,
+            package.Version,
+            includeUnlisted: true,
+            cancellationToken);
+
+        if (existingPackage != null)
         {
-            if (_options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.False ||
-                (_options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.PrereleaseOnly && !package.IsPrerelease))
+            var canOverwrite =
+                _options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.True ||
+                (_options.Value.AllowPackageOverwrites == PackageOverwriteAllowed.PrereleaseOnly && package.IsPrerelease);
+
+            // Allow re-push of soft-deleted (unlisted) packages by replacing them.
+            var canReplaceUnlisted = !existingPackage.Listed;
+
+            if (!canOverwrite && !canReplaceUnlisted)
             {
                 return PackageIndexingResult.PackageAlreadyExists;
             }

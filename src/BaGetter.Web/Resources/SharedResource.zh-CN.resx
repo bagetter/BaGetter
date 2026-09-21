@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Actions" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <data name="Authors" xml:space="preserve">
+    <value>作者</value>
+  </data>
+  <data name="Any" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="BaGetter documentation" xml:space="preserve">
+    <value>BaGetter 文档</value>
+  </data>
+  <data name="BaGetter issues" xml:space="preserve">
+    <value>BaGetter 问题</value>
+  </data>
+  <data name="by" xml:space="preserve">
+    <value>作者</value>
+  </data>
+  <data name="CouldNotFindPackage" xml:space="preserve">
+    <value>找不到包“{0}”。</value>
+  </data>
+  <data name="CurrentVersion" xml:space="preserve">
+    <value>当前版本</value>
+  </data>
+  <data name="Delete package" xml:space="preserve">
+    <value>删除包</value>
+  </data>
+  <data name="DeletePackageVersion" xml:space="preserve">
+    <value>删除包版本</value>
+  </data>
+  <data name="Dependencies" xml:space="preserve">
+    <value>依赖项</value>
+  </data>
+  <data name="Dependency" xml:space="preserve">
+    <value>依赖项</value>
+  </data>
+  <data name=".NET tool" xml:space="preserve">
+    <value>.NET 工具</value>
+  </data>
+  <data name=".NET template" xml:space="preserve">
+    <value>.NET 模板</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="DownloadPackage" xml:space="preserve">
+    <value>下载包</value>
+  </data>
+  <data name="Downloads" xml:space="preserve">
+    <value>下载量</value>
+  </data>
+  <data name="DownloadsOfCurrentVersion" xml:space="preserve">
+    <value>当前版本下载量</value>
+  </data>
+  <data name="ForMoreInformationReferTo" xml:space="preserve">
+    <value>更多信息请参阅</value>
+  </data>
+  <data name="Framework" xml:space="preserve">
+    <value>框架</value>
+  </data>
+  <data name="Include prerelease" xml:space="preserve">
+    <value>包含预发行版</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="It looks like there's no package here to see. Take a look below for useful links." xml:space="preserve">
+    <value>此处似乎没有可查看的软件包。请查看下方有用链接。</value>
+  </data>
+  <data name="LastUpdated" xml:space="preserve">
+    <value>最后更新</value>
+  </data>
+  <data name="Latest version" xml:space="preserve">
+    <value>最新版本</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>许可证</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一页</value>
+  </data>
+  <data name="NoDependencies" xml:space="preserve">
+    <value>无依赖项。</value>
+  </data>
+  <data name="NoPackagesDependOn" xml:space="preserve">
+    <value>没有包依赖于 {0}。</value>
+  </data>
+  <data name="Oops, nothing here..." xml:space="preserve">
+    <value>哎呀，这里什么也没有...</value>
+  </data>
+  <data name="OopsPackageNotFound" xml:space="preserve">
+    <value>哎呀，未找到软件包...</value>
+  </data>
+  <data name="OrAskingForHelpOn" xml:space="preserve">
+    <value>或在我们的以下渠道寻求帮助</value>
+  </data>
+  <data name="Package type" xml:space="preserve">
+    <value>包类型</value>
+  </data>
+  <data name="Packages" xml:space="preserve">
+    <value>包</value>
+  </data>
+  <data name="PackageSuffix" xml:space="preserve">
+    <value>软件包。</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>上一页</value>
+  </data>
+  <data name="ProjectUrl" xml:space="preserve">
+    <value>项目地址</value>
+  </data>
+  <data name="PushPackagesUsingServiceIndex" xml:space="preserve">
+    <value>你可以使用服务索引推送软件包</value>
+  </data>
+  <data name="Readme" xml:space="preserve">
+    <value>自述文件</value>
+  </data>
+  <data name="ReleaseNotes" xml:space="preserve">
+    <value>发布说明</value>
+  </data>
+  <data name="SearchForPackages" xml:space="preserve">
+    <value>搜索软件包</value>
+  </data>
+  <data name="SearchPackagesPlaceholder" xml:space="preserve">
+    <value>搜索软件包...</value>
+  </data>
+  <data name="ServicesInUse" xml:space="preserve">
+    <value>正在使用的服务</value>
+  </data>
+  <data name="ShowingTop20PackagesThatDependOn" xml:space="preserve">
+    <value>显示依赖于 {0} 的前 20 个软件包。</value>
+  </data>
+  <data name="ShowLess" xml:space="preserve">
+    <value>显示更少</value>
+  </data>
+  <data name="ShowMore" xml:space="preserve">
+    <value>显示更多</value>
+  </data>
+  <data name="SourceCode" xml:space="preserve">
+    <value>源代码</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>统计</value>
+  </data>
+  <data name="Tags" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="ThinkTheresAProblemPrefix" xml:space="preserve">
+    <value>觉得有问题？可以先查看我们的</value>
+  </data>
+  <data name="ThisPackageHasNoDependencies" xml:space="preserve">
+    <value>此软件包没有依赖项。</value>
+  </data>
+  <data name="total downloads" xml:space="preserve">
+    <value>总下载量</value>
+  </data>
+  <data name="TotalAmountOfPackages" xml:space="preserve">
+    <value>软件包总数</value>
+  </data>
+  <data name="TotalAmountOfPackageVersions" xml:space="preserve">
+    <value>软件包版本总数</value>
+  </data>
+  <data name="TotalDownloads" xml:space="preserve">
+    <value>总下载量</value>
+  </data>
+  <data name="TrySearchingOn" xml:space="preserve">
+    <value>你可以在此处搜索</value>
+  </data>
+  <data name="unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>上传</value>
+  </data>
+  <data name="Upload a package" xml:space="preserve">
+    <value>上传软件包</value>
+  </data>
+  <data name="UploadPackageTitle" xml:space="preserve">
+    <value>上传软件包</value>
+  </data>
+  <data name="UsedBy" xml:space="preserve">
+    <value>被以下项目使用</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>版本</value>
+  </data>
+  <data name="VersionLabel" xml:space="preserve">
+    <value>版本</value>
+  </data>
+  <data name="Versions" xml:space="preserve">
+    <value>版本列表</value>
+  </data>
+  <data name="LanguageAuto" xml:space="preserve">
+    <value>自动（浏览器）</value>
+  </data>
+  <data name="LanguageName_da-DK" xml:space="preserve">
+    <value>丹麦语</value>
+  </data>
+  <data name="LanguageName_is-IS" xml:space="preserve">
+    <value>冰岛语</value>
+  </data>
+  <data name="LanguageName_sv-SE" xml:space="preserve">
+    <value>瑞典语</value>
+  </data>
+  <data name="LanguageName_pl-PL" xml:space="preserve">
+    <value>波兰语</value>
+  </data>
+  <data name="LanguageName_en-US" xml:space="preserve">
+    <value>英语</value>
+  </data>
+  <data name="LanguageName_fi-FI" xml:space="preserve">
+    <value>芬兰语</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="LanguageName_nb-NO" xml:space="preserve">
+    <value>挪威语</value>
+  </data>
+  <data name="LanguageName_zh-CN" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="LanguageName_es-ES" xml:space="preserve">
+    <value>西班牙语</value>
+  </data>
+  <data name="LanguageName_pt-PT" xml:space="preserve">
+    <value>葡萄牙语</value>
+  </data>
+  <data name="LanguageName_fr-FR" xml:space="preserve">
+    <value>法语</value>
+  </data>
+  <data name="LanguageName_it-IT" xml:space="preserve">
+    <value>意大利语</value>
+  </data>
+</root>

@@ -1,7 +1,9 @@
 ARG Version=1.0.0
+ARG NuGetSource=https://api.nuget.org/v3/index.json
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 ARG Version
+ARG NuGetSource
 ARG TARGETARCH
 WORKDIR /src
 
@@ -13,7 +15,7 @@ RUN for file in $(ls *.csproj); do mkdir -p ${file%.*}/ && mv $file ${file%.*}/;
 # useful for debugging to display all files
 #RUN echo $(ls)
 # restore packages
-RUN dotnet restore BaGetter/BaGetter.csproj --arch $TARGETARCH
+RUN dotnet restore BaGetter/BaGetter.csproj --arch $TARGETARCH --source "$NuGetSource"
 
 ## Publish app (implicitly builds the app)
 FROM build AS publish
@@ -24,6 +26,7 @@ RUN dotnet publish BaGetter \
     --configuration Release \
     --output /app \
     --no-restore \
+    -m:1 \
     -p Version=${Version} \
     -p DebugType=none \
     -p DebugSymbols=false \
@@ -33,25 +36,30 @@ RUN dotnet publish BaGetter \
 
 # create default folders
 RUN mkdir -p "/data/packages" \
-    mkdir -p "/data/symbols" \
-    mkdir -p "/data/db"
+    "/data/symbols" \
+    "/data/db" \
+    "/data/admin"
 
 ## Create final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
 # install cultures (same approach as Alpine SDK image)
-RUN apk add --no-cache icu-libs icu-data-full tzdata
+RUN apk add --no-cache icu-libs icu-data-full tzdata openldap
 # disable the invariant mode (set in base image)
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 # set default configurations; use the `/data` folder for packages, symbols and the SQLite database
-ENV Storage__Path "/data"
-ENV Search__Type "Database"
-ENV Database__Type "Sqlite"
-ENV Database__ConnectionString "Data Source=/data/db/bagetter.db"
+ENV Storage__Path=/data
+ENV Search__Type=Database
+ENV Database__Type=Sqlite
+ENV Database__ConnectionString="Data Source=/data/db/bagetter.db"
+ENV Admin__AuditLogPath=/data/admin/admin-audit.jsonl
+ENV ASPNETCORE_URLS=http://+:3007
 LABEL org.opencontainers.image.source="https://github.com/bagetter/BaGetter"
 # copy default folders
 COPY --from=publish /data /data
 # copy the published app
 WORKDIR /app
 COPY --from=publish /app .
+
+EXPOSE 3007
 
 ENTRYPOINT ["dotnet", "BaGetter.dll"]

@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Authentication;
@@ -6,6 +7,7 @@ using BaGetter.Core;
 using BaGetter.Protocol.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
 
 namespace BaGetter.Web;
@@ -35,7 +37,50 @@ public class PackageMetadataController : Controller
             return NotFound();
         }
 
+        var etag = HttpCacheUtility.CreateStrongEtagFromText(JsonSerializer.Serialize(index));
+        if (HttpCacheUtility.MatchesIfNoneMatch(Request, etag))
+        {
+            HttpCacheUtility.SetEtag(Response, etag);
+            HttpCacheUtility.SetMustRevalidate(Response);
+            return StatusCode(StatusCodes.Status304NotModified);
+        }
+
+        HttpCacheUtility.SetEtag(Response, etag);
+        HttpCacheUtility.SetMustRevalidate(Response);
         return index;
+    }
+
+    // GET v3/registration/{id}/page/{lower}/{upper}.json
+    [HttpGet]
+    public async Task<ActionResult<BaGetterRegistrationPageResponse>> RegistrationPageAsync(
+        string id,
+        string lower,
+        string upper,
+        CancellationToken cancellationToken)
+    {
+        if (!NuGetVersion.TryParse(lower, out var lowerVersion)
+            || !NuGetVersion.TryParse(upper, out var upperVersion))
+        {
+            return NotFound();
+        }
+
+        var page = await _metadata.GetRegistrationPageOrNullAsync(id, lowerVersion, upperVersion, cancellationToken);
+        if (page == null)
+        {
+            return NotFound();
+        }
+
+        var etag = HttpCacheUtility.CreateStrongEtagFromText(JsonSerializer.Serialize(page));
+        if (HttpCacheUtility.MatchesIfNoneMatch(Request, etag))
+        {
+            HttpCacheUtility.SetEtag(Response, etag);
+            HttpCacheUtility.SetMustRevalidate(Response);
+            return StatusCode(StatusCodes.Status304NotModified);
+        }
+
+        HttpCacheUtility.SetEtag(Response, etag);
+        HttpCacheUtility.SetMustRevalidate(Response);
+        return page;
     }
 
     // GET v3/registration/{id}/{version}.json
@@ -53,6 +98,16 @@ public class PackageMetadataController : Controller
             return NotFound();
         }
 
+        var etag = HttpCacheUtility.CreateStrongEtagFromText(JsonSerializer.Serialize(leaf));
+        if (HttpCacheUtility.MatchesIfNoneMatch(Request, etag))
+        {
+            HttpCacheUtility.SetEtag(Response, etag);
+            HttpCacheUtility.SetMustRevalidate(Response);
+            return StatusCode(StatusCodes.Status304NotModified);
+        }
+
+        HttpCacheUtility.SetEtag(Response, etag);
+        HttpCacheUtility.SetMustRevalidate(Response);
         return leaf;
     }
 }

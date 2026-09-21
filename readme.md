@@ -23,12 +23,26 @@ With .NET:
 3. Start the service with `dotnet BaGetter.dll`
 4. Browse `http://localhost:5000/` in your browser
 
+Manual search reindex command:
+
+```powershell
+dotnet run --project src/BaGetter -- reindex search
+```
+
 With IIS ([official microsoft documentation](https://learn.microsoft.com/aspnet/core/host-and-deploy/iis)):
 
 1. Install the [hosting bundle](https://dotnet.microsoft.com/permalink/dotnetcore-current-windows-runtime-bundle-installer)
-2. Download the [zip release](https://github.com/bagetter/BaGetter/releases) of BaGetter
-3. Unpack the zip file contents to a folder of your choice
-4. Create a new or configure an existing IIS site to point its physical path to the folder where you unpacked the zip file
+2. Publish the host project (`src/BaGetter`), not `src/BaGetter.Web`:
+   - `dotnet publish src/BaGetter/BaGetter.csproj -c Release -p:PublishProfile=FolderProfile`
+3. Deploy the `src/BaGetter/bin/Release/net10.0/publish/` folder to your server
+4. Ensure your IIS site's physical path points to the publish folder
+5. Confirm `web.config` exists in the publish output. If you only see `bin/Release/net10.0/` and not `publish/`, you likely built instead of published.
+
+You can also use the helper script from the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/Publish-IIS.ps1
+```
 
 For more information, please refer to the [documentation].
 
@@ -38,6 +52,11 @@ For more information, please refer to the [documentation].
 * **ARM** (64bit) **support**. You can host your NuGets on a device like Raspberry Pi!
 * **Cloud native**: supports [Docker][Docker doc link], [AWS][AWS doc link], [Google Cloud][GCP doc link], [Alibaba Cloud][Aliyun doc link]，[Tencent Cloud][Tencent doc link]
 * **Offline support**: [Mirror a NuGet server][Read through caching] to speed up builds and enable offline downloads
+* **Private feed authentication**: supports local users, API keys, and LDAP / Active Directory-backed feed access
+* **Operational readiness**: supports ETag-based HTTP caching, response compression, request rate limiting, security headers, and audit logging for package mutations
+* **Search recovery tooling**: supports manual and background search reindexing
+
+For deployment checks and troubleshooting workflows, see the [Operations Playbook][Operations Playbook].
 
 ## 🤝 Contributing
 
@@ -78,6 +97,7 @@ Thanks to everyone who helps to make BaGetter better!
 [BaGetter's latest release]: https://github.com/bagetter/BaGetter/releases
 
 [Documentation]: https://www.bagetter.com/
+[Operations Playbook]: https://www.bagetter.com/docs/Advanced/operations-playbook
 [Read through caching]: https://www.bagetter.com/docs/configuration#enable-read-through-caching
 [AWS doc link]: https://www.bagetter.com/docs/Installation/aws
 [GCP doc link]: https://www.bagetter.com/docs/Installation/gcp
