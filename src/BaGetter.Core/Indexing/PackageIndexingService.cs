@@ -186,6 +186,7 @@ public class PackageIndexingService : IPackageIndexingService
                     _retentionOptions.Value.MaxMinorVersions,
                     _retentionOptions.Value.MaxPatchVersions,
                     _retentionOptions.Value.MaxPrereleaseVersions,
+                    _retentionOptions.Value.DeletePrereleasesOfOlderMajors,
                     cancellationToken);
                 if (deleted > 0)
                 {

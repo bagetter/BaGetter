@@ -34,4 +34,10 @@ public class RetentionOptions
     /// For a limit of 5, if there are versions 1.0.0-alpha.1 through 1.0.0-alpha.5 and a package version 1.0.0-alpha.6 is pushed, version 1.0.0-alpha.0 will be deleted.  
     /// </summary>  
     public uint? MaxPrereleaseVersions { get; set; }
+
+    /// <summary>
+    /// If this is set to <c>true</c>, all prerelease versions whose major version is lower than the latest stable major version will be deleted.
+    /// For example, if version 3.0.0 exists, versions like 2.1.0-beta.1 or 1.0.0-alpha will be deleted, while 3.1.0-beta.1 or 4.0.0-alpha.1 are kept.
+    /// </summary>
+    public bool DeletePrereleasesOfOlderMajors { get; set; }
 }

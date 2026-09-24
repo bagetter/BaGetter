@@ -107,11 +107,11 @@ public class PackageDeletionService : IPackageDeletionService
         return versions.Where(k => validVersions.Any(v => getParent(k).Equals(v.parent) && getSelector(k).Equals(v.selector))).ToList();
     }
 
-    public async Task<int> DeleteOldVersionsAsync(Package package, uint? maxMajor, uint? maxMinor, uint? maxPatch, uint? maxPrerelease, CancellationToken cancellationToken)
+    public async Task<int> DeleteOldVersionsAsync(Package package, uint? maxMajor, uint? maxMinor, uint? maxPatch, uint? maxPrerelease, bool deletePrereleasesOfOlderMajors, CancellationToken cancellationToken)
     {
         // list all versions of the package
         var packages = await _packages.FindAsync(package.Id, includeUnlisted: true, cancellationToken);
-        if (packages is null || packages.Count <= maxMajor) return 0;
+        if (packages is null || (packages.Count <= maxMajor && !deletePrereleasesOfOlderMajors)) return 0;
 
         var goodVersions = new HashSet<NuGetVersion>();
 
@@ -141,6 +141,21 @@ public class PackageDeletionService : IPackageDeletionService
             goodVersions.RemoveWhere(v => v.IsPrerelease);
             goodVersions.UnionWith(allPreReleaseValidVersions);
         }
+
+        if (deletePrereleasesOfOlderMajors)
+        {
+            // drop prereleases whose major is below the latest stable major
+            var latestReleaseMajor = packages
+                .Where(p => !p.Version.IsPrerelease)
+                .Select(p => p.Version.Major)
+                .DefaultIfEmpty(-1)
+                .Max();
+            goodVersions.RemoveWhere(v => v.IsPrerelease && v.Major < latestReleaseMajor);
+        }
+
+        // Never delete the package that is currently being indexed. When it was mirrored from an upstream feed,
+        // the caller still has to serve it; it will be cleaned up the next time a version of this package is indexed.
+        goodVersions.Add(package.Version);
 
         // sort by version and take everything except the last maxPackages
         var versionsToDelete = packages.Where(p => !goodVersions.Contains(p.Version)).ToList();
