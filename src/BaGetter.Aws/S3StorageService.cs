@@ -14,6 +14,7 @@ public class S3StorageService : IStorageService
     private const string Separator = "/";
     private readonly string _bucket;
     private readonly string _prefix;
+    private readonly bool _useChunkEncoding;
     private readonly AmazonS3Client _client;
 
     public S3StorageService(IOptionsSnapshot<S3StorageOptions> options, AmazonS3Client client)
@@ -22,6 +23,7 @@ public class S3StorageService : IStorageService
 
         _bucket = options.Value.Bucket;
         _prefix = options.Value.Prefix;
+        _useChunkEncoding = options.Value.UseChunkEncoding;
         _client = client ?? throw new ArgumentNullException(nameof(client));
 
         if (!string.IsNullOrEmpty(_prefix) && !_prefix.EndsWith(Separator))
@@ -85,7 +87,8 @@ public class S3StorageService : IStorageService
             InputStream = seekableContent,
             ContentType = contentType,
             AutoResetStreamPosition = false,
-            AutoCloseStream = false
+            AutoCloseStream = false,
+            UseChunkEncoding = _useChunkEncoding,
         }, cancellationToken);
 
         return StoragePutResult.Success;
