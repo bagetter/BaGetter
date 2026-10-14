@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+Machine-wide rules (tool routing, git safety, the DevOp .NET development standard) come from `~/.codex/AGENTS.md` / `~/.claude/CLAUDE.md` (repo `devop-dev-environment`); this file lists only what is specific to this repository and any override.
+
 ## Project Structure & Module Organization
 - `src/` contains all production projects. Key modules are `src/BaGetter` (host app), `src/BaGetter.Core` (domain/services), `src/BaGetter.Web` (NuGet API + UI), and `src/BaGetter.Protocol` (client SDK).
 - Provider-specific integrations live in `src/BaGetter.Database.*` and `src/BaGetter.{Aws,Azure,Gcp,Aliyun,Tencent}`.
@@ -16,12 +18,12 @@
 
 ## Coding Style & Naming Conventions
 - Follow `.editorconfig`: UTF-8, CRLF, trim trailing whitespace, final newline.
-- Indentation: 4 spaces for C# and most files; 2 spaces for JSON/YAML/XML/web assets.
-- C# conventions enforced by analyzers: file-scoped namespaces, braces preferred, `var` preferred when reasonable, `using` outside namespace.
+- Indentation: 2 spaces for JSON/YAML/XML/web assets (C# and most other files use 4).
+- C# conventions enforced by analyzers: braces preferred, `using` outside namespace.
 - Naming: use PascalCase for types, members, and `const` fields.
 
 ## Testing Guidelines
-- Test stack: xUnit + `Microsoft.NET.Test.Sdk` + `coverlet.collector` (centrally managed in `Directory.Packages.props`).
+- Test stack: xUnit with `coverlet.collector` (centrally managed in `Directory.Packages.props`).
 - Name test files by subject with `Tests`/`Facts` suffix (for example, `PackageServiceTests.cs`, `IndexModelFacts.cs`).
 - Keep integration scenarios in `tests/BaGetter.Tests` and focused unit tests in project-specific test folders.
 
