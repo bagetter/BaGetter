@@ -10,6 +10,9 @@ namespace BaGetter.Core;
 
 public class DatabaseSearchService : ISearchService
 {
+    private const string TagQueryPrefix = "tag:";
+    private const string AuthorQueryPrefix = "author:";
+
     private readonly IContext _context;
     private readonly IFrameworkCompatibilityService _frameworks;
     private readonly ISearchResponseBuilder _searchBuilder;
@@ -28,9 +31,10 @@ public class DatabaseSearchService : ISearchService
     public async Task<SearchResponse> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
     {
         var frameworks = GetCompatibleFrameworksOrNull(request.Framework);
+        var (textQuery, tags, authors) = ParseSearchQuery(request.Query);
 
         IQueryable<Package> search = _context.Packages;
-        search = ApplySearchQuery(search, request.Query);
+        search = ApplySearchTextQuery(search, textQuery);
         search = ApplySearchFilters(
             search,
             request.IncludePrerelease,
@@ -38,29 +42,31 @@ public class DatabaseSearchService : ISearchService
             request.PackageType,
             frameworks);
 
-        var packageIds = search
-            .Select(p => p.Id)
-            .Distinct()
-            .OrderBy(id => id)
-            .Skip(request.Skip)
-            .Take(request.Take);
-
-        // This query MUST fetch all versions for each package that matches the search,
-        // otherwise the results for a package's latest version may be incorrect.
-        // If possible, we'll find all these packages in a single query by matching
-        // the package IDs in a subquery. Otherwise, run two queries:
-        //   1. Find the package IDs that match the search
-        //   2. Find all package versions for these package IDs
-        if (_context.SupportsLimitInSubqueries)
+        List<string> packageIdResults;
+        if (tags.Count > 0 || authors.Count > 0)
         {
-            search = _context.Packages.Where(p => packageIds.Contains(p.Id));
+            packageIdResults = await GetFilteredPackageIdsForSearchAsync(
+                search,
+                tags,
+                authors,
+                request.Skip,
+                request.Take,
+                cancellationToken);
         }
         else
         {
-            var packageIdResults = await packageIds.ToListAsync(cancellationToken);
-
-            search = _context.Packages.Where(p => packageIdResults.Contains(p.Id));
+            packageIdResults = await search
+                .Select(p => p.Id)
+                .Distinct()
+                .OrderBy(id => id)
+                .Skip(request.Skip)
+                .Take(request.Take)
+                .ToListAsync(cancellationToken);
         }
+
+        // This query MUST fetch all versions for each package that matches the search,
+        // otherwise the results for a package's latest version may be incorrect.
+        search = _context.Packages.Where(p => packageIdResults.Contains(p.Id));
 
         search = ApplySearchFilters(
             search,
@@ -80,9 +86,10 @@ public class DatabaseSearchService : ISearchService
 
     public async Task<AutocompleteResponse> AutocompleteAsync(AutocompleteRequest request, CancellationToken cancellationToken)
     {
+        var (textQuery, tags, authors) = ParseSearchQuery(request.Query);
         IQueryable<Package> search = _context.Packages;
 
-        search = ApplySearchQuery(search, request.Query);
+        search = ApplySearchTextQuery(search, textQuery);
         search = ApplySearchFilters(
             search,
             request.IncludePrerelease,
@@ -90,13 +97,27 @@ public class DatabaseSearchService : ISearchService
             request.PackageType,
             frameworks: null);
 
-        var packageIds = await search
-            .OrderByDescending(p => p.Downloads)
-            .Select(p => p.Id)
-            .Distinct()
-            .Skip(request.Skip)
-            .Take(request.Take)
-            .ToListAsync(cancellationToken);
+        List<string> packageIds;
+        if (tags.Count > 0 || authors.Count > 0)
+        {
+            packageIds = await GetFilteredPackageIdsForAutocompleteAsync(
+                search,
+                tags,
+                authors,
+                request.Skip,
+                request.Take,
+                cancellationToken);
+        }
+        else
+        {
+            packageIds = await search
+                .OrderByDescending(p => p.Downloads)
+                .Select(p => p.Id)
+                .Distinct()
+                .Skip(request.Skip)
+                .Take(request.Take)
+                .ToListAsync(cancellationToken);
+        }
 
         return _searchBuilder.BuildAutocomplete(packageIds);
     }
@@ -143,16 +164,282 @@ public class DatabaseSearchService : ISearchService
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1862:Use the 'StringComparison' method overloads to perform case-insensitive string comparisons", Justification = "Not for EF queries")]
-    private static IQueryable<Package> ApplySearchQuery(IQueryable<Package> query, string search)
+    private static IQueryable<Package> ApplySearchTextQuery(IQueryable<Package> query, string textQuery)
     {
-        if (string.IsNullOrEmpty(search))
+        if (string.IsNullOrEmpty(textQuery))
         {
             return query;
         }
 
-        search = search.ToLowerInvariant();
+        var normalizedTextQuery = textQuery.ToLowerInvariant();
 
-        return query.Where(p => p.Id.ToLower().Contains(search));
+        return query.Where(p => p.Id.ToLower().Contains(normalizedTextQuery));
+    }
+
+    private static (string TextQuery, IReadOnlyList<string> Tags, IReadOnlyList<string> Authors) ParseSearchQuery(string search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return (null, Array.Empty<string>(), Array.Empty<string>());
+        }
+
+        var textTerms = new List<string>();
+        var tags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var authors = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var tokens = TokenizeQuery(search);
+        foreach (var token in tokens)
+        {
+            if (token.StartsWith(TagQueryPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var tag = token[TagQueryPrefix.Length..].Trim();
+                if (!string.IsNullOrEmpty(tag))
+                {
+                    tags.Add(tag);
+                }
+                continue;
+            }
+
+            if (token.StartsWith(AuthorQueryPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var author = token[AuthorQueryPrefix.Length..].Trim();
+                if (!string.IsNullOrEmpty(author))
+                {
+                    authors.Add(author);
+                }
+                continue;
+            }
+
+            textTerms.Add(token);
+        }
+
+        var textQuery = textTerms.Count > 0 ? string.Join(' ', textTerms) : null;
+        return (textQuery, tags.ToList(), authors.ToList());
+    }
+
+    private static List<string> TokenizeQuery(string input)
+    {
+        var tokens = new List<string>();
+        var i = 0;
+        var length = input.Length;
+
+        while (i < length)
+        {
+            while (i < length && char.IsWhiteSpace(input[i]))
+            {
+                i++;
+            }
+
+            if (i >= length)
+            {
+                break;
+            }
+
+            var isTag = StartsWithAt(input, i, TagQueryPrefix);
+            var isAuthor = !isTag && StartsWithAt(input, i, AuthorQueryPrefix);
+            var prefix = isTag ? TagQueryPrefix : (isAuthor ? AuthorQueryPrefix : null);
+
+            if (prefix != null)
+            {
+                i += prefix.Length;
+
+                while (i < length && char.IsWhiteSpace(input[i]))
+                {
+                    i++;
+                }
+
+                var value = ReadTokenValue(input, ref i);
+                tokens.Add(prefix + value);
+                continue;
+            }
+
+            tokens.Add(ReadTokenValue(input, ref i));
+        }
+
+        return tokens;
+    }
+
+    private static bool StartsWithAt(string input, int index, string value)
+    {
+        return input.AsSpan(index).StartsWith(value, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ReadTokenValue(string input, ref int index)
+    {
+        if (index >= input.Length)
+        {
+            return string.Empty;
+        }
+
+        if (input[index] == '"')
+        {
+            index++;
+            var start = index;
+
+            while (index < input.Length && input[index] != '"')
+            {
+                index++;
+            }
+
+            var value = input.Substring(start, index - start);
+
+            if (index < input.Length && input[index] == '"')
+            {
+                index++;
+            }
+
+            return value;
+        }
+
+        var unquotedStart = index;
+        while (index < input.Length && !char.IsWhiteSpace(input[index]))
+        {
+            index++;
+        }
+
+        return input.Substring(unquotedStart, index - unquotedStart);
+    }
+
+    private static bool HasAllTags(string[] packageTags, IReadOnlyList<string> requiredTags)
+    {
+        if (requiredTags == null || requiredTags.Count == 0)
+        {
+            return true;
+        }
+
+        if (packageTags == null || packageTags.Length == 0)
+        {
+            return false;
+        }
+
+        var packageTagSet = new HashSet<string>(packageTags, StringComparer.OrdinalIgnoreCase);
+        return requiredTags.All(packageTagSet.Contains);
+    }
+
+    private static bool HasAllAuthors(string[] packageAuthors, IReadOnlyList<string> requiredAuthors)
+    {
+        if (requiredAuthors == null || requiredAuthors.Count == 0)
+        {
+            return true;
+        }
+
+        if (packageAuthors == null || packageAuthors.Length == 0)
+        {
+            return false;
+        }
+
+        return requiredAuthors.All(required =>
+            packageAuthors.Any(author =>
+                !string.IsNullOrEmpty(author) &&
+                author.Contains(required, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static async Task<List<string>> GetFilteredPackageIdsForSearchAsync(
+        IQueryable<Package> query,
+        IReadOnlyList<string> requiredTags,
+        IReadOnlyList<string> requiredAuthors,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        if (take <= 0)
+        {
+            return new List<string>();
+        }
+
+        var results = new List<string>(capacity: take);
+        var seenPackageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var matchedCount = 0;
+
+        await foreach (var candidate in query
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .Select(p => new PackageFilterCandidate
+            {
+                Id = p.Id,
+                Tags = p.Tags,
+                Authors = p.Authors,
+            })
+            .AsAsyncEnumerable()
+            .WithCancellation(cancellationToken))
+        {
+            if (!seenPackageIds.Add(candidate.Id))
+            {
+                continue;
+            }
+
+            if (!HasAllTags(candidate.Tags, requiredTags) || !HasAllAuthors(candidate.Authors, requiredAuthors))
+            {
+                continue;
+            }
+
+            if (matchedCount++ < skip)
+            {
+                continue;
+            }
+
+            results.Add(candidate.Id);
+            if (results.Count >= take)
+            {
+                break;
+            }
+        }
+
+        return results;
+    }
+
+    private static async Task<List<string>> GetFilteredPackageIdsForAutocompleteAsync(
+        IQueryable<Package> query,
+        IReadOnlyList<string> requiredTags,
+        IReadOnlyList<string> requiredAuthors,
+        int skip,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        if (take <= 0)
+        {
+            return new List<string>();
+        }
+
+        var results = new List<string>(capacity: take);
+        var seenPackageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var matchedCount = 0;
+
+        await foreach (var candidate in query
+            .AsNoTracking()
+            .OrderByDescending(p => p.Downloads)
+            .ThenBy(p => p.Id)
+            .Select(p => new PackageFilterCandidate
+            {
+                Id = p.Id,
+                Tags = p.Tags,
+                Authors = p.Authors,
+            })
+            .AsAsyncEnumerable()
+            .WithCancellation(cancellationToken))
+        {
+            if (!seenPackageIds.Add(candidate.Id))
+            {
+                continue;
+            }
+
+            if (!HasAllTags(candidate.Tags, requiredTags) || !HasAllAuthors(candidate.Authors, requiredAuthors))
+            {
+                continue;
+            }
+
+            if (matchedCount++ < skip)
+            {
+                continue;
+            }
+
+            results.Add(candidate.Id);
+            if (results.Count >= take)
+            {
+                break;
+            }
+        }
+
+        return results;
     }
 
     private static IQueryable<Package> ApplySearchFilters(
@@ -190,5 +477,12 @@ public class DatabaseSearchService : ISearchService
         if (framework == null) return null;
 
         return _frameworks.FindAllCompatibleFrameworks(framework);
+    }
+
+    private sealed class PackageFilterCandidate
+    {
+        public string Id { get; init; }
+        public string[] Tags { get; init; }
+        public string[] Authors { get; init; }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,6 +10,7 @@ using BaGetter.Protocol;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace BaGetter.Core;
@@ -72,6 +74,10 @@ public static partial class DependencyInjectionExtensions
         services.AddBaGetterOptions<SearchOptions>(nameof(BaGetterOptions.Search));
         services.AddBaGetterOptions<StorageOptions>(nameof(BaGetterOptions.Storage));
         services.AddBaGetterOptions<StatisticsOptions>(nameof(BaGetterOptions.Statistics));
+        services.AddBaGetterOptions<RequestRateLimitOptions>(nameof(BaGetterOptions.RequestRateLimit));
+        services.AddBaGetterOptions<CorsPolicyOptions>(nameof(BaGetterOptions.Cors));
+        services.AddBaGetterOptions<SecurityHeadersOptions>(nameof(BaGetterOptions.SecurityHeaders));
+        services.AddBaGetterOptions<SearchReindexOptions>(nameof(BaGetterOptions.Reindex));
     }
 
     private static void AddBaGetServices(this IServiceCollection services)
@@ -93,6 +99,8 @@ public static partial class DependencyInjectionExtensions
         services.TryAddScoped<DownloadsImporter>();
 
         services.TryAddTransient<IAuthenticationService, ApiKeyAuthenticationService>();
+        services.TryAddEnumerable(ServiceDescriptor.Transient<INugetCredentialValidator, ConfiguredCredentialValidator>());
+        services.TryAddEnumerable(ServiceDescriptor.Transient<INugetCredentialValidator, LdapCredentialValidator>());
         services.TryAddTransient<IPackageContentService, DefaultPackageContentService>();
         services.TryAddTransient<IPackageDeletionService, PackageDeletionService>();
         services.TryAddTransient<IPackageIndexingService, PackageIndexingService>();
@@ -100,6 +108,7 @@ public static partial class DependencyInjectionExtensions
         services.TryAddTransient<IPackageService, PackageService>();
         services.TryAddTransient<IPackageStorageService, PackageStorageService>();
         services.TryAddTransient<IServiceIndexService, BaGetterServiceIndex>();
+        services.TryAddTransient<ISearchReindexService, SearchReindexService>();
         services.TryAddTransient<ISymbolIndexingService, SymbolIndexingService>();
         services.TryAddTransient<ISymbolStorageService, SymbolStorageService>();
         services.TryAddTransient<IStatisticsService, StatisticsService>();
@@ -107,7 +116,12 @@ public static partial class DependencyInjectionExtensions
         services.TryAddTransient<DatabaseSearchService>();
         services.TryAddTransient<FileStorageService>();
         services.TryAddTransient<PackageService>();
-        services.TryAddTransient<V2UpstreamClient>();
+        services.TryAddTransient<V2UpstreamClient>(provider =>
+        {
+            var options = provider.GetRequiredService<IOptionsSnapshot<MirrorOptions>>().Value;
+            var logger = provider.GetRequiredService<ILogger<V2UpstreamClient>>();
+            return new V2UpstreamClient(options, logger);
+        });
         services.TryAddTransient<V3UpstreamClient>();
         services.TryAddTransient<DisabledUpstreamClient>();
         services.TryAddSingleton<NullStorageService>();
@@ -225,13 +239,97 @@ public static partial class DependencyInjectionExtensions
 
     private static IUpstreamClient UpstreamClientFactory(IServiceProvider provider)
     {
-        var options = provider.GetRequiredService<IOptionsSnapshot<MirrorOptions>>();
-
-        return options.Value.Enabled switch
+        var rootOptions = provider.GetRequiredService<IOptionsSnapshot<BaGetterOptions>>().Value;
+        if (rootOptions.Mirrors is not { Count: > 0 })
         {
-            false => provider.GetRequiredService<DisabledUpstreamClient>(),
-            true when options.Value.Legacy => provider.GetRequiredService<V2UpstreamClient>(),
-            _ => provider.GetRequiredService<V3UpstreamClient>()
+            var legacyOptions = provider.GetRequiredService<IOptionsSnapshot<MirrorOptions>>().Value;
+            return legacyOptions.Enabled switch
+            {
+                false => provider.GetRequiredService<DisabledUpstreamClient>(),
+                true when legacyOptions.Legacy => provider.GetRequiredService<V2UpstreamClient>(),
+                _ => provider.GetRequiredService<V3UpstreamClient>()
+            };
+        }
+
+        var enabledMirrors = new List<IUpstreamClient>();
+        foreach (var mirror in rootOptions.Mirrors)
+        {
+            if (mirror?.Enabled != true)
+            {
+                continue;
+            }
+
+            enabledMirrors.Add(CreateUpstreamClient(provider, mirror));
+        }
+
+        return enabledMirrors.Count switch
+        {
+            0 => provider.GetRequiredService<DisabledUpstreamClient>(),
+            1 => enabledMirrors[0],
+            _ => new FallbackUpstreamClient(
+                enabledMirrors,
+                provider.GetRequiredService<ILogger<FallbackUpstreamClient>>())
         };
+    }
+
+    private static IUpstreamClient CreateUpstreamClient(IServiceProvider provider, MirrorOptions mirror)
+    {
+        if (mirror.Legacy)
+        {
+            return new V2UpstreamClient(
+                mirror,
+                provider.GetRequiredService<ILogger<V2UpstreamClient>>());
+        }
+
+        var nuGetClient = new NuGetClient(CreateNuGetClientFactory(provider, mirror));
+        return new V3UpstreamClient(
+            nuGetClient,
+            provider.GetRequiredService<ILogger<V3UpstreamClient>>());
+    }
+
+    private static NuGetClientFactory CreateNuGetClientFactory(IServiceProvider provider, MirrorOptions mirror)
+    {
+        var httpClient = CreateMirrorHttpClient(mirror);
+
+        if (mirror.Authentication is { } auth)
+        {
+            switch (auth.Type)
+            {
+                case MirrorAuthenticationType.Basic:
+                    var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{auth.Username}:{auth.Password}"));
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                    break;
+
+                case MirrorAuthenticationType.Bearer:
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+                    break;
+
+                case MirrorAuthenticationType.Custom:
+                    foreach (var (header, value) in auth.CustomHeaders)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(header, value);
+                    }
+                    break;
+            }
+        }
+
+        return new NuGetClientFactory(httpClient, mirror.PackageSource.ToString());
+    }
+
+    private static HttpClient CreateMirrorHttpClient(MirrorOptions options)
+    {
+        var assembly = Assembly.GetEntryAssembly();
+        var assemblyName = assembly.GetName().Name;
+        var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
+
+        var client = new HttpClient(new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+        });
+
+        client.DefaultRequestHeaders.Add("User-Agent", $"{assemblyName}/{assemblyVersion}");
+        client.Timeout = TimeSpan.FromSeconds(options.PackageDownloadTimeoutSeconds);
+
+        return client;
     }
 }

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 
     <PackageTags>NuGet;Amazon;Cloud</PackageTags>
     <Description>The libraries to host BaGetter on AWS.</Description>
@@ -18,3 +18,4 @@
   </ItemGroup>
 
 </Project>
+

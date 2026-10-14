@@ -1,6 +1,6 @@
 ARG Version=1.0.0
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 ARG Version
 ARG TARGETARCH
 WORKDIR /src
@@ -24,6 +24,7 @@ RUN dotnet publish BaGetter \
     --configuration Release \
     --output /app \
     --no-restore \
+    -m:1 \
     -p Version=${Version} \
     -p DebugType=none \
     -p DebugSymbols=false \
@@ -37,7 +38,7 @@ RUN mkdir -p "/data/packages" \
     mkdir -p "/data/db"
 
 ## Create final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
 # install cultures (same approach as Alpine SDK image)
 RUN apk add --no-cache icu-libs icu-data-full tzdata
 # disable the invariant mode (set in base image)

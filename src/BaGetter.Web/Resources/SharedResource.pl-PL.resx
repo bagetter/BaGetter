@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Actions" xml:space="preserve">
+    <value>Akcje</value>
+  </data>
+  <data name="Authors" xml:space="preserve">
+    <value>Autorzy</value>
+  </data>
+  <data name="Any" xml:space="preserve">
+    <value>Dowolne</value>
+  </data>
+  <data name="BaGetter documentation" xml:space="preserve">
+    <value>Dokumentacja BaGetter</value>
+  </data>
+  <data name="BaGetter issues" xml:space="preserve">
+    <value>Zg?oszenia BaGetter</value>
+  </data>
+  <data name="by" xml:space="preserve">
+    <value>przez</value>
+  </data>
+  <data name="CouldNotFindPackage" xml:space="preserve">
+    <value>Nie mo?na znale?? pakietu '{0}'.</value>
+  </data>
+  <data name="CurrentVersion" xml:space="preserve">
+    <value>Bie??ca wersja</value>
+  </data>
+  <data name="Delete package" xml:space="preserve">
+    <value>Usu? pakiet</value>
+  </data>
+  <data name="DeletePackageVersion" xml:space="preserve">
+    <value>Usu? wersj? pakietu</value>
+  </data>
+  <data name="Dependencies" xml:space="preserve">
+    <value>Zale?no?ci</value>
+  </data>
+  <data name="Dependency" xml:space="preserve">
+    <value>Zaleznosc</value>
+  </data>
+  <data name=".NET tool" xml:space="preserve">
+    <value>Narzedzie .NET</value>
+  </data>
+  <data name=".NET template" xml:space="preserve">
+    <value>Szablon .NET</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Dokumentacja</value>
+  </data>
+  <data name="DownloadPackage" xml:space="preserve">
+    <value>Pobierz pakiet</value>
+  </data>
+  <data name="Downloads" xml:space="preserve">
+    <value>Pobrania</value>
+  </data>
+  <data name="DownloadsOfCurrentVersion" xml:space="preserve">
+    <value>pobra? bie??cej wersji</value>
+  </data>
+  <data name="ForMoreInformationReferTo" xml:space="preserve">
+    <value>Aby uzyska? wi?cej informacji, zobacz</value>
+  </data>
+  <data name="Framework" xml:space="preserve">
+    <value>Framework</value>
+  </data>
+  <data name="Include prerelease" xml:space="preserve">
+    <value>Uwzglednij prerelease</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Informacje</value>
+  </data>
+  <data name="It looks like there's no package here to see. Take a look below for useful links." xml:space="preserve">
+    <value>Wygl?da na to, ?e nie ma tu ?adnego pakietu. Sprawd? przydatne linki poni?ej.</value>
+  </data>
+  <data name="LastUpdated" xml:space="preserve">
+    <value>Ostatnia aktualizacja</value>
+  </data>
+  <data name="Latest version" xml:space="preserve">
+    <value>Najnowsza wersja</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>Licencja</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Nastepna</value>
+  </data>
+  <data name="NoDependencies" xml:space="preserve">
+    <value>Brak zale?no?ci.</value>
+  </data>
+  <data name="NoPackagesDependOn" xml:space="preserve">
+    <value>?adne pakiety nie zale?? od {0}.</value>
+  </data>
+  <data name="Oops, nothing here..." xml:space="preserve">
+    <value>Ups, nic tutaj nie ma...</value>
+  </data>
+  <data name="OopsPackageNotFound" xml:space="preserve">
+    <value>Ups, nie znaleziono pakietu...</value>
+  </data>
+  <data name="OrAskingForHelpOn" xml:space="preserve">
+    <value>lub popro? o pomoc na naszym</value>
+  </data>
+  <data name="Package type" xml:space="preserve">
+    <value>Typ pakietu</value>
+  </data>
+  <data name="Packages" xml:space="preserve">
+    <value>Pakiety</value>
+  </data>
+  <data name="PackageSuffix" xml:space="preserve">
+    <value>pakiecie.</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Poprzednia</value>
+  </data>
+  <data name="ProjectUrl" xml:space="preserve">
+    <value>Adres URL projektu</value>
+  </data>
+  <data name="PushPackagesUsingServiceIndex" xml:space="preserve">
+    <value>Mo?esz przesy?a? pakiety u?ywaj?c indeksu us?ugi</value>
+  </data>
+  <data name="Readme" xml:space="preserve">
+    <value>Readme</value>
+  </data>
+  <data name="ReleaseNotes" xml:space="preserve">
+    <value>Informacje o wydaniu</value>
+  </data>
+  <data name="SearchForPackages" xml:space="preserve">
+    <value>Szukaj pakietow</value>
+  </data>
+  <data name="SearchPackagesPlaceholder" xml:space="preserve">
+    <value>Szukaj pakietow...</value>
+  </data>
+  <data name="ServicesInUse" xml:space="preserve">
+    <value>U?ywane us?ugi</value>
+  </data>
+  <data name="ShowingTop20PackagesThatDependOn" xml:space="preserve">
+    <value>Wy?wietlanie 20 najwa?niejszych pakiet?w zale?nych od {0}.</value>
+  </data>
+  <data name="ShowLess" xml:space="preserve">
+    <value>Poka? mniej</value>
+  </data>
+  <data name="ShowMore" xml:space="preserve">
+    <value>Poka? wi?cej</value>
+  </data>
+  <data name="SourceCode" xml:space="preserve">
+    <value>Kod ?r?d?owy</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>Statystyki</value>
+  </data>
+  <data name="Tags" xml:space="preserve">
+    <value>Tagi</value>
+  </data>
+  <data name="ThinkTheresAProblemPrefix" xml:space="preserve">
+    <value>My?lisz, ?e co? jest nie tak? Zobacz nasz?</value>
+  </data>
+  <data name="ThisPackageHasNoDependencies" xml:space="preserve">
+    <value>Ten pakiet nie ma zale?no?ci.</value>
+  </data>
+  <data name="total downloads" xml:space="preserve">
+    <value>laczna liczba pobran</value>
+  </data>
+  <data name="TotalAmountOfPackages" xml:space="preserve">
+    <value>??czna liczba pakiet?w</value>
+  </data>
+  <data name="TotalAmountOfPackageVersions" xml:space="preserve">
+    <value>??czna liczba wersji pakiet?w</value>
+  </data>
+  <data name="TotalDownloads" xml:space="preserve">
+    <value>??czna liczba pobra?</value>
+  </data>
+  <data name="TrySearchingOn" xml:space="preserve">
+    <value>Mo?esz spr?bowa? wyszuka? na</value>
+  </data>
+  <data name="unknown" xml:space="preserve">
+    <value>nieznany</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Przeslij</value>
+  </data>
+  <data name="Upload a package" xml:space="preserve">
+    <value>Przeslij pakiet</value>
+  </data>
+  <data name="UploadPackageTitle" xml:space="preserve">
+    <value>Prze?lij pakiet</value>
+  </data>
+  <data name="UsedBy" xml:space="preserve">
+    <value>U?ywane przez</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Wersja</value>
+  </data>
+  <data name="VersionLabel" xml:space="preserve">
+    <value>Wersja</value>
+  </data>
+  <data name="Versions" xml:space="preserve">
+    <value>Wersje</value>
+  </data>
+  <data name="LanguageAuto" xml:space="preserve">
+    <value>Automatic (Browser)</value>
+  </data>
+  <data name="LanguageName_da-DK" xml:space="preserve">
+    <value>Danish</value>
+  </data>
+  <data name="LanguageName_is-IS" xml:space="preserve">
+    <value>Icelandic</value>
+  </data>
+  <data name="LanguageName_sv-SE" xml:space="preserve">
+    <value>Swedish</value>
+  </data>
+  <data name="LanguageName_pl-PL" xml:space="preserve">
+    <value>Polish</value>
+  </data>
+  <data name="LanguageName_en-US" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageName_fi-FI" xml:space="preserve">
+    <value>Finnish</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="LanguageName_nb-NO" xml:space="preserve">
+    <value>Norwegian</value>
+  </data>
+  <data name="LanguageName_zh-CN" xml:space="preserve">
+    <value>Chinese</value>
+  </data>
+  <data name="LanguageName_es-ES" xml:space="preserve">
+    <value>Spanish</value>
+  </data>
+  <data name="LanguageName_pt-PT" xml:space="preserve">
+    <value>Portuguese</value>
+  </data>
+  <data name="LanguageName_fr-FR" xml:space="preserve">
+    <value>French</value>
+  </data>
+  <data name="LanguageName_it-IT" xml:space="preserve">
+    <value>Italian</value>
+  </data>
+</root>

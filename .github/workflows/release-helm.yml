@@ -7,3 +7,13 @@ on:
         description: 'Tags'
         required: true
         type: string
+
+jobs:
+  release-helm:
+    name: Release Helm chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show release workflow
+        run: |
+          echo "Helm chart releases are handled by .github/workflows/release.yml on version tags."
+          echo "Requested tags: ${{ inputs.tags }}"

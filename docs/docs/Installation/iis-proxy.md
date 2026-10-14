@@ -16,6 +16,30 @@ With a few extra steps you can run BaGetter behind a Windows IIS proxy. This has
     - Choose `BaGetterAppPool` as the application pool
     - In the Binding area, enter the default BaGetter port of 5000
 
+## Publish output and web.config
+
+When deploying to IIS, publish the host project (`src/BaGetter`) and deploy the publish folder output:
+
+```powershell
+dotnet publish src/BaGetter/BaGetter.csproj -c Release -p:PublishProfile=FolderProfile
+```
+
+Or run the provided script from the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/Publish-IIS.ps1
+```
+
+Expected output:
+
+```text
+src/BaGetter/bin/Release/net10.0/publish/
+```
+
+This output should include `web.config`.
+
+If you are looking at `src/BaGetter/bin/Release/net10.0/` (without `publish/`), that is build output, not publish output.
+
 ## BaGetter folder permissions
 
 You **may** need to give special permissions to the top-level BaGetter folder so that the app can persist its state. This is necessary as the Application Pools' identity is a virtual account that isn't recognized by the Windows User Management Console. For more information, please refer to ASP.NET Core's documentation:

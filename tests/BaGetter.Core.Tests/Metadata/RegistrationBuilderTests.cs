@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BaGetter.Core.Tests.Support;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -15,7 +16,7 @@ public class RegistrationBuilderTests
     public RegistrationBuilderTests()
     {
         _urlGenerator = new Mock<IUrlGenerator>();
-        _registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
+        _registrationBuilder = new RegistrationBuilder(_urlGenerator.Object, Options.Create(new BaGetterOptions()));
     }
 
     #region helper methods
@@ -42,14 +43,21 @@ public class RegistrationBuilderTests
     public void Ctor_UrlGeneratorIsNull_ShouldThrow()
     {
         // Act/Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => new RegistrationBuilder(null));
+        var ex = Assert.Throws<ArgumentNullException>(() => new RegistrationBuilder(null, Options.Create(new BaGetterOptions())));
+    }
+
+    [Fact]
+    public void Ctor_OptionsIsNull_ShouldThrow()
+    {
+        // Act/Assert
+        var ex = Assert.Throws<ArgumentNullException>(() => new RegistrationBuilder(_urlGenerator.Object, null));
     }
 
     [Fact]
     public void BuildIndex_PackageRegistrationIsNull_ShouldThrow()
     {
         // Arrange
-        var registrationBuilder = new RegistrationBuilder(_urlGenerator.Object);
+        var registrationBuilder = new RegistrationBuilder(_urlGenerator.Object, Options.Create(new BaGetterOptions()));
 
         // Act/Assert
         var ex = Assert.Throws<ArgumentNullException>(() => registrationBuilder.BuildIndex(null));
@@ -106,5 +114,50 @@ public class RegistrationBuilderTests
         // Assert
         Assert.Equal(isPackageListed, response.Listed);
         Assert.Equal(publishDate, response.Published);
+    }
+
+    [Fact]
+    public void BuildIndex_WhenPageSizeExceeded_ShouldReturnPagedIndexWithoutInlinedItems()
+    {
+        // Arrange
+        var options = Options.Create(new BaGetterOptions { RegistrationPageSize = 2 });
+        var registrationBuilder = new RegistrationBuilder(_urlGenerator.Object, options);
+        var registration = GetPackageRegistration();
+
+        _urlGenerator.Setup(x => x.GetRegistrationIndexUrl(It.IsAny<string>()))
+            .Returns("https://example.test/v3/registration/bagetter.test/index.json");
+
+        _urlGenerator.Setup(x => x.GetRegistrationPageUrl(It.IsAny<string>(), It.IsAny<NuGet.Versioning.NuGetVersion>(), It.IsAny<NuGet.Versioning.NuGetVersion>()))
+            .Returns<string, NuGet.Versioning.NuGetVersion, NuGet.Versioning.NuGetVersion>((id, lower, upper) => $"https://example.test/v3/registration/{id}/page/{lower.ToNormalizedString().ToLowerInvariant()}/{upper.ToNormalizedString().ToLowerInvariant()}.json");
+
+        // Act
+        var response = registrationBuilder.BuildIndex(registration);
+
+        // Assert
+        Assert.Equal(3, response.Count);
+        Assert.All(response.Pages, page => Assert.Null(page.ItemsOrNull));
+    }
+
+    [Fact]
+    public void BuildPage_WhenRangeMatchesPackages_ShouldReturnInlinedItems()
+    {
+        // Arrange
+        var registration = GetPackageRegistration();
+        _urlGenerator.Setup(x => x.GetRegistrationPageUrl(It.IsAny<string>(), It.IsAny<NuGet.Versioning.NuGetVersion>(), It.IsAny<NuGet.Versioning.NuGetVersion>()))
+            .Returns<string, NuGet.Versioning.NuGetVersion, NuGet.Versioning.NuGetVersion>((id, lower, upper) => $"https://example.test/v3/registration/{id}/page/{lower.ToNormalizedString().ToLowerInvariant()}/{upper.ToNormalizedString().ToLowerInvariant()}.json");
+
+        // Act
+        var response = _registrationBuilder.BuildPage(
+            registration,
+            NuGet.Versioning.NuGetVersion.Parse("3.1.0-pre"),
+            NuGet.Versioning.NuGetVersion.Parse("3.2.0"));
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal(3, response.Count);
+        Assert.NotNull(response.ItemsOrNull);
+        Assert.Equal(3, response.ItemsOrNull.Count);
+        Assert.Equal("3.1.0-pre", response.Lower);
+        Assert.Equal("3.2.0", response.Upper);
     }
 }

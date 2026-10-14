@@ -37,9 +37,24 @@ public class PackagePublishController : Controller
     // See: https://docs.microsoft.com/en-us/nuget/api/package-publish-resource#push-a-package
     public async Task Upload(CancellationToken cancellationToken)
     {
-        if (_options.Value.IsReadOnlyMode ||
-            !await _authentication.AuthenticateAsync(Request.GetApiKey(), cancellationToken))
+        if (_options.Value.IsReadOnlyMode)
         {
+            _logger.LogWarning(
+                "AUDIT package_upload_denied reason=read_only actor={Actor} ip={IpAddress}",
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
+
+            HttpContext.Response.StatusCode = 401;
+            return;
+        }
+
+        if (!await _authentication.AuthenticateAsync(Request.GetApiKey(), cancellationToken))
+        {
+            _logger.LogWarning(
+                "AUDIT package_upload_denied reason=unauthorized actor={Actor} ip={IpAddress}",
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
+
             HttpContext.Response.StatusCode = 401;
             return;
         }
@@ -49,6 +64,11 @@ public class PackagePublishController : Controller
             using var uploadStream = await Request.GetUploadStreamOrNullAsync(cancellationToken);
             if (uploadStream == null)
             {
+                _logger.LogWarning(
+                    "AUDIT package_upload_failed reason=missing_body actor={Actor} ip={IpAddress}",
+                    GetActor(),
+                    HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 HttpContext.Response.StatusCode = 400;
                 return;
             }
@@ -58,14 +78,26 @@ public class PackagePublishController : Controller
             switch (result)
             {
                 case PackageIndexingResult.InvalidPackage:
+                    _logger.LogInformation(
+                        "AUDIT package_upload_failed reason=invalid_package actor={Actor} ip={IpAddress}",
+                        GetActor(),
+                        HttpContext.Connection.RemoteIpAddress?.ToString());
                     HttpContext.Response.StatusCode = 400;
                     break;
 
                 case PackageIndexingResult.PackageAlreadyExists:
+                    _logger.LogInformation(
+                        "AUDIT package_upload_failed reason=already_exists actor={Actor} ip={IpAddress}",
+                        GetActor(),
+                        HttpContext.Connection.RemoteIpAddress?.ToString());
                     HttpContext.Response.StatusCode = 409;
                     break;
 
                 case PackageIndexingResult.Success:
+                    _logger.LogInformation(
+                        "AUDIT package_upload_succeeded actor={Actor} ip={IpAddress}",
+                        GetActor(),
+                        HttpContext.Connection.RemoteIpAddress?.ToString());
                     HttpContext.Response.StatusCode = 201;
                     break;
             }
@@ -83,6 +115,12 @@ public class PackagePublishController : Controller
     {
         if (_options.Value.IsReadOnlyMode)
         {
+            _logger.LogWarning(
+                "AUDIT package_delete_denied reason=read_only package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                version,
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return Unauthorized();
         }
 
@@ -91,17 +129,37 @@ public class PackagePublishController : Controller
             return NotFound();
         }
 
-        if (!await _authentication.AuthenticateAsync(Request.GetApiKey(), cancellationToken))
+        var isAdminUser = HttpContext.User?.IsInRole("Admin") == true;
+        var hasValidApiKey = await _authentication.AuthenticateAsync(Request.GetApiKey(), cancellationToken);
+        if (!isAdminUser && !hasValidApiKey)
         {
+            _logger.LogWarning(
+                "AUDIT package_delete_denied reason=unauthorized package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                version,
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return Unauthorized();
         }
 
         if (await _deleteService.TryDeletePackageAsync(id, nugetVersion, cancellationToken))
         {
+            _logger.LogInformation(
+                "AUDIT package_delete_succeeded package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                nugetVersion.ToNormalizedString(),
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return NoContent();
         }
         else
         {
+            _logger.LogInformation(
+                "AUDIT package_delete_not_found package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                nugetVersion.ToNormalizedString(),
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return NotFound();
         }
     }
@@ -111,6 +169,12 @@ public class PackagePublishController : Controller
     {
         if (_options.Value.IsReadOnlyMode)
         {
+            _logger.LogWarning(
+                "AUDIT package_relist_denied reason=read_only package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                version,
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return Unauthorized();
         }
 
@@ -121,16 +185,39 @@ public class PackagePublishController : Controller
 
         if (!await _authentication.AuthenticateAsync(Request.GetApiKey(), cancellationToken))
         {
+            _logger.LogWarning(
+                "AUDIT package_relist_denied reason=unauthorized package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                version,
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return Unauthorized();
         }
 
         if (await _packages.RelistPackageAsync(id, nugetVersion, cancellationToken))
         {
+            _logger.LogInformation(
+                "AUDIT package_relist_succeeded package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                nugetVersion.ToNormalizedString(),
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return Ok();
         }
         else
         {
+            _logger.LogInformation(
+                "AUDIT package_relist_not_found package_id={PackageId} package_version={PackageVersion} actor={Actor} ip={IpAddress}",
+                id,
+                nugetVersion.ToNormalizedString(),
+                GetActor(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
             return NotFound();
         }
+    }
+
+    private string GetActor()
+    {
+        return HttpContext.User?.Identity?.Name ?? "anonymous";
     }
 }

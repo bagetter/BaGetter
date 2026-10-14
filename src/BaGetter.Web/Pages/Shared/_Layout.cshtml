@@ -1,13 +1,60 @@
 @using BaGetter.Web.Extensions
 @using BaGetter.Web.Helper
+@using System.Linq
+@using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using Microsoft.Extensions.Options
 
 @inject IOptions<StatisticsOptions> StatisticsOptions
 @inject ApplicationVersion Version
+@inject Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<BaGetter.Web.SharedResource> Localizer
+
+@{
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+    var languageOptions = new (string Culture, string Key, string Flag)[]
+    {
+        ("en-US", "LanguageName_en-US", "🇺🇸"),
+        ("is-IS", "LanguageName_is-IS", "🇮🇸"),
+        ("da-DK", "LanguageName_da-DK", "🇩🇰"),
+        ("sv-SE", "LanguageName_sv-SE", "🇸🇪"),
+        ("nb-NO", "LanguageName_nb-NO", "🇳🇴"),
+        ("pl-PL", "LanguageName_pl-PL", "🇵🇱"),
+        ("fi-FI", "LanguageName_fi-FI", "🇫🇮"),
+        ("es-ES", "LanguageName_es-ES", "🇪🇸"),
+        ("pt-PT", "LanguageName_pt-PT", "🇵🇹"),
+        ("it-IT", "LanguageName_it-IT", "🇮🇹"),
+        ("zh-CN", "LanguageName_zh-CN", "🇨🇳"),
+        ("fr-FR", "LanguageName_fr-FR", "🇫🇷"),
+    };
+
+    string BuildCultureLink(string culture)
+    {
+        var path = Context.Request.Path.HasValue ? Context.Request.Path.Value : "/";
+        var query = Context.Request.Query
+            .ToDictionary(pair => pair.Key, pair => pair.Value.ToString(), StringComparer.OrdinalIgnoreCase);
+
+        query["culture"] = culture;
+        query["ui-culture"] = culture;
+
+        return QueryHelpers.AddQueryString(path ?? "/", query);
+    }
+
+    string BuildAutoCultureLink()
+    {
+        var path = Context.Request.Path.HasValue ? Context.Request.Path.Value : "/";
+        var query = Context.Request.Query
+            .ToDictionary(pair => pair.Key, pair => pair.Value.ToString(), StringComparer.OrdinalIgnoreCase);
+
+        query.Remove("culture");
+        query.Remove("ui-culture");
+        query["clearCulture"] = "1";
+
+        return QueryHelpers.AddQueryString(path ?? "/", query);
+    }
+}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,10 +63,13 @@
     @Html.AddReleaseMetaTags()
 
     <link rel="shortcut icon" href="~/_content/BaGetter.Web/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="~/_content/BaGetter.Web/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/_content/BaGetter.Web/lib/office-ui-fabric-core/dist/css/fabric.min.css" />
-    <link rel="stylesheet" href="~/_content/BaGetter.Web/css/site.css" />
+    <link rel="stylesheet" href="~/_content/BaGetter.Web/css/site.css" asp-append-version="true" />
 
     <title>@ViewData["Title"] - BaGetter</title>
 </head>
@@ -29,17 +79,43 @@
             <div class="container">
                 <div class="row">
                     <div id="navbar" class="col-sm-12">
+                        <a class="navbar-brand" asp-area="" asp-page="/Index">BaGetter</a>
                         <ul class="nav navbar-nav" role="tablist">
-                            <li role="presentation"><a asp-area="" asp-page="/Index" role="tab" nav-link><span>Packages</span></a></li>
-                            <li role="presentation"><a asp-area="" asp-page="/Upload" role="tab" nav-link><span>Upload</span></a></li>
+                            <li role="presentation"><a asp-area="" asp-page="/Index" role="tab" nav-link><span>@Localizer["Packages"]</span></a></li>
+                            <li role="presentation"><a asp-area="" asp-page="/Upload" role="tab" nav-link><span>@Localizer["Upload"]</span></a></li>
                             @if (StatisticsOptions.Value.EnableStatisticsPage)
                             {
-                                <li role="presentation"><a asp-area="" asp-page="/Statistics" role="tab" nav-link><span>Statistics</span></a></li>
+                                <li role="presentation"><a asp-area="" asp-page="/Statistics" role="tab" nav-link><span>@Localizer["Statistics"]</span></a></li>
                             }
                             <li role="presentation">
                                 <a role="tab" href="https://www.bagetter.com/docs" target="_blank" rel="noopener noreferrer">
-                                    <span>Documentation</span>
+                                    <span>@Localizer["Documentation"]</span>
                                 </a>
+                            </li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                    @Localizer["Language"] <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    @foreach (var option in languageOptions)
+                                    {
+                                        <li class="@(string.Equals(currentCulture, option.Culture, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty)">
+                                            <a href="@BuildCultureLink(option.Culture)">
+                                                <span class="language-flag" aria-hidden="true">@option.Flag</span>
+                                                @Localizer[option.Key]
+                                            </a>
+                                        </li>
+                                    }
+                                    <li role="separator" class="divider"></li>
+                                    <li>
+                                        <a href="@BuildAutoCultureLink()">
+                                            <span class="language-flag" aria-hidden="true">🌐</span>
+                                            @Localizer["LanguageAuto"]
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         </ul>
                     </div>
@@ -54,12 +130,12 @@
                                    value="@ViewData["SearchQuery"]"
                                    class="form-control"
                                    autoComplete="off"
-                                   placeholder="Search packages..." />
+                                   placeholder="@Localizer["SearchPackagesPlaceholder"]" />
 
                             <span class="input-group-btn">
                                 <button type="submit"
                                         class="btn btn-default"
-                                        title="Search for packages">
+                                        title="@Localizer["SearchForPackages"]">
                                     <span class="ms-Icon ms-Icon--Search" aria-hidden="true"></span>
                                 </button>
                             </span>
@@ -78,7 +154,7 @@
 
     <footer class="footer">
         <p>
-            Version: @Version.Version
+            @Localizer["VersionLabel"]: @Version.Version
         </p>
         @Html.AddReleaseInformationAsComment()
     </footer>

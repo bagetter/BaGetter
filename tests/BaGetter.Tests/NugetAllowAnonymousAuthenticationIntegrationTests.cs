@@ -38,6 +38,16 @@ public class NugetAllowAnonymousAuthenticationIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task AnonymousUiAccess_WhenAnonymousAllowed_ReturnsOk()
+    {
+        // Act
+        using var response = await _client.GetAsync("/");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Credentials_WhenAnonymousAllowed_ReturnsOk()
     {
         // Arrange

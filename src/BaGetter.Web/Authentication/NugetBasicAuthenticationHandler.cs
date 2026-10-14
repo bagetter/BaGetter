@@ -9,32 +9,37 @@ using System.Threading.Tasks;
 using System;
 using BaGetter.Core;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace BaGetter.Web.Authentication;
 
 public class NugetBasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly IOptions<BaGetterOptions> bagetterOptions;
+    private readonly IReadOnlyList<INugetCredentialValidator> credentialValidators;
 
     public NugetBasicAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
-        IOptions<BaGetterOptions> bagetterOptions)
+        IOptions<BaGetterOptions> bagetterOptions,
+        IEnumerable<INugetCredentialValidator> credentialValidators)
         : base(options, logger, encoder)
     {
         this.bagetterOptions = bagetterOptions;
+        this.credentialValidators = credentialValidators?.ToArray() ?? [];
     }
 
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (IsAnonymousAllowed())
         {
-            return CreateAnonymousAuthenticatonResult();
+            return await CreateAnonymousAuthenticatonResult();
         }
 
         if (!Request.Headers.TryGetValue("Authorization", out var auth))
-            return Task.FromResult(AuthenticateResult.NoResult());
+            return AuthenticateResult.NoResult();
 
         string username = null;
         string password = null;
@@ -48,13 +53,14 @@ public class NugetBasicAuthenticationHandler : AuthenticationHandler<Authenticat
         }
         catch
         {
-            return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization Header"));
+            return AuthenticateResult.Fail("Invalid Authorization Header");
         }
 
-        if (!ValidateCredentials(username, password))
-            return Task.FromResult(AuthenticateResult.Fail("Invalid Username or Password"));
+        var validationResult = await ValidateCredentialsAsync(username, password, Context.RequestAborted);
+        if (validationResult == null)
+            return AuthenticateResult.Fail("Invalid Username or Password");
 
-        return CreateUserAuthenticatonResult(username);
+        return await CreateUserAuthenticatonResult(validationResult);
     }
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
@@ -74,9 +80,21 @@ public class NugetBasicAuthenticationHandler : AuthenticationHandler<Authenticat
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 
-    private Task<AuthenticateResult> CreateUserAuthenticatonResult(string username)
+    private Task<AuthenticateResult> CreateUserAuthenticatonResult(NugetCredentialValidationResult validationResult)
     {
-        Claim[] claims = [new Claim(ClaimTypes.Name, username)];
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, validationResult.Username)
+        };
+
+        foreach (var role in validationResult.Roles ?? [])
+        {
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role.Trim()));
+            }
+        }
+
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);
 
@@ -87,14 +105,31 @@ public class NugetBasicAuthenticationHandler : AuthenticationHandler<Authenticat
 
     private bool IsAnonymousAllowed()
     {
-        return bagetterOptions.Value.Authentication is null ||
-            bagetterOptions.Value.Authentication.Credentials is null ||
-            bagetterOptions.Value.Authentication.Credentials.Length == 0 ||
-            bagetterOptions.Value.Authentication.Credentials.All(a => string.IsNullOrWhiteSpace(a.Username) && string.IsNullOrWhiteSpace(a.Password));
+        var auth = bagetterOptions.Value.Authentication;
+        var hasConfiguredCredentials = auth?.Credentials?.Any(a =>
+                !string.IsNullOrWhiteSpace(a.Username) &&
+                (!string.IsNullOrWhiteSpace(a.Password) || !string.IsNullOrWhiteSpace(a.PasswordHash))) == true;
+        var hasLdap = auth?.Ldap?.Enabled == true &&
+                      !string.IsNullOrWhiteSpace(auth.Ldap.Server) &&
+                      !string.IsNullOrWhiteSpace(auth.Ldap.BaseDn);
+
+        return !hasConfiguredCredentials && !hasLdap;
     }
 
-    private bool ValidateCredentials(string username, string password)
+    private async Task<NugetCredentialValidationResult> ValidateCredentialsAsync(
+        string username,
+        string password,
+        CancellationToken cancellationToken)
     {
-        return bagetterOptions.Value.Authentication.Credentials.Any(a => a.Username.Equals(username, StringComparison.OrdinalIgnoreCase) && a.Password == password);
+        foreach (var validator in credentialValidators)
+        {
+            var result = await validator.ValidateAsync(username, password, cancellationToken);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 }

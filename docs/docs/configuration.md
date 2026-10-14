@@ -5,6 +5,29 @@ import TabItem from '@theme/TabItem';
 
 You can modify BaGetter's configurations by editing the `appsettings.json` file.
 
+BaGetter also loads configuration from an OS-level location when present:
+
+- Windows: `%ProgramData%\BaGetter\AppSettings.json`
+- Linux: `/etc/BaGetter/AppSettings.json`
+
+You can override the configuration root path using:
+
+```text
+BAGET_CONFIG_ROOT
+```
+
+## Startup validation rules
+
+BaGetter validates configuration at startup and fails fast when critical settings are invalid. Current guardrails include:
+
+- `MaxPackageSizeGiB` must be greater than `0`.
+- `PathBase` must start with `/` and must not end with `/` (except `/` itself).
+- `Cors.AllowAnyOrigin=true` cannot be combined with `Cors.AllowCredentials=true`.
+- If `Cors.AllowAnyOrigin=false`, then `Cors.AllowedOrigins` must contain at least one value.
+- `SecurityHeaders.EnableHsts=true` requires `SecurityHeaders.Enabled=true`.
+
+These checks help catch unsafe or inconsistent runtime settings before serving traffic.
+
 ## Require an API key
 
 You can require that users provide a password, called an API key, to publish packages.
@@ -37,6 +60,38 @@ You can also use the `ApiKeys` array in order to manage multiple API keys for mu
 ```
 
 Both `ApiKey` and `ApiKeys` work in conjunction additively eg.: `or` `||` logical operator.
+
+You can also store hashed API keys instead of plaintext values:
+
+- `ApiKeyHash` for the legacy single key
+- `Authentication.ApiKeys[].KeyHash` for multiple keys
+
+Supported hash format:
+
+```text
+PBKDF2$<iterations>$<base64Salt>$<base64Hash>
+```
+
+Example:
+
+```json
+{
+    "ApiKeyHash": "PBKDF2$100000$<salt>$<hash>",
+    "Authentication": {
+        "ApiKeys": [
+            {
+                "KeyHash": "PBKDF2$100000$<salt>$<hash>"
+            }
+        ]
+    }
+}
+```
+
+Generate a hash from the CLI:
+
+```shell
+dotnet run --project src/BaGetter -- hash "NUGET-SERVER-API-KEY"
+```
 
 Users will now have to provide the API key to push packages:
 
@@ -150,6 +205,30 @@ The following `Mirror` setting configures BaGetter to index packages from [nuget
   </TabItem>
 </Tabs>
 
+You can also configure multiple upstream mirrors using `Mirrors`.
+When `Mirrors` is present and contains one or more entries, it takes precedence over `Mirror`.
+BaGetter will try mirrors in order and fall back to the next mirror when a package is not found.
+If `Mirrors` is absent or empty, BaGetter uses the legacy `Mirror` setting.
+
+```json
+{
+    ...
+
+    "Mirrors": [
+        {
+            "Enabled": true,
+            "PackageSource": "https://api.nuget.org/v3/index.json"
+        },
+        {
+            "Enabled": true,
+            "PackageSource": "https://your-secondary-feed/v3/index.json"
+        }
+    ],
+
+    ...
+}
+```
+
 
 :::info
 
@@ -241,7 +320,8 @@ To do so, you can insert the credentials in the `Authentication` section.
         "Credentials": [
             {
                 "Username": "username",
-                "Password": "password"
+                "Password": "password",
+                "Roles": [ "Admin" ]
             }
         ]
         ...
@@ -250,7 +330,75 @@ To do so, you can insert the credentials in the `Authentication` section.
 }
 ```
 
+- `Roles` controls role-based permissions (for example `Admin` for administration-only actions in the web UI such as package deletion).
+
+You can store a hashed password instead of plaintext:
+
+```json
+{
+    "Authentication": {
+        "Credentials": [
+            {
+                "Username": "username",
+                "PasswordHash": "PBKDF2$100000$<salt>$<hash>"
+            }
+        ]
+    }
+}
+```
+
+Generate password hash:
+
+```shell
+dotnet run --project src/BaGetter -- hash "password"
+```
+
 Users will now have to provide the username and password to fetch and download packages.
+
+### LDAP / Active Directory authentication
+
+BaGetter can also validate package feed credentials against LDAP or Active Directory.
+Configure LDAP under `Authentication.Ldap`. You can keep `Authentication.Credentials`
+configured at the same time to preserve local fallback accounts for administration or
+break-glass access.
+
+```json
+{
+    "Authentication": {
+        "Credentials": [
+            {
+                "Username": "local-admin",
+                "PasswordHash": "PBKDF2$100000$<salt>$<hash>",
+                "Roles": [ "Admin" ]
+            }
+        ],
+        "Ldap": {
+            "Enabled": true,
+            "Server": "ad.example.local",
+            "BaseDn": "dc=example,dc=local",
+            "BindDn": "cn=bagetter,ou=Service Accounts,dc=example,dc=local",
+            "BindPassword": "change-me",
+            "UseSsl": true,
+            "AllowedGroups": [ "NuGet Readers", "NuGet Admins" ]
+        }
+    }
+}
+```
+
+LDAP users can authenticate with:
+
+- `domain\username`
+- `username@domain.example`
+
+Configuration notes:
+
+- `Authentication.Ldap.Server` and `Authentication.Ldap.BaseDn` are required when LDAP is enabled.
+- `Authentication.Ldap.BindDn` and `Authentication.Ldap.BindPassword` are recommended for Active Directory because most environments do not allow anonymous directory searches.
+- BaGetter adds role claims from the LDAP / Active Directory groups returned for the user. Group names are taken from each group's `CN`.
+- If `Authentication.Ldap.AllowedGroups` is set, login succeeds only when the user belongs to at least one of those group names.
+- If `Authentication.Ldap.AllowedGroups` is omitted or empty, no group filter is applied.
+- `Authentication.Ldap.UseSsl` defaults to `true`. Use LDAPS whenever possible.
+- BaGetter uses `System.DirectoryServices.Protocols`, which is cross-platform. On Linux and macOS, make sure the host trusts your LDAP server's certificate chain when using LDAPS.
 
 How to add private nuget feed:
 
@@ -279,6 +427,13 @@ The commands are slightly different when using the Package Manager console in Vi
 
 ```shell
 dotnet nuget add source "http://localhost:5000/v3/index.json" --name "bagetter" --username "username" --password "password"
+```
+
+The same commands work for LDAP-backed feeds. Replace the username and password with your
+directory credentials, for example:
+
+```shell
+dotnet nuget add source "http://localhost:5000/v3/index.json" --name "bagetter" --username "hysing\\valdi" --password "password"
 ```
 
 ## Database configuration
@@ -396,6 +551,191 @@ This can be useful if you are hosting a private feed and need to host large pack
 }
 ```
 
+## Registration paging
+
+BaGetter serves package metadata using the NuGet registration resource. By default, versions are split into pages of 64 entries.
+This helps keep registration index payloads smaller for packages with many versions.
+
+You can configure this using `RegistrationPageSize`:
+
+```json
+{
+    ...
+
+    "RegistrationPageSize": 64,
+
+    ...
+}
+```
+
+When paging is active, the registration index (`/v3/registration/{id}/index.json`) returns page references,
+and each page can be fetched from:
+
+```text
+/v3/registration/{id}/page/{lower}/{upper}.json
+```
+
+Example:
+
+```text
+/v3/registration/newtonsoft.json/page/11.0.1/13.0.3.json
+```
+
+## HTTP caching and compression
+
+BaGetter now emits `ETag` headers for:
+
+- registration index/page/leaf endpoints
+- package versions endpoint
+- package content endpoints (`.nupkg`, `.nuspec`, readme, icon)
+
+Metadata endpoints use:
+
+```text
+Cache-Control: public, max-age=0, must-revalidate
+```
+
+Versioned package content endpoints use:
+
+```text
+Cache-Control: public, max-age=31536000, immutable
+```
+
+BaGetter also enables response compression (Brotli + Gzip) for supported responses.
+
+## HTTP request telemetry
+
+BaGetter logs a structured entry per request including method, path, status code, duration, endpoint, and trace identifier.
+
+It also records in-process metrics using `System.Diagnostics.Metrics`:
+
+- `bagetter.http.requests` (counter)
+- `bagetter.http.request.duration` (histogram, milliseconds)
+
+## Request rate limiting
+
+You can enable fixed-window request rate limiting:
+
+```json
+{
+    ...
+
+    "RequestRateLimit": {
+        "Enabled": true,
+        "PermitLimit": 120,
+        "WindowSeconds": 60,
+        "QueueLimit": 0
+    },
+
+    ...
+}
+```
+
+- `Enabled`: turn rate limiting on or off.
+- `PermitLimit`: number of requests allowed in each window.
+- `WindowSeconds`: window duration in seconds.
+- `QueueLimit`: number of requests to queue when the limit is reached.
+
+When enabled, rejected requests return `429 Too Many Requests`.
+
+## CORS policy
+
+By default, BaGetter allows all origins, methods, and headers. You can restrict this policy:
+
+```json
+{
+    ...
+
+    "Cors": {
+        "AllowAnyOrigin": false,
+        "AllowedOrigins": [
+            "https://packages.example.com"
+        ],
+        "AllowAnyMethod": true,
+        "AllowedMethods": [],
+        "AllowAnyHeader": true,
+        "AllowedHeaders": [],
+        "AllowCredentials": false
+    },
+
+    ...
+}
+```
+
+If `AllowAnyOrigin` is `true`, `AllowedOrigins` is ignored.
+
+## Security headers
+
+BaGetter can emit baseline security headers for all responses:
+
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: SAMEORIGIN`
+- `Referrer-Policy: no-referrer`
+- `X-Permitted-Cross-Domain-Policies: none`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+
+Configuration:
+
+```json
+{
+    ...
+
+    "SecurityHeaders": {
+        "Enabled": true,
+        "EnableHsts": false,
+        "HstsMaxAgeDays": 365,
+        "HstsIncludeSubDomains": true,
+        "HstsPreload": false
+    },
+
+    ...
+}
+```
+
+If `EnableHsts` is `true`, BaGetter enables HSTS outside development environments.
+
+## Search reindexing
+
+BaGetter supports rebuilding the search index from packages stored in the database.
+
+Configuration:
+
+```json
+{
+    ...
+
+    "Reindex": {
+        "Enabled": false,
+        "RunOnStartup": false,
+        "IntervalMinutes": 0,
+        "BatchSize": 100
+    },
+
+    ...
+}
+```
+
+- `Enabled`: enables the background reindex hosted service.
+- `RunOnStartup`: run one reindex pass when the app starts.
+- `IntervalMinutes`: if greater than `0`, run periodic reindex passes at this interval.
+- `BatchSize`: number of packages processed per batch.
+
+You can also trigger reindex manually from the CLI:
+
+```shell
+dotnet run --project src/BaGetter -- reindex search
+```
+
+## Audit logging
+
+BaGetter emits audit log entries for package mutation operations:
+
+- package upload attempts and outcomes
+- package delete attempts and outcomes
+- package relist attempts and outcomes
+
+Each event includes actor and client IP metadata to simplify traceability in centralized logs.
+
 ## Statistics
 
 On the application's statistics page the currently used services and overall package and version counts are listed.
@@ -414,6 +754,24 @@ If you set `ListConfiguredServices` to `false` the currently used services for d
     ...
 }
 ```
+
+## Web UI theming
+
+BaGetter's built-in UI can be restyled by editing:
+
+- `src/BaGetter.Web/wwwroot/css/site.css`
+
+The stylesheet uses CSS custom properties in `:root` for the visual system. The most important tokens are:
+
+- `--font-body`, `--font-heading`
+- `--page-bg`, `--page-text`, `--surface`, `--surface-border`
+- `--brand-primary`, `--brand-accent`, `--brand-highlight`
+- `--link-color`, `--link-hover`
+- `--radius-sm`, `--radius-md`, `--radius-lg`
+
+There is also a `@media (prefers-color-scheme: dark)` block for dark-mode values.
+
+If you need different branding, you can safely override these tokens while keeping the component selectors unchanged.
 
 
 

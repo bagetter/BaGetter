@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Packaging;
@@ -31,12 +30,12 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
     private static readonly char[] AuthorsSeparators = new[] { ',', ';', '\t', '\n', '\r' };
 
     public V2UpstreamClient(
-        IOptionsSnapshot<MirrorOptions> options,
+        MirrorOptions options,
         ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(options);
 
-        if (options.Value?.PackageSource?.AbsolutePath == null)
+        if (options.PackageSource?.AbsolutePath == null)
         {
             throw new ArgumentException("No mirror package source has been set.");
         }
@@ -45,8 +44,8 @@ public class V2UpstreamClient : IUpstreamClient, IDisposable
 
         _ngLogger = NullLogger.Instance;
         _cache = new SourceCacheContext();
-        var packageSource = new PackageSource(options.Value.PackageSource.AbsoluteUri);
-        if (options.Value.Authentication is { } auth)
+        var packageSource = new PackageSource(options.PackageSource.AbsoluteUri);
+        if (options.Authentication is { } auth)
         {
             switch (auth.Type)
             {

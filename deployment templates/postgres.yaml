@@ -1,0 +1,81 @@
+---
+# Minimal PostgreSQL for the BaGetter mirror (namespace: bagetter).
+# Replaces SQLite-on-NFS, which serialises all writes and throws
+# "database is locked" 500s under concurrent restore. Postgres handles
+# concurrent writes, so the build-side maxHttpRequestsPerSource=1 throttle
+# can be removed afterwards.
+#
+# Prereq — create the password secret first (never commit the password):
+#   kubectl -n bagetter create secret generic bagetter-postgres \
+#     --from-literal=password="$(openssl rand -base64 24)"
+#
+# Apply: kubectl -n bagetter apply -f "deployment templates/postgres.yaml"
+apiVersion: v1
+kind: Service
+metadata:
+  name: bagetter-postgres
+  namespace: bagetter
+spec:
+  selector:
+    app: bagetter-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: bagetter-postgres
+  namespace: bagetter
+spec:
+  serviceName: bagetter-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bagetter-postgres
+  template:
+    metadata:
+      labels:
+        app: bagetter-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: bagetter
+            - name: POSTGRES_USER
+              value: bagetter
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: bagetter-postgres
+                  key: password
+            # Keep PGDATA in a subdir so the volume root (lost+found etc.) doesn't clash.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U bagetter -d bagetter"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

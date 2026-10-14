@@ -1,8 +1,9 @@
-﻿@page
+@page
 @inject IUrlGenerator _url
+@inject Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<BaGetter.Web.SharedResource> Localizer
 
 @{
-    ViewData["Title"] = "Upload package";
+    ViewData["Title"] = Localizer["UploadPackageTitle"];
 
     var baseUrl = Url.PageLink("/Index");
     var publishUrl = _url.GetPackagePublishResourceUrl();
@@ -10,10 +11,10 @@
 }
 
 <div class="col-sm-12">
-    <h1>Upload</h1>
+    <h1>@Localizer["Upload"]</h1>
     <hr class="breadcrumb-divider" />
 
-    <div>You can push packages using the service index <code>@serviceIndexUrl</code>.</div>
+    <div>@Localizer["PushPackagesUsingServiceIndex"] <code>@serviceIndexUrl</code>.</div>
 
     <div class="tabbed-info" x-data="{ tabs: tabs, active: tabs[0] }">
         <ul class="nav">
@@ -44,11 +45,11 @@
         </div>
 
         <div class="icon-text alert alert-warning">
-            For more information, please refer to
+            @Localizer["ForMoreInformationReferTo"]
             <a target="_blank"
                rel="noopener noreferrer"
                x-bind:href="active.documentation"
-               x-text="`${active.name}'s documentation`">
+               x-text="`${active.name} - @Localizer["Documentation"]`">
             </a>.
         </div>
     </div>

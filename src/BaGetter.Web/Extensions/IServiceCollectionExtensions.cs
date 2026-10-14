@@ -25,7 +25,11 @@ public static class IServiceCollectionExtensions
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
 
-        services.AddRazorPages();
+        services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+        services
+            .AddRazorPages()
+            .AddViewLocalization();
 
         services.AddHttpContextAccessor();
         services.AddTransient<IUrlGenerator, BaGetterUrlGenerator>();

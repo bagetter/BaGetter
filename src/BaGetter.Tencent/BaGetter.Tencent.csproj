@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Description>The libraries to host BaGetter on Tencent Cloud.</Description>
     <Nullable>enable</Nullable>
@@ -15,3 +15,4 @@
     <ProjectReference Include="..\BaGetter.Core\BaGetter.Core.csproj" />
   </ItemGroup>
 </Project>
+

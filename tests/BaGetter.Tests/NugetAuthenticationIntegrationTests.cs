@@ -45,6 +45,16 @@ public class NugetAuthenticationIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task AnonymousUiAccess_WhenAnonymousNotAllowed_ReturnsUnauthorized()
+    {
+        // Act
+        using var response = await _client.GetAsync("/");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task ValidCredentialsAccess_WhenAnonymousNotAllowed_ReturnsOk()
     {
         // Arrange
@@ -52,6 +62,19 @@ public class NugetAuthenticationIntegrationTests : IDisposable
 
         // Act
         using var response = await _client.GetAsync("v3/index.json");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ValidCredentialsUiAccess_WhenAnonymousNotAllowed_ReturnsOk()
+    {
+        // Arrange
+        _client.DefaultRequestHeaders.Authorization = new(AuthenticationConstants.NugetBasicAuthenticationScheme, $"{Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Username}:{Password}"))}");
+
+        // Act
+        using var response = await _client.GetAsync("/");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

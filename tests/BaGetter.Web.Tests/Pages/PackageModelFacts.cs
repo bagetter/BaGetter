@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Versioning;
 using Xunit;
@@ -27,11 +28,15 @@ public class PackageModelFacts
         _packages = new Mock<IPackageService>();
         _search = new Mock<ISearchService>();
         _url = new Mock<IUrlGenerator>();
+        var options = new Mock<IOptionsSnapshot<BaGetterOptions>>();
+        options.Setup(o => o.Value).Returns(new BaGetterOptions());
+
         _target = new PackageModel(
             _packages.Object,
             _content.Object,
             _search.Object,
-            _url.Object);
+            _url.Object,
+            options.Object);
 
         _search
             .Setup(s => s.FindDependentsAsync("testpackage", _cancellation))

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
@@ -7,16 +7,21 @@ using BaGetter.Core;
 using BaGetter.Protocol.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Options;
 
 namespace BaGetter.Web;
 
 public class IndexModel : PageModel
 {
     private readonly ISearchService _search;
+    private readonly IOptionsSnapshot<BaGetterOptions> _options;
 
-    public IndexModel(ISearchService search)
+    public IndexModel(
+        ISearchService search,
+        IOptionsSnapshot<BaGetterOptions> options)
     {
         _search = search ?? throw new ArgumentNullException(nameof(search));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     public const int ResultsPerPage = 20;
@@ -38,6 +43,8 @@ public class IndexModel : PageModel
     public bool Prerelease { get; set; } = true;
 
     public IReadOnlyList<SearchResult> Packages { get; private set; }
+    public bool IsReadOnlyMode => _options.Value.IsReadOnlyMode;
+    public bool CanDeletePackages => !IsReadOnlyMode && User.IsInRole("Admin");
 
     public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
     {

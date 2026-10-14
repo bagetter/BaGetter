@@ -1,0 +1,105 @@
+---
+# Production values for the devop BaGetter mirror (nuget.devop.is). Faithfully
+# reproduces the live deployment (now on PostgreSQL) so Helm can take it over.
+# image.repository/tag are set by the Jenkinsfile via --set.
+#
+# Required in the namespace (NOT created by this chart):
+#   secret bagetter-secret : api-key, user-valdi-password, user-nexer-password
+#   secret bagetter-db     : connstring (PostgreSQL DSN)
+#   secret bagetter-mirror : Mirrors__N__* upstreams (0 hangfire-pro, 1 hangfire-ace, 2 nuget.org)
+#   secret bagetter-tls    : TLS cert for nuget.devop.is
+#   secret nexus-registry  : Harbor pull secret (robot$k8s-pull)
+#   the Postgres StatefulSet from ../../postgres.yaml
+#   PVC bagetter-data (existing)
+
+controllers:
+  bagetter:
+    pod:
+      imagePullSecrets:
+        - name: nexus-registry
+    containers:
+      bagetter:
+        image:
+          repository: registry.devop.is/nexus/bagetter
+          tag: latest
+          pullPolicy: IfNotPresent
+        env:
+          ASPNETCORE_URLS: "http://+:8080"
+          Storage__Type: FileSystem
+          Storage__Path: /data/packages
+          Search__Type: Database
+          Database__Type: PostgreSql
+          Database__ConnectionString:
+            valueFrom:
+              secretKeyRef:
+                name: bagetter-db
+                key: connstring
+          # Vestigial single-mirror setting; superseded by the Mirrors__* array
+          # (from the bagetter-mirror secret) but kept to match the live config.
+          Mirror__Enabled: "true"
+          Mirror__PackageSource: "https://api.nuget.org/v3/index.json"
+          ApiKey:
+            valueFrom:
+              secretKeyRef:
+                name: bagetter-secret
+                key: api-key
+          Authentication__Credentials__0__Username: valdi
+          Authentication__Credentials__0__Roles__0: Admin
+          Authentication__Credentials__0__Password:
+            valueFrom:
+              secretKeyRef:
+                name: bagetter-secret
+                key: user-valdi-password
+          Authentication__Credentials__1__Username: nexer.usr
+          Authentication__Credentials__1__Password:
+            valueFrom:
+              secretKeyRef:
+                name: bagetter-secret
+                key: user-nexer-password
+        envFrom:
+          # Read-through upstream mirrors: slot0 hangfire-pro, slot1 hangfire-ace,
+          # slot2 nuget.org (all Mirrors__N__* keys load as env vars).
+          - secretRef:
+              name: bagetter-mirror
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 768Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: false
+
+service:
+  bagetter-srv:
+    controller: bagetter
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  bagetter-ingress:
+    enabled: true
+    className: traefik
+    hosts:
+      - host: nuget.devop.is
+        paths:
+          - path: /
+            service:
+              identifier: bagetter-srv
+              port: http
+    tls:
+      - hosts:
+          - nuget.devop.is
+        secretName: bagetter-tls
+
+persistence:
+  bagetter-data:
+    enabled: true
+    existingClaim: bagetter-data
+    globalMounts:
+      - path: /data

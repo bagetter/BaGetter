@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 
     <PackageTags>NuGet</PackageTags>
     <Description>BaGetter's NuGet server implementation</Description>
@@ -24,3 +24,4 @@
   </ItemGroup>  
 
 </Project>
+

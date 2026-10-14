@@ -69,7 +69,12 @@ public class PackageIndexingServiceTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-        _packages.Setup(p => p.ExistsAsync(builder.Id, builder.Version, default)).ReturnsAsync(true);
+        _packages.Setup(p => p.FindOrNullAsync(builder.Id, builder.Version, true, default)).ReturnsAsync(new Package
+        {
+            Id = builder.Id,
+            Version = builder.Version,
+            Listed = true,
+        });
 
         // Act
         var result = await _target.IndexAsync(stream, default);
@@ -99,7 +104,12 @@ public class PackageIndexingServiceTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-        _packages.Setup(p => p.ExistsAsync(builder.Id, builder.Version, default)).ReturnsAsync(true);
+        _packages.Setup(p => p.FindOrNullAsync(builder.Id, builder.Version, true, default)).ReturnsAsync(new Package
+        {
+            Id = builder.Id,
+            Version = builder.Version,
+            Listed = true,
+        });
         _packages.Setup(p => p.HardDeletePackageAsync(builder.Id, builder.Version, default)).ReturnsAsync(true);
         _packages.Setup(p => p.AddAsync(It.Is<Package>(p1 => p1.Id == builder.Id && p1.Version.ToString() == builder.Version.ToString()), default)).ReturnsAsync(PackageAddResult.Success);
 
@@ -136,7 +146,12 @@ public class PackageIndexingServiceTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-        _packages.Setup(p => p.ExistsAsync(builder.Id, builder.Version, default)).ReturnsAsync(true);
+        _packages.Setup(p => p.FindOrNullAsync(builder.Id, builder.Version, true, default)).ReturnsAsync(new Package
+        {
+            Id = builder.Id,
+            Version = builder.Version,
+            Listed = true,
+        });
         _packages.Setup(p => p.HardDeletePackageAsync(builder.Id, builder.Version, default)).ReturnsAsync(true);
         _packages.Setup(p => p.AddAsync(It.Is<Package>(p1 => p1.Id == builder.Id && p1.Version.ToString() == builder.Version.ToString()), default)).ReturnsAsync(PackageAddResult.Success);
 
@@ -173,7 +188,12 @@ public class PackageIndexingServiceTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-        _packages.Setup(p => p.ExistsAsync(builder.Id, builder.Version, default)).ReturnsAsync(true);
+        _packages.Setup(p => p.FindOrNullAsync(builder.Id, builder.Version, true, default)).ReturnsAsync(new Package
+        {
+            Id = builder.Id,
+            Version = builder.Version,
+            Listed = true,
+        });
 
         // Act
         var result = await _target.IndexAsync(stream, default);
@@ -202,9 +222,52 @@ public class PackageIndexingServiceTests
         });
         var stream = new MemoryStream();
         builder.Save(stream);
-        _packages.Setup(p => p.ExistsAsync(builder.Id, builder.Version, default)).ReturnsAsync(false);
+        _packages.Setup(p => p.FindOrNullAsync(builder.Id, builder.Version, true, default)).ReturnsAsync((Package)null);
         _packages.Setup(p => p.AddAsync(It.Is<Package>(p1 => p1.Id == builder.Id && p1.Version.ToString() == builder.Version.ToString()), default)).ReturnsAsync(PackageAddResult.Success);
 
+        _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
+
+        _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _target.IndexAsync(stream, default);
+
+        // Assert
+        Assert.Equal(PackageIndexingResult.Success, result);
+    }
+
+    [Fact]
+    public async Task IndexAsync_WhenPackageAlreadyExistsButUnlisted_AndOverwriteForbidden_IndexesPackage()
+    {
+        // Arrange
+        _mockOptions.AllowPackageOverwrites = PackageOverwriteAllowed.False;
+
+        var builder = new PackageBuilder
+        {
+            Id = "bagetter-test",
+            Version = NuGetVersion.Parse("1.0.0"),
+            Description = "Test Description",
+        };
+        builder.Authors.Add("Test Author");
+        var assemblyFile = GetType().Assembly.Location;
+        builder.Files.Add(new PhysicalPackageFile
+        {
+            SourcePath = assemblyFile,
+            TargetPath = "lib/Test.dll"
+        });
+        var stream = new MemoryStream();
+        builder.Save(stream);
+
+        _packages.Setup(p => p.FindOrNullAsync(builder.Id, builder.Version, true, default)).ReturnsAsync(new Package
+        {
+            Id = builder.Id,
+            Version = builder.Version,
+            Listed = false,
+        });
+        _packages.Setup(p => p.HardDeletePackageAsync(builder.Id, builder.Version, default)).ReturnsAsync(true);
+        _packages.Setup(p => p.AddAsync(It.Is<Package>(p1 => p1.Id == builder.Id && p1.Version.ToString() == builder.Version.ToString()), default)).ReturnsAsync(PackageAddResult.Success);
+
+        _storage.Setup(s => s.DeleteAsync(builder.Id, builder.Version, default)).Returns(Task.CompletedTask);
         _storage.Setup(s => s.SavePackageContentAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), stream, It.IsAny<FileStream>(), default, default, default)).Returns(Task.CompletedTask);
 
         _search.Setup(s => s.IndexAsync(It.Is<Package>(p => p.Id == builder.Id && p.Version.ToString() == builder.Version.ToString()), default)).Returns(Task.CompletedTask);
