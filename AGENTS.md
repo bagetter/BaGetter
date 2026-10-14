@@ -36,9 +36,3 @@
 - Keep `nuget.config` and feed credentials out of source control.
 - LDAP `BindPassword` must remain a retrievable secret, not a one-way hash. It should be supplied through environment variables, secret files, or another secret store because LDAP bind requires the original password at runtime.
 - LDAP uses `System.DirectoryServices.Protocols`, which is cross-platform. When changing LDAP behavior, preserve non-Windows compatibility and document any OS-level LDAPS certificate trust requirements for Linux/macOS deployments.
-
-## MCP & Documentation Lookup
-- Prefer MCP Context7 when the user asks about library/framework docs, API usage, or code examples.
-- Use Context7 proactively when it can improve solution quality or reduce ambiguity, even if not explicitly requested.
-- Resolve the library ID first, then query docs with focused questions.
-- Treat Context7 as the primary source for usage guidance before falling back to memory.
