@@ -24,6 +24,16 @@ public enum PackageIndexingResult
     /// The package has been indexed successfully.
     /// </summary>
     Success,
+
+    /// <summary>
+    /// A dependency of the pushed package has a version range that cannot be parsed.
+    /// </summary>
+    InvalidDependencyVersionRange,
+
+    /// <summary>
+    /// The pushed package's manifest has no authors or no description.
+    /// </summary>
+    MissingRequiredMetadata,
 }
 
 /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using BaGetter.Core.Tests.Support;
@@ -63,6 +64,42 @@ public class PackageIndexingServiceInMemoryTests
     }
 
     // TODO: Add malformed package tests
+
+    [Theory]
+    [InlineData("<authors>Test Author</authors><description>Test Description</description><dependencies><dependency id=\"Dependency\" version=\"[1.0\" /></dependencies>", PackageIndexingResult.InvalidDependencyVersionRange)]
+    [InlineData("<authors>Test Author</authors><description>Test Description</description><dependencies><group targetFramework=\"net8.0\"><dependency id=\"Dependency\" version=\"[1.0\" /></group></dependencies>", PackageIndexingResult.InvalidDependencyVersionRange)]
+    [InlineData("<description>Test Description</description>", PackageIndexingResult.MissingRequiredMetadata)]
+    [InlineData("<authors> </authors><description>Test Description</description>", PackageIndexingResult.MissingRequiredMetadata)]
+    [InlineData("<authors>Test Author</authors>", PackageIndexingResult.MissingRequiredMetadata)]
+    [InlineData("<authors>Test Author</authors><description>Test Description</description>", PackageIndexingResult.Success)]
+    [InlineData("<authors>Test Author</authors><description>Test Description</description><dependencies><group targetFramework=\"net8.0\" /></dependencies>", PackageIndexingResult.Success)]
+    [InlineData("<authors>Test Author</authors><description>Test Description</description><dependencies><group targetFramework=\"net8.0\"><dependency id=\"Dependency\" version=\"[1.0, 2.0)\" /></group></dependencies>", PackageIndexingResult.Success)]
+    public async Task IndexIMAsync_WhenPushed_ValidatesManifest(string metadata, PackageIndexingResult expected)
+    {
+        // Arrange
+        var stream = CreatePackage(metadata);
+        _search.Setup(s => s.IndexAsync(It.IsAny<Package>(), default)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _target.IndexAsync(stream, default);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task IndexIMAsync_WhenCachedFromUpstream_DoesNotValidateManifest()
+    {
+        // Arrange
+        var stream = CreatePackage("<description>Test Description</description><dependencies><dependency id=\"Dependency\" version=\"[1.0\" /></dependencies>");
+        _search.Setup(s => s.IndexAsync(It.IsAny<Package>(), default)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _target.IndexAsync(stream, "https://api.nuget.org/v3/index.json", default);
+
+        // Assert
+        Assert.Equal(PackageIndexingResult.Success, result);
+    }
 
     [Fact]
     public async Task IndexIMAsync_WhenPackageAlreadyExists_AndOverwriteForbidden_ReturnsPackageAlreadyExists()
@@ -319,4 +356,22 @@ public class PackageIndexingServiceInMemoryTests
         return builder;
     }
 
+    private static MemoryStream CreatePackage(string metadata)
+    {
+        var nuspec =
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+            + "<package xmlns=\"http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd\">"
+            + "<metadata><id>bagetter-test</id><version>1.0.0</version>" + metadata + "</metadata>"
+            + "</package>";
+
+        var stream = new MemoryStream();
+        using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            using var writer = new StreamWriter(archive.CreateEntry("bagetter-test.nuspec").Open());
+            writer.Write(nuspec);
+        }
+
+        stream.Position = 0;
+        return stream;
+    }
 }

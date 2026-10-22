@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGetter.Core;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -59,6 +61,14 @@ public class PackagePublishController : Controller
             {
                 case PackageIndexingResult.InvalidPackage:
                     HttpContext.Response.StatusCode = 400;
+                    break;
+
+                case PackageIndexingResult.InvalidDependencyVersionRange:
+                    await RejectAsync("A dependency has an invalid version range", cancellationToken);
+                    break;
+
+                case PackageIndexingResult.MissingRequiredMetadata:
+                    await RejectAsync("The package must have authors and a description", cancellationToken);
                     break;
 
                 case PackageIndexingResult.PackageAlreadyExists:
@@ -132,5 +142,18 @@ public class PackagePublishController : Controller
         {
             return NotFound();
         }
+    }
+
+    // NuGet clients show the reason phrase of a failed push.
+    private async Task RejectAsync(string reason, CancellationToken cancellationToken)
+    {
+        HttpContext.Response.StatusCode = 400;
+        var responseFeature = HttpContext.Features.Get<IHttpResponseFeature>();
+        if (responseFeature != null)
+        {
+            responseFeature.ReasonPhrase = reason;
+        }
+
+        await HttpContext.Response.WriteAsync(reason, cancellationToken);
     }
 }

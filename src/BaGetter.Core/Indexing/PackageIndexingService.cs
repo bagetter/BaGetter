@@ -1,10 +1,12 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 
 namespace BaGetter.Core;
 
@@ -61,6 +63,17 @@ public class PackageIndexingService : IPackageIndexingService
         try
         {
             using var packageReader = new PackageArchiveReader(packageStream, leaveStreamOpen: true);
+
+            // Packages cached from an upstream feed were already accepted there, so only pushes are validated.
+            if (cacheFeedUrl == null)
+            {
+                var validationResult = ValidateManifest(packageReader.NuspecReader);
+                if (validationResult != PackageIndexingResult.Success)
+                {
+                    return validationResult;
+                }
+            }
+
             package = packageReader.GetPackageMetadata();
             package.CachedFrom = cacheFeedUrl;
             package.Published = _time.UtcNow;
@@ -210,6 +223,37 @@ public class PackageIndexingService : IPackageIndexingService
             "Successfully indexed package {Id} {Version} in search",
             package.Id,
             package.NormalizedVersionString);
+
+        return PackageIndexingResult.Success;
+    }
+
+    // Authors and description are required, see https://learn.microsoft.com/en-us/nuget/reference/nuspec#required-metadata-elements
+    private PackageIndexingResult ValidateManifest(NuspecReader nuspec)
+    {
+        if (string.IsNullOrWhiteSpace(nuspec.GetAuthors()) || string.IsNullOrWhiteSpace(nuspec.GetDescription()))
+        {
+            _logger.LogWarning(
+                "Pushed package {PackageId} {PackageVersion} has no authors or no description",
+                nuspec.GetId(),
+                nuspec.GetVersion());
+
+            return PackageIndexingResult.MissingRequiredMetadata;
+        }
+
+        try
+        {
+            _ = nuspec.GetDependencyGroups(useStrictVersionCheck: true).ToList();
+        }
+        catch (PackagingException e)
+        {
+            _logger.LogWarning(
+                e,
+                "Pushed package {PackageId} {PackageVersion} has a dependency with an invalid version range",
+                nuspec.GetId(),
+                nuspec.GetVersion());
+
+            return PackageIndexingResult.InvalidDependencyVersionRange;
+        }
 
         return PackageIndexingResult.Success;
     }
